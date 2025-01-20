@@ -47,7 +47,35 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) 
               className="col-span-3"
             />
           </div>
-          {/* Repeat for other fields */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="email" className="text-right">
+              Email
+            </Label>
+            <Input
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="phone" className="text-right">
+              Phone
+            </Label>
+            <Input
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="col-span-3"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button type="submit" onClick={handleSubmit}>
             Submit
           </Button>
