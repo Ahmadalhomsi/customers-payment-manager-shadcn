@@ -186,13 +186,9 @@ export default function CustomersPage() {
         loadingOnModal={loadingOnModal}
         selectedCustomer={selectedCustomer}
         onEditService={(service) => {
-          setSelectedService({
-            ...service,
-            startingDate: "",
-            endingDate: parseDate(format(service.endingDate.toString().split('T')[0], 'yyyy-MM-dd'))
-          })
-          setServicesViewModalVisible(false)
-          setServiceModalVisible(true)
+          setSelectedService(service); // Keep the service data including dates
+          setServicesViewModalVisible(false);
+          setServiceModalVisible(true);
         }}
         onDeleteService={(service) => {
           setSelectedService(service)

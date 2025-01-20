@@ -35,8 +35,8 @@ const INITIAL_FORM_STATE = {
   paymentType: "Monthly",
   periodPrice: 0,
   currency: "TL",
-  startingDate: "",
-  endingDate: "",
+  startingDate: null,
+  endingDate: null,
 }
 
 export function ServiceModal({
@@ -49,8 +49,16 @@ export function ServiceModal({
   const [formData, setFormData] = useState(INITIAL_FORM_STATE)
 
   useEffect(() => {
-    setFormData(selectedService ?? INITIAL_FORM_STATE)
-  }, [selectedService])
+    if (selectedService) {
+      setFormData({
+        ...selectedService,
+        startingDate: new Date(selectedService.startingDate),
+        endingDate: selectedService.endingDate ? new Date(selectedService.endingDate) : null,
+      });
+    } else {
+      setFormData(INITIAL_FORM_STATE);
+    }
+  }, [selectedService]);
 
   const handleChange = (name, value) => {
     setFormData((prev) => ({
@@ -140,7 +148,7 @@ export function ServiceModal({
                 min="0"
                 step="0.01"
                 value={formData.periodPrice}
-                onChange={(e) => 
+                onChange={(e) =>
                   handleChange("periodPrice", parseFloat(e.target.value) || 0)
                 }
                 className="flex-1"
