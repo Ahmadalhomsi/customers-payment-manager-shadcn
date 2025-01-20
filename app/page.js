@@ -10,7 +10,7 @@ import { DeleteConfirmModal } from '../components/mainPage/DeleteConfirmModal'
 import { ServiceModal } from '../components/mainPage/ServiceModal'
 import { ServicesViewModal } from '../components/mainPage/ServicesViewModal'
 // import { ReminderModal } from '../components/mainPage/ReminderModal'
-// import { ReminderViewModal } from '../components/mainPage/ReminderViewModal'
+import { ReminderViewModal } from '../components/mainPage/ReminderViewModal'
 import { Plus, Mail } from 'lucide-react'
 
 export default function CustomersPage() {
@@ -192,7 +192,7 @@ export default function CustomersPage() {
         }}
       />
 
-      {/* <ReminderViewModal
+      <ReminderViewModal
         visible={reminderViewModalVisible}
         onClose={() => {
           setReminderViewModalVisible(false)
@@ -215,7 +215,7 @@ export default function CustomersPage() {
           setDeleteReminderConfirmVisible(true)
         }}
         loading={loadingOnModal}
-      /> */}
+      />
     </div>
   )
 }
