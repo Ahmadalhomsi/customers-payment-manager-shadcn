@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 
 
 export async function GET(req, { params }) {
-    const { id } = params;
+    const { id } = await params;
 
     try {
         const customer = await prisma.customer.findUnique({
@@ -17,7 +17,7 @@ export async function GET(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
-    const { id } = params;
+    const { id } = await params;
     const { name, email } = await req.json();
     try {
         const customer = await prisma.customer.update({
@@ -32,7 +32,7 @@ export async function PUT(req, { params }) {
 }
 
 export async function DELETE(req, { params }) {
-    const { id } = params;
+    const { id } = await params;
     try {
         await prisma.customer.delete({
             where: { id: id },

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 
 export async function GET(req, { params }) {
-    const { id } = params;
+    const { id } = await params;
     try {
         const services = await prisma.service.findMany({
             where: { customerID: id },
@@ -19,7 +19,7 @@ export async function GET(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
-    const { id } = params;
+    const { id } = await params;
     const data = await req.json();
     let startingDate = data.startingDate;
     let endingDate = data.endingDate;
@@ -51,7 +51,7 @@ export async function PUT(req, { params }) {
 }
 
 export async function DELETE(req, { params }) {
-    const { id } = params;
+    const { id } = await params;
     try {
         await prisma.service.delete({
             where: { id: id },

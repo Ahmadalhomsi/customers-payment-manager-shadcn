@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 
 
 export async function GET(req, { params }) {
-    const { id } = params;
+    const { id } = await params;
 
     try {
         const reminder = await prisma.reminder.findMany({
@@ -36,7 +36,7 @@ export async function PUT(req, { params }) {
 }
 
 export async function DELETE(req, { params }) {
-    const { id } = params;
+    const { id } = await params;
     try {
         await prisma.reminder.delete({
             where: { id: id },
