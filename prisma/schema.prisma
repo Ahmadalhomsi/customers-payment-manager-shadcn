@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id    String  @id @default(cuid())
+  name  String
+  email String  @unique
+  phone String?
+
+  // Relations
+  services Service[] @relation("CustomerToService")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id          String @id @default(cuid())
+  name        String
+  description String
+  paymentType String // Monthly, Yearly
+  periodPrice Float
+  currency    String @default("TL")
+
+  startingDate DateTime
+  endingDate   DateTime
+
+  // Relations
+  customerID String
+  customer   Customer   @relation("CustomerToService", fields: [customerID], references: [id], onDelete: Cascade)
+  reminders  Reminder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reminder {
+  id          String         @id @default(cuid())
+  scheduledAt DateTime
+  status      ReminderStatus @default(SCHEDULED)
+  message     String?
+
+  // Relations
+  serviceID String
+  service   Service @relation(fields: [serviceID], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ReminderStatus {
+  SCHEDULED
+  SENT
+  CANCELED
+  FAILED
+}
+
+model FailedLoginAttempt {
+  id           String    @id @default(cuid())
+  ipAddress    String    @unique
+  attempts     Int       @default(0)
+  lastAttempt  DateTime  @updatedAt
+  blockedUntil DateTime? // Optional: If blocked, until when it's blocked
+}
