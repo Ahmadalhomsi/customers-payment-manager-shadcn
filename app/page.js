@@ -188,7 +188,7 @@ export default function CustomersPage() {
         onEditService={(service) => {
           setSelectedService({
             ...service,
-            startingDate: parseDate(format(service.startingDate.toString().split('T')[0], 'yyyy-MM-dd')),
+            startingDate: "",
             endingDate: parseDate(format(service.endingDate.toString().split('T')[0], 'yyyy-MM-dd'))
           })
           setServicesViewModalVisible(false)
