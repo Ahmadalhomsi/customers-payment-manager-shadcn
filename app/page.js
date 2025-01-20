@@ -14,7 +14,6 @@ import { ReminderViewModal } from '../components/mainPage/ReminderViewModal'
 import { Plus, Mail } from 'lucide-react'
 
 export default function CustomersPage() {
-  // State management remains similar
   const [customers, setCustomers] = useState([])
   const [services, setServices] = useState([])
   const [customerModalVisible, setCustomerModalVisible] = useState(false)
@@ -32,6 +31,10 @@ export default function CustomersPage() {
   const [deleteReminderConfirmVisible, setDeleteReminderConfirmVisible] = useState(false);
   const [reminderToDelete, setReminderToDelete] = useState(null);
   const [sortConfig, setSortConfig] = useState(null);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
 
   const handleDeleteCustomer = async () => {
     if (selectedCustomer) {
@@ -88,6 +91,17 @@ export default function CustomersPage() {
     }
   }
 
+  async function fetchServices(customerId) {
+    setLoadingOnModal(true);
+    try {
+      const response = await axios.get(`/api/services/${customerId}`);
+      setServices(response.data);
+    } catch (error) {
+      console.log('Error fetching services:', error);
+    }
+    setLoadingOnModal(false);
+  }
+
   // Modal handlers remain similar
   const handleCustomerSubmit = async (formData) => {
     try {
@@ -109,9 +123,9 @@ export default function CustomersPage() {
         <Button onClick={() => setCustomerModalVisible(true)}>
           <Plus className="mr-2 h-4 w-4" /> Create Customer
         </Button>
-        {/* <Button variant="outline" onClick={sendSMTPemail}>
+        <Button variant="outline" onClick={sendSMTPemail}>
           <Mail className="mr-2 h-4 w-4" /> Send Email
-        </Button> */}
+        </Button>
       </div>
 
       <CustomerTable
