@@ -1,101 +1,221 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import { format } from 'date-fns'
+import { Button } from '@/components/ui/button'
+import { CustomerTable } from '../components/mainPage/CustomerTable'
+import { CustomerModal } from '../components/mainPage/CustomerModal'
+import { DeleteConfirmModal } from '../components/mainPage/DeleteConfirmModal'
+import { ServiceModal } from '../components/mainPage/ServiceModal'
+import { ServicesViewModal } from '../components/mainPage/ServicesViewModal'
+// import { ReminderModal } from '../components/mainPage/ReminderModal'
+// import { ReminderViewModal } from '../components/mainPage/ReminderViewModal'
+import { Plus, Mail } from 'lucide-react'
+
+export default function CustomersPage() {
+  // State management remains similar
+  const [customers, setCustomers] = useState([])
+  const [services, setServices] = useState([])
+  const [customerModalVisible, setCustomerModalVisible] = useState(false)
+  const [deleteCustomerConfirmVisible, setDeleteCustomerConfirmVisible] = useState(false)
+  const [serviceModalVisible, setServiceModalVisible] = useState(false)
+  const [servicesViewModalVisible, setServicesViewModalVisible] = useState(false)
+  const [deleteServiceConfirmVisible, setDeleteServiceConfirmVisible] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedService, setSelectedService] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingOnModal, setLoadingOnModal] = useState(true);
+  const [selectedReminder, setSelectedReminder] = useState(null);
+  const [reminderModalVisible, setReminderModalVisible] = useState(false);
+  const [reminderViewModalVisible, setReminderViewModalVisible] = useState(false);
+  const [deleteReminderConfirmVisible, setDeleteReminderConfirmVisible] = useState(false);
+  const [reminderToDelete, setReminderToDelete] = useState(null);
+  const [sortConfig, setSortConfig] = useState(null);
+
+  const handleDeleteCustomer = async () => {
+    if (selectedCustomer) {
+      try {
+        await axios.delete(`/api/customers/${selectedCustomer.id}`);
+        fetchCustomers();
+        setDeleteCustomerConfirmVisible(false);
+      } catch (error) {
+        console.log('Error deleting customer:', error);
+      }
+    }
+  };
+
+  const handleServiceSubmit = async (serviceFormData) => {
+    try {
+      if (selectedCustomer) {
+        if (selectedService) {
+          await axios.put(`/api/services/${selectedService.id}`, {
+            ...serviceFormData,
+            customerID: selectedCustomer.id
+          });
+        } else {
+          await axios.post(`/api/services`, {
+            ...serviceFormData,
+            customerID: selectedCustomer.id
+          });
+        }
+        setServiceModalVisible(false);
+        if (servicesViewModalVisible) {
+          await fetchServices(selectedCustomer.id);
+        }
+      }
+    } catch (error) {
+      console.log('Error adding/updating service:', error);
+    }
+  };
+
+  const sendSMTPemail = async () => {
+    try {
+      const res = await axios.post('/api/mailer')
+      console.log('Email sent successfully');
+    } catch (error) {
+      console.log('Error sending email:', error);
+    }
+  }
+
+  // Fetch functions remain the same
+  async function fetchCustomers() {
+    try {
+      const response = await axios.get('/api/customers')
+      setCustomers(response.data)
+    } catch (error) {
+      console.log('Error fetching customers:', error)
+    }
+  }
+
+  // Modal handlers remain similar
+  const handleCustomerSubmit = async (formData) => {
+    try {
+      if (selectedCustomer) {
+        await axios.put(`/api/customers/${selectedCustomer.id}`, formData)
+      } else {
+        await axios.post('/api/customers', formData)
+      }
+      fetchCustomers()
+      setCustomerModalVisible(false)
+    } catch (error) {
+      console.log('Error submitting customer:', error)
+    }
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="p-4">
+      <div className="flex gap-2 mb-4">
+        <Button onClick={() => setCustomerModalVisible(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Create Customer
+        </Button>
+        {/* <Button variant="outline" onClick={sendSMTPemail}>
+          <Mail className="mr-2 h-4 w-4" /> Send Email
+        </Button> */}
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      <CustomerTable
+        customers={customers}
+        loading={loading}
+        sortConfig={sortConfig}
+        setSortConfig={setSortConfig}
+        onEdit={(customer) => {
+          setSelectedCustomer(customer)
+          setCustomerModalVisible(true)
+        }}
+        onDelete={(customer) => {
+          setSelectedCustomer(customer)
+          setDeleteCustomerConfirmVisible(true)
+        }}
+        onAddService={(customer) => {
+          setSelectedCustomer(customer)
+          setServiceModalVisible(true)
+        }}
+        onViewServices={(customer) => {
+          fetchServices(customer.id)
+          setSelectedCustomer(customer)
+          setServicesViewModalVisible(true)
+        }}
+      />
+
+      {/* Modals */}
+      <CustomerModal
+        visible={customerModalVisible}
+        onClose={() => setCustomerModalVisible(false)}
+        onSubmit={handleCustomerSubmit}
+        selectedCustomer={selectedCustomer}
+      />
+
+      <DeleteConfirmModal
+        visible={deleteCustomerConfirmVisible}
+        onClose={() => setDeleteCustomerConfirmVisible(false)}
+        onConfirm={handleDeleteCustomer}
+        itemName={selectedCustomer?.name}
+        itemType="customer"
+      />
+
+      <ServiceModal
+        visible={serviceModalVisible}
+        onClose={() => setServiceModalVisible(false)}
+        onSubmit={handleServiceSubmit}
+        selectedCustomer={selectedCustomer}
+        selectedService={selectedService}
+      />
+
+      <ServicesViewModal
+        visible={servicesViewModalVisible}
+        onClose={() => {
+          setServicesViewModalVisible(false)
+          setServices([])
+        }}
+        services={services}
+        loadingOnModal={loadingOnModal}
+        selectedCustomer={selectedCustomer}
+        onEditService={(service) => {
+          setSelectedService({
+            ...service,
+            startingDate: parseDate(format(service.startingDate.toString().split('T')[0], 'yyyy-MM-dd')),
+            endingDate: parseDate(format(service.endingDate.toString().split('T')[0], 'yyyy-MM-dd'))
+          })
+          setServicesViewModalVisible(false)
+          setServiceModalVisible(true)
+        }}
+        onDeleteService={(service) => {
+          setSelectedService(service)
+          setServicesViewModalVisible(false)
+          setDeleteServiceConfirmVisible(true)
+        }}
+        onViewReminders={(service) => {
+          setSelectedService(service)
+          setServicesViewModalVisible(false)
+          setReminderViewModalVisible(true)
+        }}
+      />
+
+      {/* <ReminderViewModal
+        visible={reminderViewModalVisible}
+        onClose={() => {
+          setReminderViewModalVisible(false)
+          setSelectedService(null)
+        }}
+        reminders={selectedService?.reminders || []}
+        onCreateNewReminder={() => {
+          setReminderModalVisible(true)
+        }}
+        onEditReminder={(reminder) => {
+          setSelectedReminder({
+            ...reminder,
+            scheduledAt: parseDate(format(reminder.scheduledAt.toString().split('T')[0], 'yyyy-MM-dd'))
+          })
+          setReminderViewModalVisible(false)
+          setReminderModalVisible(true)
+        }}
+        onDeleteReminder={(reminder) => {
+          setReminderToDelete(reminder)
+          setDeleteReminderConfirmVisible(true)
+        }}
+        loading={loadingOnModal}
+      /> */}
     </div>
-  );
+  )
 }
