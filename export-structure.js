@@ -3,8 +3,8 @@
   node export-structure.js
 */
 
-import { readdirSync, statSync, readFileSync, createWriteStream } from 'fs';
-import { join, relative } from 'path';
+const { readdirSync, statSync, readFileSync, createWriteStream } = require('fs');
+const { join, relative } = require('path');
 
 // Directory to scan
 const dir = '.';
