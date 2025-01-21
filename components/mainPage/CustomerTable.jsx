@@ -100,7 +100,7 @@ export function CustomerTable({
             >
               <TableCell className="font-medium">{customer.name}</TableCell>
               <TableCell>
-                <Badge className={statusColors[customer.status] || 'bg-gray-100'}>
+                <Badge className={statusColors[customer.status] || 'bg-gray-500'}>
                   {customer.status || 'N/A'}
                 </Badge>
               </TableCell>
