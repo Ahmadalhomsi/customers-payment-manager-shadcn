@@ -39,7 +39,7 @@ model Service {
   id          String @id @default(cuid())
   name        String
   description String
-  paymentType String // Monthly, Yearly
+  paymentType String  @default("Yearly") // Monthly, Yearly
   periodPrice Float
   currency    String @default("TL")
 
