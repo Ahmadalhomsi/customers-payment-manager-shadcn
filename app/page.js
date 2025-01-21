@@ -148,8 +148,9 @@ export default function CustomersPage() {
           setDeleteCustomerConfirmVisible(true)
         }}
         onAddService={(customer) => {
-          setSelectedCustomer(customer)
-          setServiceModalVisible(true)
+          setSelectedCustomer(customer);
+          setSelectedService(null);  // Reset service selection
+          setServiceModalVisible(true);
         }}
         onViewServices={(customer) => {
           fetchServices(customer.id)
@@ -179,10 +180,14 @@ export default function CustomersPage() {
 
       <ServiceModal
         visible={serviceModalVisible}
-        onClose={() => setServiceModalVisible(false)}
+        onClose={() => {
+          setServiceModalVisible(false);
+          setSelectedService(null);  // Clear service selection
+          setSelectedCustomer(null); // Optional: Clear customer if needed
+        }}
         onSubmit={handleServiceSubmit}
         selectedCustomer={selectedCustomer}
-        selectedService={selectedService}
+        selectedService={selectedService}  // This should now be null for new services
       />
 
       <ServicesViewModal
