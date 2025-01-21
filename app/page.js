@@ -106,21 +106,27 @@ export default function CustomersPage() {
   const handleCustomerSubmit = async (formData) => {
     try {
       if (selectedCustomer) {
-        await axios.put(`/api/customers/${selectedCustomer.id}`, formData)
+        // Edit existing customer
+        await axios.put(`/api/customers/${selectedCustomer.id}`, formData);
       } else {
-        await axios.post('/api/customers', formData)
+        // Create new customer
+        await axios.post('/api/customers', formData);
       }
-      fetchCustomers()
-      setCustomerModalVisible(false)
+      fetchCustomers();
+      setCustomerModalVisible(false);
+      setSelectedCustomer(null); // Reset selected customer after submission
     } catch (error) {
-      console.log('Error submitting customer:', error)
+      console.log('Error submitting customer:', error);
     }
-  }
+  };
 
   return (
     <div className="p-4">
       <div className="flex gap-2 mb-4">
-        <Button onClick={() => setCustomerModalVisible(true)}>
+        <Button onClick={() => {
+          setSelectedCustomer(null); // Ensure selectedCustomer is reset
+          setCustomerModalVisible(true);
+        }}>
           <Plus className="mr-2 h-4 w-4" /> Create Customer
         </Button>
         <Button variant="outline" onClick={sendSMTPemail}>
@@ -155,7 +161,10 @@ export default function CustomersPage() {
       {/* Modals */}
       <CustomerModal
         visible={customerModalVisible}
-        onClose={() => setCustomerModalVisible(false)}
+        onClose={() => {
+          setCustomerModalVisible(false);
+          setSelectedCustomer(null); // Reset on close
+        }}
         onSubmit={handleCustomerSubmit}
         selectedCustomer={selectedCustomer}
       />

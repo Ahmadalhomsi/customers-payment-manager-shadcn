@@ -1,24 +1,29 @@
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useState } from "react";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "../ui/button";
-
 
 export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
 
+  useEffect(() => {
+    if (visible) {
+      setFormData(selectedCustomer ? { ...selectedCustomer } : { name: '', email: '', phone: '' });
+    }
+  }, [visible, selectedCustomer]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
   const handleSubmit = () => {
@@ -82,5 +87,5 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) 
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
