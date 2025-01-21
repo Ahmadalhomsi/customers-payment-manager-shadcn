@@ -16,22 +16,24 @@ export async function GET(req, { params }) {
     }
 }
 
-export async function PUT(req, { params }) {
-    const { id, scheduledAt, status, message } = params;
 
+export async function PUT(request, { params }) {
     try {
-        const reminder = await prisma.reminder.update({
-            where: { id: id },
+        const data = await request.json()
+        const updatedReminder = await prisma.reminder.update({
+            where: { id: params.id },
             data: {
-                scheduledAt,
-                status,
-                message
+                ...data,
+                scheduledAt: new Date(data.scheduledAt),
             },
-        });
-        return NextResponse.json(reminder, { status: 200 });
+            include: { service: true }
+        })
+        return NextResponse.json(updatedReminder)
     } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Failed to update reminder' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Error updating reminder' },
+            { status: 500 }
+        )
     }
 }
 

@@ -2,21 +2,22 @@ import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 import { NextResponse } from 'next/server';
 
 
-export async function POST(req) {
-    const { scheduledAt, message, serviceID } = await req.json();
-    
+export async function POST(request) {
     try {
+        const data = await request.json()
         const reminder = await prisma.reminder.create({
             data: {
-                scheduledAt,
-                message,
-                serviceID
+                ...data,
+                scheduledAt: new Date(data.scheduledAt),
             },
-        });
-        return NextResponse.json(reminder, { status: 201 });
+            include: { service: true }
+        })
+        return NextResponse.json(reminder)
     } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Failed to create reminder' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Error creating reminder' },
+            { status: 500 }
+        )
     }
 }
 

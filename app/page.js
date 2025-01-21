@@ -9,8 +9,9 @@ import { CustomerModal } from '../components/mainPage/CustomerModal'
 import { DeleteConfirmModal } from '../components/mainPage/DeleteConfirmModal'
 import { ServiceModal } from '../components/mainPage/ServiceModal'
 import { ServicesViewModal } from '../components/mainPage/ServicesViewModal'
-// import { ReminderModal } from '../components/mainPage/ReminderModal'
 import { ReminderViewModal } from '../components/mainPage/ReminderViewModal'
+import { ReminderModal } from '../components/mainPage/ReminderModal'
+
 import { Plus, Mail } from 'lucide-react'
 
 export default function CustomersPage() {
@@ -26,11 +27,12 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [loadingOnModal, setLoadingOnModal] = useState(true);
   const [selectedReminder, setSelectedReminder] = useState(null);
-  const [reminderModalVisible, setReminderModalVisible] = useState(false);
   const [reminderViewModalVisible, setReminderViewModalVisible] = useState(false);
   const [deleteReminderConfirmVisible, setDeleteReminderConfirmVisible] = useState(false);
   const [reminderToDelete, setReminderToDelete] = useState(null);
   const [sortConfig, setSortConfig] = useState(null);
+  const [reminderModalVisible, setReminderModalVisible] = useState(false)
+
 
   useEffect(() => {
     fetchCustomers();
@@ -119,6 +121,31 @@ export default function CustomersPage() {
       console.log('Error submitting customer:', error);
     }
   };
+
+  const handleReminderSubmit = async (reminderData) => {
+    try {
+      if (selectedReminder) {
+        await axios.put(`/api/reminders/${selectedReminder.id}`, reminderData)
+      } else {
+        await axios.post('/api/reminders', {
+          ...reminderData,
+          serviceID: selectedService.id,
+        })
+      }
+
+      // Refresh data
+      if (selectedService?.id) {
+        const serviceRes = await axios.get(`/api/services/${selectedService.id}`)
+        setSelectedService(serviceRes.data)
+        await fetchServices(selectedCustomer.id)
+      }
+
+      setReminderModalVisible(false)
+      setSelectedReminder(null)
+    } catch (error) {
+      console.log('Error saving reminder:', error)
+    }
+  }
 
   return (
     <div className="p-4">
@@ -224,12 +251,13 @@ export default function CustomersPage() {
         }}
         reminders={selectedService?.reminders || []}
         onCreateNewReminder={() => {
+          setSelectedReminder(null)
           setReminderModalVisible(true)
         }}
         onEditReminder={(reminder) => {
           setSelectedReminder({
             ...reminder,
-            scheduledAt: parseDate(format(reminder.scheduledAt.toString().split('T')[0], 'yyyy-MM-dd'))
+            scheduledAt: new Date(reminder.scheduledAt)
           })
           setReminderViewModalVisible(false)
           setReminderModalVisible(true)
@@ -239,6 +267,16 @@ export default function CustomersPage() {
           setDeleteReminderConfirmVisible(true)
         }}
         loading={loadingOnModal}
+      />
+
+      <ReminderModal
+        visible={reminderModalVisible}
+        onClose={() => {
+          setReminderModalVisible(false)
+          setSelectedReminder(null)
+        }}
+        onSubmit={handleReminderSubmit}
+        selectedReminder={selectedReminder}
       />
     </div>
   )
