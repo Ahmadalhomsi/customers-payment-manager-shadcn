@@ -3,6 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { cva } from "class-variance-authority";
+
+const themeSwitchVariants = cva(
+  "rounded-full hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+  // ... rest of the variant config
+);
 
 export function ThemeSwitch() {
   const [mounted, setMounted] = useState(false);
@@ -20,7 +26,7 @@ export function ThemeSwitch() {
     <Button
       variant="ghost"
       size="icon"
-      className="rounded-full hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className={themeSwitchVariants()}
       onClick={() => {
         if (theme === "dark") {
           setTheme("light");

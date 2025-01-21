@@ -64,7 +64,7 @@ export default function LoginPage() {
                                 onChange={(e) => setUsername(e.target.value)}
                             />
                         </div>
-                        
+
                         <div className="space-y-2 relative">
                             <Input
                                 type={isVisible ? "text" : "password"}
@@ -92,9 +92,9 @@ export default function LoginPage() {
                             </Alert>
                         )}
 
-                        <Button 
-                            type="submit" 
-                            className="w-full bg-[#f26000] hover:bg-[#d95600]"
+                        <Button
+                            type="submit"
+                            className="w-full bg-primary hover:bg-primary/90"
                         >
                             Login
                         </Button>
