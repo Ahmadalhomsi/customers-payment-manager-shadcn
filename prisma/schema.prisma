@@ -65,7 +65,7 @@ model Reminder {
   message   String?
   // Relations
   serviceID String
-  service   Service @relation(fields: [serviceID], references: [id])
+  service   Service @relation(fields: [serviceID], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
