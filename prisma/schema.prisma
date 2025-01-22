@@ -39,12 +39,13 @@ model Service {
   id          String @id @default(cuid())
   name        String
   description String
-  paymentType String  @default("Yearly") // Monthly, Yearly
+  paymentType String @default("Yearly") // Monthly, Yearly
   periodPrice Float
   currency    String @default("TL")
 
   startingDate DateTime
   endingDate   DateTime
+  // paid         Boolean  @default(false)
 
   // Relations
   customerID String
@@ -59,9 +60,8 @@ model Reminder {
   id          String         @id @default(cuid())
   scheduledAt DateTime
   status      ReminderStatus @default(SCHEDULED)
-  paid        Boolean        @default(false)
-  message     String?
 
+  message String?
   // Relations
   serviceID String
   service   Service @relation(fields: [serviceID], references: [id])

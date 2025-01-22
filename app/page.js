@@ -163,6 +163,7 @@ export default function CustomersPage() {
 
       <CustomerTable
         customers={customers}
+        services={services}
         loading={loading}
         sortConfig={sortConfig}
         setSortConfig={setSortConfig}
