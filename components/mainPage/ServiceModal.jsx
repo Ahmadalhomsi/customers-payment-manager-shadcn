@@ -33,7 +33,7 @@ const INITIAL_FORM_STATE = {
   name: "",
   description: "",
   paymentType: "Monthly",
-  periodPrice: 0,
+  periodPrice: '',
   currency: "TL",
   startingDate: null,
   endingDate: null,
