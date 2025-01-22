@@ -44,6 +44,7 @@ export function ServicesViewModal({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>ID/Token</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Payment Type</TableHead>
@@ -56,7 +57,7 @@ export function ServicesViewModal({
           <TableBody>
             {loadingOnModal ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
+                <TableCell colSpan={8} className="text-center py-8">
                   <div className="flex justify-center">
                     <BeatLoader color="#f26000" />
                   </div>
@@ -64,13 +65,14 @@ export function ServicesViewModal({
               </TableRow>
             ) : services.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={8} className="text-center">
                   No services found.
                 </TableCell>
               </TableRow>
             ) : (
               services.map((service) => (
                 <TableRow key={service.id}>
+                  <TableCell>{service.id}</TableCell>
                   <TableCell>{service.name}</TableCell>
                   <TableCell>{service.description}</TableCell>
                   <TableCell>{service.paymentType}</TableCell>
