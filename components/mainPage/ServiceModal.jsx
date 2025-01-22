@@ -49,20 +49,29 @@ export function ServiceModal({
 }) {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE)
   const [isLoading, setIsLoading] = useState(false)
-  const [calendarMonth, setCalendarMonth] = useState(new Date()) // State for calendar month
+  const [startDateMonth, setStartDateMonth] = useState(new Date()) // State for starting date calendar month
+  const [endDateMonth, setEndDateMonth] = useState(new Date()) // State for ending date calendar month
 
   useEffect(() => {
     if (selectedService) {
       const startingDate = new Date(selectedService.startingDate)
+      const endingDate = selectedService.endingDate ? new Date(selectedService.endingDate) : null
+
       setFormData({
         ...selectedService,
         startingDate,
-        endingDate: selectedService.endingDate ? new Date(selectedService.endingDate) : null,
+        endingDate,
       })
-      setCalendarMonth(startingDate) // Set calendar month to the starting date
+
+      // Set the calendar months to the respective dates
+      setStartDateMonth(startingDate)
+      if (endingDate) {
+        setEndDateMonth(endingDate)
+      }
     } else {
       setFormData(INITIAL_FORM_STATE)
-      setCalendarMonth(new Date()) // Reset to current month if no selected service
+      setStartDateMonth(new Date()) // Reset to current month for starting date
+      setEndDateMonth(new Date()) // Reset to current month for ending date
     }
   }, [selectedService])
 
@@ -195,8 +204,8 @@ export function ServiceModal({
                   mode="single"
                   selected={formData.startingDate}
                   onSelect={(date) => handleChange("startingDate", date)}
-                  month={calendarMonth} // Pass the month state
-                  onMonthChange={setCalendarMonth} // Update month state when user navigates
+                  month={startDateMonth} // Pass the starting date month
+                  onMonthChange={setStartDateMonth} // Update starting date month
                   className="rounded-md border"
                   required
                 />
@@ -207,8 +216,8 @@ export function ServiceModal({
                   mode="single"
                   selected={formData.endingDate}
                   onSelect={(date) => handleChange("endingDate", date)}
-                  month={calendarMonth} // Pass the month state
-                  onMonthChange={setCalendarMonth} // Update month state when user navigates
+                  month={endDateMonth} // Pass the ending date month
+                  onMonthChange={setEndDateMonth} // Update ending date month
                   className="rounded-md border"
                   disabled={(date) =>
                     date < formData.startingDate
