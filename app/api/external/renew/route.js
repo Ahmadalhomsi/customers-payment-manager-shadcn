@@ -37,7 +37,7 @@ export async function POST(request) {
                         data: { endingDate: newEndDate },
                     });
 
-                    return NextResponse.json({ token: token, newEndDate: updatedService.endDate }, { status: 200 });
+                    return NextResponse.json({ token: token, newEndDate: updatedService.endingDate }, { status: 200 });
                 }
                 else {
                     console.log("Service already valid");
