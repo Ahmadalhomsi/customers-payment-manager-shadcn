@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 
 const ReminderStatus = {
   SCHEDULED: 'SCHEDULED',
@@ -38,17 +37,20 @@ export function ReminderModal({
 
   useEffect(() => {
     if (selectedReminder) {
+      // Handle both string and Date formats
+      const scheduledDate = typeof selectedReminder.scheduledAt === 'string'
+        ? parseISO(selectedReminder.scheduledAt)
+        : new Date(selectedReminder.scheduledAt)
+
       reset({
-        scheduledAt: (selectedReminder.scheduledAt),
+        scheduledAt: format(scheduledDate, "yyyy-MM-dd'T'HH:mm"),
         status: selectedReminder.status,
-        paid: selectedReminder.paid,
         message: selectedReminder.message,
       })
     } else {
       reset({
-        scheduledAt: '',
+        scheduledAt: format(new Date(), "yyyy-MM-dd'T'HH:mm"), // Default to current datetime
         status: 'SCHEDULED',
-        paid: false,
         message: '',
       })
     }
@@ -57,6 +59,7 @@ export function ReminderModal({
   const handleFormSubmit = (data) => {
     onSubmit({
       ...data,
+      // Convert local datetime to ISO string
       scheduledAt: new Date(data.scheduledAt).toISOString(),
     })
   }
@@ -71,7 +74,7 @@ export function ReminderModal({
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="scheduledAt">Scheduled At</Label>
+            <Label htmlFor="scheduledAt">Scheduled At *</Label>
             <Input
               id="scheduledAt"
               type="datetime-local"
@@ -96,15 +99,6 @@ export function ReminderModal({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="paid"
-              checked={watch('paid')}
-              onCheckedChange={(checked) => setValue('paid', checked)}
-            />
-            <Label htmlFor="paid">Paid</Label>
           </div>
 
           <div>

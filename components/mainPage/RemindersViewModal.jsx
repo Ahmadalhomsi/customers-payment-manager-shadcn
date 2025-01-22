@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Edit, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 
-export function ReminderViewModal({
+export function RemindersViewModal({
   visible,
   onClose,
   reminders,

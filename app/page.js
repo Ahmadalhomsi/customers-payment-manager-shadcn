@@ -9,7 +9,7 @@ import { CustomerModal } from '../components/mainPage/CustomerModal'
 import { DeleteConfirmModal } from '../components/mainPage/DeleteConfirmModal'
 import { ServiceModal } from '../components/mainPage/ServiceModal'
 import { ServicesViewModal } from '../components/mainPage/ServicesViewModal'
-import { ReminderViewModal } from '../components/mainPage/ReminderViewModal'
+import { RemindersViewModal } from '../components/mainPage/RemindersViewModal'
 import { ReminderModal } from '../components/mainPage/ReminderModal'
 
 import { Plus, Mail } from 'lucide-react'
@@ -102,6 +102,17 @@ export default function CustomersPage() {
       setServices(response.data);
     } catch (error) {
       console.log('Error fetching services:', error);
+    }
+    setLoadingOnModal(false);
+  }
+
+  async function fetchReminders(serviceId) {
+    setLoadingOnModal(true);
+    try {
+      const response = await axios.get(`/api/reminders/${serviceId}`);
+      setReminders(response.data);
+    } catch (error) {
+      console.log('Error fetching reminders:', error);
     }
     setLoadingOnModal(false);
   }
@@ -252,7 +263,7 @@ export default function CustomersPage() {
         }}
       />
 
-      <ReminderViewModal
+      <RemindersViewModal
         visible={reminderViewModalVisible}
         onClose={() => {
           setReminderViewModalVisible(false)
@@ -282,6 +293,7 @@ export default function CustomersPage() {
           catch (error) {
             console.log('Error deleting reminder:', error)
           }
+          fetchReminders(selectedService.id)
         }}
         loading={loadingOnModal}
       />
