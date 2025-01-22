@@ -49,6 +49,7 @@ export default function CustomersPage() {
       }
     }
   };
+  
 
   const handleServiceSubmit = async (serviceFormData) => {
     try {
@@ -69,6 +70,7 @@ export default function CustomersPage() {
           await fetchServices(selectedCustomer.id);
         }
       }
+      fetchCustomers();
     } catch (error) {
       console.log('Error adding/updating service:', error);
     }
@@ -125,31 +127,6 @@ export default function CustomersPage() {
       console.log('Error submitting customer:', error);
     }
   };
-
-  const handleReminderSubmit = async (reminderData) => {
-    try {
-      if (selectedReminder) {
-        await axios.put(`/api/reminders/${selectedReminder.id}`, reminderData)
-      } else {
-        await axios.post('/api/reminders', {
-          ...reminderData,
-          serviceID: selectedService.id,
-        })
-      }
-
-      // Refresh data
-      if (selectedService?.id) {
-        const serviceRes = await axios.get(`/api/services/${selectedService.id}`)
-        setSelectedService(serviceRes.data)
-        await fetchServices(selectedCustomer.id)
-      }
-
-      setReminderModalVisible(false)
-      setSelectedReminder(null)
-    } catch (error) {
-      console.log('Error saving reminder:', error)
-    }
-  }
 
   return (
     <div className="p-4">
@@ -243,6 +220,7 @@ export default function CustomersPage() {
           try {
             await axios.delete(`/api/services/${service.id}`)
             fetchServices(selectedCustomer.id)
+            fetchCustomers()
           } catch (error) {
             console.log('Error deleting service:', error)
           }
