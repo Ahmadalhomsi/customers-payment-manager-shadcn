@@ -6,7 +6,9 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "your-secr
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
-  if (pathname.startsWith("/api/login")) {
+  if (pathname.startsWith("/api/login") || pathname.startsWith("/api/external")) {
+    console.log("YESS SIR");
+
     return NextResponse.next();
   }
 

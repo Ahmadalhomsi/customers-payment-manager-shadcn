@@ -1,14 +1,16 @@
+// app\api\external\newCustomer\route.js
+
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 import { addYears, subWeeks } from 'date-fns';
 
-export async function POST() {
+export async function POST(request) {
     const data = await request.json()
-    const { customerName, password } = data;
+    const { customerName, email, password, phone } = data;
 
     try {
-        const customer = await prisma.customer.findUnique({
-            where: { customerName: customerName, password: password },
+        const customer = await prisma.customer.create({
+            data: { name: customerName, email, password: password, phone },
         });
 
         if (!customer) {
