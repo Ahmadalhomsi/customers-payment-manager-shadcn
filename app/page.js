@@ -192,7 +192,6 @@ export default function CustomersPage() {
         onClose={() => {
           setServiceModalVisible(false);
           setSelectedService(null);  // Clear service selection
-          setSelectedCustomer(null); // Optional: Clear customer if needed
         }}
         onSubmit={handleServiceSubmit}
         selectedCustomer={selectedCustomer}

@@ -24,7 +24,7 @@ export function ServicesViewModal({
 }) {
   return (
     <Dialog open={visible} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-5xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             Services for {selectedCustomer?.name}
