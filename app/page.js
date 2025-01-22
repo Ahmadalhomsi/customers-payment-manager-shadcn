@@ -98,7 +98,7 @@ export default function CustomersPage() {
   async function fetchServices(customerId) {
     setLoadingOnModal(true);
     try {
-      const response = await axios.get(`/api/services/${customerId}`);
+      const response = await axios.get(`/api/services/customer/${customerId}`);
       setServices(response.data);
     } catch (error) {
       console.log('Error fetching services:', error);
@@ -106,16 +106,7 @@ export default function CustomersPage() {
     setLoadingOnModal(false);
   }
 
-  async function fetchReminders(serviceId) {
-    setLoadingOnModal(true);
-    try {
-      const response = await axios.get(`/api/reminders/${serviceId}`);
-      setReminders(response.data);
-    } catch (error) {
-      console.log('Error fetching reminders:', error);
-    }
-    setLoadingOnModal(false);
-  }
+
 
   // Modal handlers remain similar
   const handleCustomerSubmit = async (formData) => {
@@ -283,28 +274,42 @@ export default function CustomersPage() {
           setReminderModalVisible(true)
         }}
         onDeleteReminder={async (reminder) => {
-          setReminderToDelete(reminder)
-          setDeleteReminderConfirmVisible(true)
           try {
             await axios.delete(`/api/reminders/${reminder.id}`)
-            const serviceRes = await axios.get(`/api/services/${selectedService.id}`)
+            // Refresh service data
+            const serviceRes = await axios.get(`/api/services/${selectedService.id}?includeReminders=true`)
             setSelectedService(serviceRes.data)
-          }
-          catch (error) {
+          } catch (error) {
             console.log('Error deleting reminder:', error)
           }
-          fetchReminders(selectedService.id)
         }}
         loading={loadingOnModal}
       />
 
       <ReminderModal
         visible={reminderModalVisible}
-        onClose={() => {
-          setReminderModalVisible(false)
-          setSelectedReminder(null)
+        onClose={() => setReminderModalVisible(false)}
+        onSubmit={async (reminderData) => {
+          try {
+            if (selectedReminder) {
+              await axios.put(`/api/reminders/${selectedReminder.id}`, reminderData)
+            } else {
+              await axios.post('/api/reminders', {
+                ...reminderData,
+                serviceID: selectedService.id 
+              })
+            }
+
+            // Refresh service data with reminders
+            const serviceRes = await axios.get(`/api/services/${selectedService.id}?includeReminders=true`)
+            setSelectedService(serviceRes.data)
+
+            setReminderModalVisible(false)
+            setSelectedReminder(null)
+          } catch (error) {
+            console.error('Error saving reminder:', error)
+          }
         }}
-        onSubmit={handleReminderSubmit}
         selectedReminder={selectedReminder}
       />
     </div>
