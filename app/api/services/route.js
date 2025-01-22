@@ -48,6 +48,7 @@ export async function POST(req) {
                 }
             }
         });
+        
 
         return NextResponse.json(service, { status: 201 });
     } catch (error) {

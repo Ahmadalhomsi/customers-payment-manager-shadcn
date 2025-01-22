@@ -35,7 +35,7 @@ export async function DELETE(req, { params }) {
     const { id } = await params;
     try {
         await prisma.customer.delete({
-            where: { id: id },
+            where: { id },
         });
         return NextResponse.json({ message: 'customer deleted' }, { status: 200 });
     } catch (error) {
