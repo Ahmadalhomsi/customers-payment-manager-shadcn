@@ -1,51 +1,68 @@
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-  } from "@/components/ui/dialog"
-  import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-  } from "@/components/ui/table"
-  import { Button } from "@/components/ui/button"
-  import { Edit, Trash2, CalendarCheck2 } from "lucide-react"
-  
-  export function ServicesViewModal({
-    visible,
-    onClose,
-    services,
-    loadingOnModal,
-    selectedCustomer,
-    onEditService,
-    onDeleteService,
-    onViewReminders,
-  }) {
-    return (
-      <Dialog open={visible} onOpenChange={onClose}>
-        <DialogContent className="max-w-[90vw]">
-          <DialogHeader>
-            <DialogTitle>Services for {selectedCustomer?.name}</DialogTitle>
-          </DialogHeader>
-          
-          <Table>
-            <TableHeader>
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Edit, Trash2, CalendarCheck2 } from "lucide-react"
+import { BeatLoader } from 'react-spinners';
+
+
+export function ServicesViewModal({
+  visible,
+  onClose,
+  services,
+  loadingOnModal,
+  selectedCustomer,
+  onEditService,
+  onDeleteService,
+  onViewReminders,
+}) {
+  return (
+    <Dialog open={visible} onOpenChange={onClose}>
+      <DialogContent className="max-w-[90vw]">
+        <DialogHeader>
+          <DialogTitle>Services for {selectedCustomer?.name}</DialogTitle>
+        </DialogHeader>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Payment Type</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Start Date</TableHead>
+              <TableHead>End Date</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loadingOnModal ? (
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Payment Type</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableCell colSpan={7}>
+                  <div className="flex justify-center py-4">
+                    <BeatLoader size={10} color="#f26000" />
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {services.map((service) => (
+            ) : services.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-4">
+                  No services found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              services.map((service) => (
                 <TableRow key={service.id}>
                   <TableCell>{service.name}</TableCell>
                   <TableCell>{service.description}</TableCell>
@@ -77,10 +94,11 @@ import {
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </DialogContent>
-      </Dialog>
-    )
-  }
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </DialogContent>
+    </Dialog>
+  )
+}

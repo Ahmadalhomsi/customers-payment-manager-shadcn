@@ -85,7 +85,7 @@ export function CustomerTable({
       <div className="relative rounded-lg border shadow-sm">
         {isLoading && (
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
-            <BeatLoader color="#64748b" className="opacity-75" />
+            <BeatLoader color="#f26000" className="opacity-75" />
           </div>
         )}
 
