@@ -109,7 +109,7 @@ export function ServiceModal({
             </Label>
             <Input
               id="name"
-              value={formData.name}
+              value={formData.name || ""}
               onChange={(e) => handleChange("name", e.target.value)}
               className="col-span-3"
               placeholder="Enter service name"
@@ -123,7 +123,7 @@ export function ServiceModal({
             </Label>
             <Input
               id="description"
-              value={formData.description}
+              value={formData.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               className="col-span-3"
               placeholder="Enter service description"
@@ -156,7 +156,7 @@ export function ServiceModal({
                 type="number"
                 min="0"
                 step="0.01"
-                value={formData.periodPrice}
+                value={formData.periodPrice || ""}
                 onChange={(e) =>
                   handleChange("periodPrice", parseFloat(e.target.value) || 0)
                 }

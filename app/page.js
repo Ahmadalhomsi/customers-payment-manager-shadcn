@@ -210,7 +210,6 @@ export default function CustomersPage() {
         selectedCustomer={selectedCustomer}
         onEditService={(service) => {
           setSelectedService(service); // Keep the service data including dates
-          setServicesViewModalVisible(false);
           setServiceModalVisible(true);
         }}
         onDeleteService={async (service) => {
