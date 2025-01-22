@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, Plus, Eye } from 'lucide-react'
+import { Edit, Trash2, Plus, Eye, EyeOff } from 'lucide-react'
 
 export function CustomerTable({
   customers,
@@ -139,7 +139,11 @@ export function CustomerTable({
                         onClick={() => togglePasswordVisibility(customer.id)}
                         className="h-6 w-6 p-0 hover:bg-foreground/10"
                       >
-                        <Eye className="h-3 w-3" />
+                        {visiblePasswords[customer.id] ? (
+                          <EyeOff className="h-3 w-3" />
+                        ) : (
+                          <Eye className="h-3 w-3" />
+                        )}
                       </Button>
                     </div>
                   </TableCell>

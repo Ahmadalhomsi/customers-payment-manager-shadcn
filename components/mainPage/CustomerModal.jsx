@@ -8,7 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "../ui/button";
-import { Eye } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +23,6 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) 
     if (visible) {
       setFormData(selectedCustomer ? {
         ...selectedCustomer,
-        password: '' // Clear password for security unless you want to show it
       } : { name: '', email: '', phone: '', password: '' });
     }
   }, [visible, selectedCustomer]);
@@ -107,7 +106,11 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) 
               onClick={() => setShowPassword(!showPassword)}
               className="h-8 w-8 p-0 hover:bg-foreground/10"
             >
-              <Eye className="h-4 w-4" />
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>
