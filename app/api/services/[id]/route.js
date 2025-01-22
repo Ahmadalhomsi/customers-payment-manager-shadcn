@@ -21,13 +21,6 @@ export async function GET(req, { params }) {
 export async function PUT(req, { params }) {
     const { id } = await params;
     const data = await req.json();
-    let startingDate = data.startingDate;
-    let endingDate = data.endingDate;
-
-    startingDate = new Date(startingDate.year, startingDate.month - 1, startingDate.day + 1);
-    endingDate = new Date(endingDate.year, endingDate.month - 1, endingDate.day + 1);
-    startingDate.setUTCHours(0, 0, 0, 0);
-    endingDate.setUTCHours(0, 0, 0, 0);
 
     try {
         const service = await prisma.service.update({
@@ -38,8 +31,8 @@ export async function PUT(req, { params }) {
                 paymentType: data.paymentType,
                 periodPrice: data.periodPrice,
                 currency: data.currency,
-                startingDate: startingDate,
-                endingDate: endingDate,
+                startingDate: data.startingDate,
+                endingDate: data.endingDate,
                 customerID: data.customerID
             },
         });
