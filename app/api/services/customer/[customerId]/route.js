@@ -3,11 +3,11 @@ import { NextResponse } from 'next/server';
 
 
 export async function GET(req, { params }) {
-    const { id } = await params;
+    const { customerId } = params; // Changed from 'id' to 'customerId'
 
     try {
         const services = await prisma.service.findMany({
-            where: { customerID: id },
+            where: { customerID: customerId }, // Use customerId instead of id
             include: {
                 reminders: true,
             },
@@ -18,4 +18,3 @@ export async function GET(req, { params }) {
         return NextResponse.json({ error: 'Failed to fetch service' }, { status: 500 });
     }
 }
-
