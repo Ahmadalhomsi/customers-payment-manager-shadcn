@@ -271,9 +271,17 @@ export default function CustomersPage() {
           setReminderViewModalVisible(false)
           setReminderModalVisible(true)
         }}
-        onDeleteReminder={(reminder) => {
+        onDeleteReminder={async (reminder) => {
           setReminderToDelete(reminder)
           setDeleteReminderConfirmVisible(true)
+          try {
+            await axios.delete(`/api/reminders/${reminder.id}`)
+            const serviceRes = await axios.get(`/api/services/${selectedService.id}`)
+            setSelectedService(serviceRes.data)
+          }
+          catch (error) {
+            console.log('Error deleting reminder:', error)
+          }
         }}
         loading={loadingOnModal}
       />
