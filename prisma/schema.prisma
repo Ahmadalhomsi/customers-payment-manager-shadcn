@@ -23,10 +23,10 @@ model Admin {
 }
 
 model Customer {
-  id    String  @id @default(cuid())
-  name  String
-  email String  @unique // or username
-  phone String?
+  id       String  @id @default(cuid())
+  name     String
+  email    String  @unique // or username
+  phone    String?
   password String
 
   // Relations
@@ -37,15 +37,15 @@ model Customer {
 }
 
 model Service {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
-  description String
-  paymentType String @default("Yearly") // Monthly, Yearly
-  periodPrice Float
-  currency    String @default("TL")
+  description String?
+  paymentType String  @default("Yearly") // Monthly, Yearly
+  periodPrice Float?
+  currency    String  @default("TL")
 
-  startingDate DateTime
-  endingDate   DateTime
+  startingDate DateTime @default(now())
+  endingDate   DateTime @default(dbgenerated("(CURRENT_TIMESTAMP + INTERVAL '1 year')"))
   // paid         Boolean  @default(false)
 
   // Relations
@@ -62,7 +62,7 @@ model Reminder {
   scheduledAt DateTime
   status      ReminderStatus @default(SCHEDULED)
 
-  message String?
+  message   String?
   // Relations
   serviceID String
   service   Service @relation(fields: [serviceID], references: [id])

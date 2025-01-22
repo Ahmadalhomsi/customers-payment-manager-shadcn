@@ -13,7 +13,6 @@ export async function POST(req) {
             );
         }
 
-        // Destructure the fields
         const { 
             name, 
             description, 
@@ -43,7 +42,10 @@ export async function POST(req) {
                 currency,
                 startingDate: new Date(startingDate),
                 endingDate: new Date(endingDate),
-                customerID
+                // customerID,
+                customer: {
+                    connect: { id: customerID }
+                }
             }
         });
 

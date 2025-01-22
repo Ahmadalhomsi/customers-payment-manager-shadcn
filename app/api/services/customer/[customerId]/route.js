@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 
 export async function GET(req, { params }) {
-    const { customerId } = params; // Changed from 'id' to 'customerId'
+    const { customerId } = await params; 
 
     try {
         const services = await prisma.service.findMany({
