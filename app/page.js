@@ -49,7 +49,7 @@ export default function CustomersPage() {
       }
     }
   };
-  
+
 
   const handleServiceSubmit = async (serviceFormData) => {
     try {
@@ -230,6 +230,10 @@ export default function CustomersPage() {
           setServicesViewModalVisible(false)
           setReminderViewModalVisible(true)
         }}
+        onAddService={() => {
+          setSelectedService(null)
+          setServiceModalVisible(true)
+        }}
       />
 
       <RemindersViewModal
@@ -274,7 +278,7 @@ export default function CustomersPage() {
             } else {
               await axios.post('/api/reminders', {
                 ...reminderData,
-                serviceID: selectedService.id 
+                serviceID: selectedService.id
               })
             }
 

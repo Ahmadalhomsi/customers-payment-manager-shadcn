@@ -1,9 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -11,11 +6,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Edit, Trash2, CalendarCheck2 } from "lucide-react"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Edit, Trash2, CalendarCheck2, Plus } from "lucide-react";
 import { BeatLoader } from 'react-spinners';
-
 
 export function ServicesViewModal({
   visible,
@@ -26,13 +20,26 @@ export function ServicesViewModal({
   onEditService,
   onDeleteService,
   onViewReminders,
+  onAddService,  // New prop for handling add service action
 }) {
   return (
     <Dialog open={visible} onOpenChange={onClose}>
-      <DialogContent className="max-w-[90vw]">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Services for {selectedCustomer?.name}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            Services for {selectedCustomer?.name}
+          </DialogTitle>
         </DialogHeader>
+
+        <div className="flex justify-end mb-4">
+          <Button
+            onClick={() => onAddService(selectedCustomer)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Service
+          </Button>
+        </div>
 
         <Table>
           <TableHeader>
@@ -49,15 +56,15 @@ export function ServicesViewModal({
           <TableBody>
             {loadingOnModal ? (
               <TableRow>
-                <TableCell colSpan={7}>
-                  <div className="flex justify-center py-4">
-                    <BeatLoader size={10} color="#f26000" />
+                <TableCell colSpan={7} className="text-center py-8">
+                  <div className="flex justify-center">
+                    <BeatLoader color="#f26000" />
                   </div>
                 </TableCell>
               </TableRow>
             ) : services.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-4">
+                <TableCell colSpan={7} className="text-center">
                   No services found.
                 </TableCell>
               </TableRow>
@@ -67,31 +74,39 @@ export function ServicesViewModal({
                   <TableCell>{service.name}</TableCell>
                   <TableCell>{service.description}</TableCell>
                   <TableCell>{service.paymentType}</TableCell>
-                  <TableCell>{service.periodPrice} {service.currency}</TableCell>
-                  <TableCell>{service.startingDate.toString().split('T')[0]}</TableCell>
-                  <TableCell>{service.endingDate.toString().split('T')[0]}</TableCell>
-                  <TableCell className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEditService(service)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDeleteService(service)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onViewReminders(service)}
-                    >
-                      <CalendarCheck2 className="h-4 w-4" />
-                    </Button>
+                  <TableCell>
+                    {service.periodPrice} {service.currency}
+                  </TableCell>
+                  <TableCell>
+                    {service.startingDate.toString().split('T')[0]}
+                  </TableCell>
+                  <TableCell>
+                    {service.endingDate.toString().split('T')[0]}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEditService(service)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDeleteService(service)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onViewReminders(service)}
+                      >
+                        <CalendarCheck2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -100,5 +115,5 @@ export function ServicesViewModal({
         </Table>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
