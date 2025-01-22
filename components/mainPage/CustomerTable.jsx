@@ -24,6 +24,14 @@ export function CustomerTable({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [visiblePasswords, setVisiblePasswords] = useState({});
+
+  const togglePasswordVisibility = (customerId) => {
+    setVisiblePasswords(prev => ({
+      ...prev,
+      [customerId]: !prev[customerId]
+    }));
+  };
 
   const statusColors = {
     active: 'bg-green-500/20 text-green-600 dark:text-green-400',
@@ -40,7 +48,7 @@ export function CustomerTable({
       for (const service of customer.services) {
         const startDate = new Date(service.startingDate);
         const endDate = new Date(service.endingDate);
-        
+
         if (startDate <= today && today <= endDate) hasActive = true;
         if (endDate < today) hasOverdue = true;
       }
@@ -96,6 +104,7 @@ export function CustomerTable({
               <TableHead>Status</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
+              <TableHead>Password</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -110,8 +119,8 @@ export function CustomerTable({
                 >
                   <TableCell className="font-medium">{customer.name}</TableCell>
                   <TableCell>
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={`${statusColors[status]} rounded-md px-2 py-1 text-xs font-medium`}
                     >
                       {status}
@@ -119,33 +128,48 @@ export function CustomerTable({
                   </TableCell>
                   <TableCell className="text-foreground/80">{customer.email}</TableCell>
                   <TableCell className="text-foreground/80">{customer.phone}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {visiblePasswords[customer.id] ? customer.password : '••••••••'}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => togglePasswordVisibility(customer.id)}
+                        className="h-6 w-6 p-0 hover:bg-foreground/10"
+                      >
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
                   <TableCell className="flex justify-end gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => onEdit(customer)}
                       className="h-8 w-8 p-0 hover:bg-foreground/10"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => onDelete(customer)}
                       className="h-8 w-8 p-0 hover:bg-foreground/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => onAddService(customer)}
                       className="h-8 w-8 p-0 hover:bg-foreground/10"
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => onViewServices(customer)}
                       className="h-8 w-8 p-0 hover:bg-foreground/10"

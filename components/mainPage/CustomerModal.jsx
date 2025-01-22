@@ -8,13 +8,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "../ui/button";
+import { Eye } from "lucide-react";
 
 export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) {
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: ''
+  });
 
   useEffect(() => {
     if (visible) {
-      setFormData(selectedCustomer ? { ...selectedCustomer } : { name: '', email: '', phone: '' });
+      setFormData(selectedCustomer ? {
+        ...selectedCustomer,
+        password: '' // Clear password for security unless you want to show it
+      } : { name: '', email: '', phone: '', password: '' });
     }
   }, [visible, selectedCustomer]);
 
@@ -75,6 +85,30 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) 
               onChange={handleChange}
               className="col-span-3"
             />
+          </div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="password" className="text-right">
+            Password
+          </Label>
+          <div className="col-span-3 flex items-center gap-2">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={handleChange}
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowPassword(!showPassword)}
+              className="h-8 w-8 p-0 hover:bg-foreground/10"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
           </div>
         </div>
         <div className="flex justify-end">

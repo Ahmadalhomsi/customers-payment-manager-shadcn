@@ -18,11 +18,11 @@ export async function GET(req, { params }) {
 
 export async function PUT(req, { params }) {
     const { id } = await params;
-    const { name, email } = await req.json();
+    const { name, email, password } = await req.json();
     try {
         const customer = await prisma.customer.update({
             where: { id: id },
-            data: { name, email },
+            data: { name, email, password },
         });
         return NextResponse.json(customer, { status: 200 });
     } catch (error) {
