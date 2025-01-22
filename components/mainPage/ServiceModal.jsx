@@ -48,19 +48,23 @@ export function ServiceModal({
   selectedService,
 }) {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE)
-  const [isLoading, setIsLoading] = useState(false) // Add loading state
+  const [isLoading, setIsLoading] = useState(false)
+  const [calendarMonth, setCalendarMonth] = useState(new Date()) // State for calendar month
 
   useEffect(() => {
     if (selectedService) {
+      const startingDate = new Date(selectedService.startingDate)
       setFormData({
         ...selectedService,
-        startingDate: new Date(selectedService.startingDate),
+        startingDate,
         endingDate: selectedService.endingDate ? new Date(selectedService.endingDate) : null,
-      });
+      })
+      setCalendarMonth(startingDate) // Set calendar month to the starting date
     } else {
-      setFormData(INITIAL_FORM_STATE);
+      setFormData(INITIAL_FORM_STATE)
+      setCalendarMonth(new Date()) // Reset to current month if no selected service
     }
-  }, [selectedService]);
+  }, [selectedService])
 
   const handleChange = (name, value) => {
     setFormData((prev) => ({
@@ -70,7 +74,6 @@ export function ServiceModal({
   }
 
   const handleSubmit = async () => {
-    // Validation remains the same
     if (!formData.name || !formData.startingDate) {
       alert("Please fill in required fields")
       return
@@ -192,6 +195,8 @@ export function ServiceModal({
                   mode="single"
                   selected={formData.startingDate}
                   onSelect={(date) => handleChange("startingDate", date)}
+                  month={calendarMonth} // Pass the month state
+                  onMonthChange={setCalendarMonth} // Update month state when user navigates
                   className="rounded-md border"
                   required
                 />
@@ -202,6 +207,8 @@ export function ServiceModal({
                   mode="single"
                   selected={formData.endingDate}
                   onSelect={(date) => handleChange("endingDate", date)}
+                  month={calendarMonth} // Pass the month state
+                  onMonthChange={setCalendarMonth} // Update month state when user navigates
                   className="rounded-md border"
                   disabled={(date) =>
                     date < formData.startingDate
