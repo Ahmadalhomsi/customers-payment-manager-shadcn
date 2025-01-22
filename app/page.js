@@ -234,10 +234,16 @@ export default function CustomersPage() {
           setServicesViewModalVisible(false);
           setServiceModalVisible(true);
         }}
-        onDeleteService={(service) => {
+        onDeleteService={async (service) => {
           setSelectedService(service)
           setServicesViewModalVisible(false)
           setDeleteServiceConfirmVisible(true)
+          try {
+            await axios.delete(`/api/services/${service.id}`)
+            fetchServices(selectedCustomer.id)
+          } catch (error) {
+            console.log('Error deleting service:', error)
+          }
         }}
         onViewReminders={(service) => {
           setSelectedService(service)
