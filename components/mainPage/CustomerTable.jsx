@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BeatLoader } from 'react-spinners';
 import {
   Table,
   TableBody,
@@ -18,15 +19,16 @@ export function CustomerTable({
   onEdit,
   onDelete,
   onAddService,
-  onViewServices
+  onViewServices,
+  isLoading = false
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
   const statusColors = {
-    active: 'bg-green-100 text-green-800',
-    inactive: 'bg-gray-100 text-gray-800',
-    overdue: 'bg-red-100 text-red-800',
+    active: 'bg-green-500/20 text-green-600 dark:text-green-400',
+    inactive: 'bg-gray-500/20 text-gray-600 dark:text-gray-400',
+    overdue: 'bg-red-500/20 text-red-600 dark:text-red-400',
   };
 
   const getCustomerStatus = (customer) => {
@@ -34,17 +36,13 @@ export function CustomerTable({
     let hasActive = false;
     let hasOverdue = false;
 
-    if (customer.services && customer.services.length > 0) {
+    if (customer.services?.length > 0) {
       for (const service of customer.services) {
         const startDate = new Date(service.startingDate);
         const endDate = new Date(service.endingDate);
         
-        if (startDate <= today && today <= endDate) {
-          hasActive = true;
-        }
-        if (endDate < today) {
-          hasOverdue = true;
-        }
+        if (startDate <= today && today <= endDate) hasActive = true;
+        if (endDate < today) hasOverdue = true;
       }
     }
 
@@ -53,31 +51,27 @@ export function CustomerTable({
     return 'inactive';
   };
 
-  const filteredCustomers = customers
-    .filter(customer => {
-      const matchesSearch = Object.values(customer).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      );
-
-      const status = getCustomerStatus(customer);
-      const matchesStatus = statusFilter === 'all' || status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
+  const filteredCustomers = customers.filter(customer => {
+    const matchesSearch = Object.values(customer).some(value =>
+      String(value).toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    const status = getCustomerStatus(customer);
+    return matchesSearch && (statusFilter === 'all' || status === statusFilter);
+  });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       <div className="flex gap-2 flex-wrap">
         <Input
           placeholder="Search customers..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-xs"
+          className="max-w-xs focus-visible:ring-2"
         />
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder="Filter status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
@@ -88,52 +82,83 @@ export function CustomerTable({
         </Select>
       </div>
 
-      <Table className="border rounded-lg">
-        <TableHeader className="bg-gray-50 dark:bg-gray-800">
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
+      <div className="relative rounded-lg border shadow-sm">
+        {isLoading && (
+          <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
+            <BeatLoader color="#64748b" className="opacity-75" />
+          </div>
+        )}
 
-        <TableBody>
-          {filteredCustomers.map((customer, index) => {
-            const status = getCustomerStatus(customer);
-            return (
-              <TableRow
-                key={customer.id}
-                className={index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}
-              >
-                <TableCell className="font-medium">{customer.name}</TableCell>
-                <TableCell>
-                  <Badge className={statusColors[status] || 'bg-gray-500'}>
-                    {status}
-                  </Badge>
-                </TableCell>
-                <TableCell>{customer.email}</TableCell>
-                <TableCell>{customer.phone}</TableCell>
-                <TableCell className="flex gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(customer)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => onDelete(customer)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => onAddService(customer)}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => onViewServices(customer)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+        <Table>
+          <TableHeader className="bg-background">
+            <TableRow>
+              <TableHead className="w-[200px]">Name</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {filteredCustomers.map((customer) => {
+              const status = getCustomerStatus(customer);
+              return (
+                <TableRow
+                  key={customer.id}
+                  className="hover:bg-muted/50 transition-colors"
+                >
+                  <TableCell className="font-medium">{customer.name}</TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant="outline" 
+                      className={`${statusColors[status]} rounded-md px-2 py-1 text-xs font-medium`}
+                    >
+                      {status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-foreground/80">{customer.email}</TableCell>
+                  <TableCell className="text-foreground/80">{customer.phone}</TableCell>
+                  <TableCell className="flex justify-end gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => onEdit(customer)}
+                      className="h-8 w-8 p-0 hover:bg-foreground/10"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => onDelete(customer)}
+                      className="h-8 w-8 p-0 hover:bg-foreground/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => onAddService(customer)}
+                      className="h-8 w-8 p-0 hover:bg-foreground/10"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => onViewServices(customer)}
+                      className="h-8 w-8 p-0 hover:bg-foreground/10"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

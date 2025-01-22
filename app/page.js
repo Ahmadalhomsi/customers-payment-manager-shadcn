@@ -86,11 +86,13 @@ export default function CustomersPage() {
   // Fetch functions remain the same
   async function fetchCustomers() {
     try {
+      setLoading(true);
       const response = await axios.get('/api/customers')
       setCustomers(response.data)
     } catch (error) {
       console.log('Error fetching customers:', error)
     }
+    setLoading(false)
   }
 
   async function fetchServices(customerId) {
@@ -164,7 +166,7 @@ export default function CustomersPage() {
       <CustomerTable
         customers={customers}
         services={services}
-        loading={loading}
+        isLoading={loading}
         sortConfig={sortConfig}
         setSortConfig={setSortConfig}
         onEdit={(customer) => {
