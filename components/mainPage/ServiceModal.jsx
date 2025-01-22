@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
+import { BeatLoader } from 'react-spinners';
 
 const PAYMENT_TYPES = [
   { value: "Monthly", label: "Monthly" },
@@ -47,6 +48,7 @@ export function ServiceModal({
   selectedService,
 }) {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE)
+  const [isLoading, setIsLoading] = useState(false) // Add loading state
 
   useEffect(() => {
     if (selectedService) {
@@ -67,8 +69,8 @@ export function ServiceModal({
     }))
   }
 
-  const handleSubmit = () => {
-    // Basic form validation
+  const handleSubmit = async () => {
+    // Validation remains the same
     if (!formData.name || !formData.startingDate) {
       alert("Please fill in required fields")
       return
@@ -79,8 +81,15 @@ export function ServiceModal({
       return
     }
 
-    onSubmit(formData)
-    onClose()
+    setIsLoading(true)
+    try {
+      await onSubmit(formData)
+      onClose()
+    } catch (error) {
+      console.error("Submission error:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -207,8 +216,18 @@ export function ServiceModal({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" onClick={handleSubmit}>
-            {selectedService ? "Update" : "Create"} Service
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <BeatLoader
+                color="#ffffff"
+                size={8}
+                className="py-1"
+              />
+            ) : selectedService ? "Update Service" : "Create Service"}
           </Button>
         </DialogFooter>
       </DialogContent>
