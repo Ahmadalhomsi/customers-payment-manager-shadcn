@@ -7,7 +7,6 @@ import { addYears, subWeeks } from 'date-fns';
 export async function POST(request) {
     const data = await request.json()
     const { customerName, email, password, phone } = data;
-
     try {
         const customer = await prisma.customer.create({
             data: { name: customerName, email, password: password, phone },
@@ -31,7 +30,6 @@ export async function POST(request) {
                     currency: 'TL',
                 },
             });
-
             // Calculate the reminder date (one week before the service ends)
             const reminderDate = subWeeks(endingDate, 1);
 
@@ -44,10 +42,10 @@ export async function POST(request) {
                     serviceID: newService.id,
                 },
             });
+            return NextResponse.json({ token: newService.id, endingDate }, { status: 200 });
         }
-        return NextResponse.json(customer, { status: 200 });
     } catch (error) {
         console.log(error);
-        return NextResponse.json({ error: 'Failed to fetch customer' }, { status: 500 });
+        return NextResponse.json({ error }, { status: 500 });
     }
 }
