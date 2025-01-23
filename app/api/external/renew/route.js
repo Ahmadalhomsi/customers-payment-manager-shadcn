@@ -37,10 +37,29 @@ export async function POST(request) {
                         data: { endingDate: newEndDate },
                     });
 
+                    await prisma.notifications.create({
+                        data: {
+                            title: 'Service Renewed',
+                            message: `Service renewed for customer ${customer.name} with email ${email}`,
+                            type: 'success',
+                            read: false,
+                        },
+                    });
+
                     return NextResponse.json({ token: token, newEndDate: updatedService.endingDate }, { status: 200 });
                 }
                 else {
                     console.log("Service already valid");
+
+                    await prisma.notifications.create({
+                        data: {
+                            title: 'Service Already Valid',
+                            message: `Service already valid for customer ${customer.name} with email ${email}`,
+                            type: 'info',
+                            read: false,
+                        },
+                    });
+
                     return NextResponse.json({ valid: true, endingDate: newService.endingDate }, { status: 200 });
                 }
 

@@ -42,6 +42,17 @@ export async function POST(request) {
                     serviceID: newService.id,
                 },
             });
+
+
+            await prisma.notifications.create({
+                data: {
+                    title: 'New Customer Created from API',
+                    message: `New customer ${customerName} created with email ${email}`,
+                    type: 'success',
+                    read: false,
+                },
+            });
+
             return NextResponse.json({ token: newService.id, endingDate }, { status: 200 });
         }
     } catch (error) {
