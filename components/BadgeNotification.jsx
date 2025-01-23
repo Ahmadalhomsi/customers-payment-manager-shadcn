@@ -1,46 +1,87 @@
-// components/BadgeNotification.jsx
 "use client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell } from "lucide-react";
+import { Bell, X, Trash2, CheckCircle } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { useState } from "react";
-
-// Sample notifications data
-const notifications = [
-  {
-    id: 1,
-    title: "Payment Reminder",
-    description: "Customer XYZ has an upcoming payment",
-    type: "alert",
-    author: "System",
-    date: new Date("2024-03-15"),
-  },
-  {
-    id: 2,
-    title: "Service Renewal",
-    description: "Service ABC needs renewal in 3 days",
-    type: "warning",
-    author: "Billing Dept",
-    date: new Date("2024-03-14"),
-  },
-  // Add more notifications as needed
-];
+import { formatDistanceToNow } from "date-fns";
+import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const BadgeNotification = () => {
   const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Style configuration based on type
-  const typeColors = {
-    alert: "bg-destructive/15 text-destructive",
-    warning: "bg-primary/15 text-primary",
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('/api/notifications');
+      if (!response.ok) throw new Error('Failed to fetch notifications');
+      const data = await response.json();
+      
+      const mappedData = data.map(notification => ({
+        id: notification.id,
+        title: notification.title,
+        description: notification.message,
+        read: notification.read || false,
+        createdAt: new Date(notification.createdAt),
+      }));
+      
+      setNotifications(mappedData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (open) fetchNotifications();
+  }, [open]);
+
+  const handleMarkRead = async (id) => {
+    try {
+      await fetch(`/api/notifications/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ read: true }),
+      });
+      setNotifications(prev =>
+        prev.map(n => n.id === id ? { ...n, read: true } : n)
+      );
+    } catch (err) {
+      console.error('Update error:', err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await fetch(`/api/notifications/${id}`, { method: 'DELETE' });
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await Promise.all(
+        notifications.map(n => 
+          fetch(`/api/notifications/${n.id}`, { method: 'DELETE' })
+        )
+      );
+      setNotifications([]);
+    } catch (err) {
+      console.error('Clear all error:', err);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -53,45 +94,87 @@ export const BadgeNotification = () => {
           >
             <Bell className="h-5 w-5" />
           </Button>
-          <Badge 
-            variant="destructive" 
-            className="absolute -right-1 -top-1 h-4 w-4 justify-center p-0"
-          >
-            {notifications.length}
-          </Badge>
+          {unreadCount > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute -right-1 -top-1 h-4 w-4 justify-center p-0"
+            >
+              {unreadCount}
+            </Badge>
+          )}
         </div>
       </PopoverTrigger>
       
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-96 p-0" align="end">
         <div className="space-y-2">
-          <div className="p-4 border-b">
+          <div className="p-4 border-b flex justify-between items-center">
             <h4 className="font-medium">Notifications</h4>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearAll}
+                disabled={notifications.length === 0}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear All
+              </Button>
+            </div>
           </div>
           
           <div className="max-h-96 overflow-y-auto">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={cn(
-                  "flex flex-col gap-1 p-4 hover:bg-accent transition-colors",
-                  typeColors[notification.type]
-                )}
-              >
-                <div className="flex justify-between items-start">
-                  <h4 className="font-medium">{notification.title}</h4>
-                  <span className="text-xs text-muted-foreground">
-                    {format(notification.date, "MMM dd")}
-                  </span>
+            {loading ? (
+              Array(3).fill(0).map((_, i) => (
+                <div key={i} className="p-4 space-y-2">
+                  <Skeleton className="h-4 w-[80%]" />
+                  <Skeleton className="h-3 w-[60%]" />
                 </div>
-                <p className="text-sm">{notification.description}</p>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs text-muted-foreground">
-                    {notification.author}
-                  </span>
-                  <span className="h-2 w-2 rounded-full bg-current" />
-                </div>
+              ))
+            ) : error ? (
+              <div className="p-4 text-destructive text-sm">{error}</div>
+            ) : notifications.length === 0 ? (
+              <div className="p-4 text-muted-foreground text-sm">
+                No new notifications
               </div>
-            ))}
+            ) : (
+              notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={cn(
+                    "group flex items-start gap-3 p-4 hover:bg-accent transition-colors border-b relative",
+                    !notification.read && "bg-blue-100 dark:bg-blue-900/30"
+                  )}
+                >
+                  <button
+                    onClick={() => handleMarkRead(notification.id)}
+                    className="flex-1 text-left"
+                  >
+                    <div className="flex justify-between items-start">
+                      <h4 className="font-medium">{notification.title}</h4>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(notification.createdAt, { addSuffix: true })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {notification.description}
+                    </p>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleDelete(notification.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 -mr-2"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                  </button>
+                  
+                  {!notification.read && (
+                    <div className="absolute top-4 left-2">
+                      <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </PopoverContent>

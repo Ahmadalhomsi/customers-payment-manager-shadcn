@@ -5,13 +5,19 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
     try {
-        const notifications = await prisma.notifications.findMany();
-
+        const notifications = await prisma.notifications.findMany({
+            select: {
+                id: true,
+                title: true,
+                message: true,
+                read: true,
+                createdAt: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
         return NextResponse.json(notifications, { status: 200 });
     } catch (error) {
-        console.log(error);
         return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
     }
 }
-
 
