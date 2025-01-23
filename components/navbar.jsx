@@ -11,11 +11,14 @@ import { ThemeSwitch } from "@/components/theme-switch"
 import { Sun, Moon, Github, LogOut, Menu } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { BadgeNotification } from "@/components/BadgeNotification"
+import { useState } from "react"
 
 export function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
   const isLoginPage = pathname === "/login"
+  const [notifications, setNotifications] = useState([]);
+
 
   if (isLoginPage) return null
 
@@ -32,9 +35,11 @@ export function Navbar() {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          <BadgeNotification />
+          <BadgeNotification
+            initialNotifications={notifications}
+            onNotificationsChange={setNotifications}
+          />
           <ThemeSwitch />
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">

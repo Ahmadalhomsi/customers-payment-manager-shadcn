@@ -96,6 +96,7 @@ model Notifications {
   id        String   @id @default(uuid())
   title     String
   message   String
+  type      String   @default("info")
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
