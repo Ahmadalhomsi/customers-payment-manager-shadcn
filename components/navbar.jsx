@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ThemeSwitch } from "@/components/theme-switch"
-import { Sun, Moon, Github, LogOut, Menu } from "lucide-react"
+import { Sun, Moon, Github, LogOut, Menu, LayoutDashboard, ChartPie, Settings } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { BadgeNotification } from "@/components/BadgeNotification"
 import { useState } from "react"
@@ -19,6 +19,10 @@ export function Navbar() {
   const isLoginPage = pathname === "/login"
   const [notifications, setNotifications] = useState([]);
 
+  const handleLogout = async () => {
+    await fetch("/api/logout")
+    router.push("/login")
+  }
 
   if (isLoginPage) return null
 
@@ -47,11 +51,27 @@ export function Navbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/main">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Main Dashboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/analytics">
+                  <ChartPie className="mr-2 h-4 w-4" />
+                  Analytics Dashboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings Dashboard
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={async () => {
-                  await fetch("/api/logout")
-                  router.push("/login")
-                }}
+                onClick={handleLogout}
+                className="text-destructive focus:text-destructive"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
@@ -60,13 +80,10 @@ export function Navbar() {
           </DropdownMenu>
 
           <Button
-            variant="ghost"
+            variant="destructive"
             size="sm"
             className="hidden md:flex"
-            onClick={async () => {
-              await fetch("/api/logout")
-              router.push("/login")
-            }}
+            onClick={handleLogout}
           >
             <LogOut className="mr-2 h-4 w-4" />
             Logout
