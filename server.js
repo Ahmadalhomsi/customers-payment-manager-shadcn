@@ -11,38 +11,80 @@ const app = next({ dev });
 // Handle Next.js requests using its built-in handler
 const handle = app.getRequestHandler();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 
 
 app.prepare().then(() => {
     const server = express();
     const prisma = new PrismaClient();
-    // Define custom Express routes
-    //   server.get('/api/custom-endpoint', (req, res) => {
-    //     res.json({ message: 'This is a custom API route' });
-    //   });
 
-    cron.schedule('* * * * *', async () => {
-        console.log('running a task every minute');
-        const reminders = await prisma.reminder.findMany({
-            where: {
-                status: "SCHEDULED"
+    // Function to check if two dates are the same day
+    const isSameDay = (date1, date2) => {
+        return date1.getFullYear() === date2.getFullYear() &&
+            date1.getMonth() === date2.getMonth() &&
+            date1.getDate() === date2.getDate();
+    };
+
+    // Schedule daily check at midnight
+    cron.schedule('0 0 * * *', async () => {
+        console.log('Running daily reminder check...');
+        try {
+            const reminders = await prisma.reminder.findMany({
+                where: { status: "SCHEDULED" }
+            });
+
+            const today = new Date();
+
+            for (const reminder of reminders) {
+                try {
+                    const scheduledDate = new Date(reminder.scheduledAt);
+
+                    if (isSameDay(scheduledDate, today)) {
+                        console.log(`Processing reminder ${reminder.id}...`);
+
+                        // Here you would add your actual reminder sending logic
+                        // For example: sendEmail(reminder);
+                        // Simulate processing
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+
+                        // Update reminder status after successful processing
+                        await prisma.reminder.update({
+                            where: { id: reminder.id },
+                            data: { status: 'SENT' }
+                        });
+                    }
+                } catch (reminderError) {
+                    console.error(`Error processing reminder ${reminder.id}:`, reminderError);
+                    await prisma.notifications.create({
+                        data: {
+                            title: 'Reminder Failed to send (Cron Job)',
+                            message: `Failed to process reminder: ${reminder.message || 'No message'} (ID: ${reminder.id})`,
+                            type: 'error',
+                            read: false,
+                        },
+                    });
+                }
             }
-        });
-        const today = new Date();
-        console.log('payments', reminders);
-        console.log("today", today);
-        console.log(isSameDay(reminders[0].scheduledAt, today) ? 'Dates are on the same day' : 'Dates are on different days');
+        } catch (error) {
+            console.error('Cron job failed:', error);
+            await prisma.notifications.create({
+                data: {
+                    title: 'Reminder Failed to send (Cron Job)',
+                    message: `Cron job failed: ${error.message}`,
+                    type: 'error',
+                    read: false,
+                },
+            });
+        }
     });
 
-    // Use custom middleware if needed (e.g., logging, authentication)
+    // Rest of your Express server setup
     server.use((req, res, next) => {
         console.log('Request received:', req.url);
         next();
     });
 
-    // Fallback to Next.js request handler for any other routes
     server.all('*', (req, res) => {
         return handle(req, res);
     });
