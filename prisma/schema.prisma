@@ -85,3 +85,19 @@ model FailedLoginAttempt {
   lastAttempt  DateTime  @updatedAt
   blockedUntil DateTime? // Optional: If blocked, until when it's blocked
 }
+
+// title: "Payment Reminder",
+// description: "Customer XYZ has an upcoming payment",
+// type: "alert",
+// author: "System",
+// date: new Date("2024-03-15"),
+
+model Notification {
+  id          String @id @default(cuid())
+  title       String
+  description String
+  type        String
+  author      String
+
+  date DateTime @default(now())
+}
