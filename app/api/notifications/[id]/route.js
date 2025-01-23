@@ -1,17 +1,17 @@
+// app\api\notifications\[id]\route.js
+
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';  // Import the prisma instance from the file
-
 
 export async function GET(req, { params }) {
     const { id } = await params;
 
     try {
-        const notifications = await prisma.notifications.findMany({
-            where: { serviceID: id },
+        const notification = await prisma.notifications.findUnique({
+            where: { id: id },
         });
-        return NextResponse.json(notifications, { status: 200 });
+        return NextResponse.json(notification, { status: 200 });
     } catch (error) {
-        console.log(error);
         return NextResponse.json({ error: 'Failed to fetch notification' }, { status: 500 });
     }
 }
@@ -20,7 +20,7 @@ export async function GET(req, { params }) {
 export async function PUT(request, { params }) {
     try {
         const data = await request.json()
-        const updatedNotifications = await prisma.notifications.update({
+        const updatedNotification = await prisma.notifications.update({
             where: { id: params.id },
             data: {
                 ...data,
@@ -28,7 +28,7 @@ export async function PUT(request, { params }) {
             },
             include: { service: true }
         })
-        return NextResponse.json(updatedNotifications)
+        return NextResponse.json(updatedNotification, { status: 200 })
     } catch (error) {
         return NextResponse.json(
             { error: 'Error updating notification' },
