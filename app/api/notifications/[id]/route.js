@@ -19,17 +19,19 @@ export async function GET(req, { params }) {
 
 export async function PUT(request, { params }) {
     try {
-        const data = await request.json()
+        const data = await request.json();
+        const { id } = await params;
+        console.log(data);
+
         const updatedNotification = await prisma.notifications.update({
-            where: { id: params.id },
+            where: { id: id },
             data: {
-                ...data,
-                scheduledAt: new Date(data.scheduledAt),
+                read: data.read,
             },
-            include: { service: true }
         })
         return NextResponse.json(updatedNotification, { status: 200 })
     } catch (error) {
+        console.log(error);
         return NextResponse.json(
             { error: 'Error updating notification' },
             { status: 500 }
