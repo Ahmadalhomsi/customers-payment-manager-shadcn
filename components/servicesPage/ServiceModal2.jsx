@@ -65,11 +65,12 @@ export function ServiceModal2({
   visible,
   onClose,
   onSubmit,
-  isLoading = false
+  isLoading = false,
+  selectedService,
+  customers = [],
 }) {
-  const [formData, setFormData] = useState(INITIAL_FORM_STATE)
-  const [customers, setCustomers] = useState([])
   const [isCustomersLoading, setIsCustomersLoading] = useState(false)
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE)
   const [searchQuery, setSearchQuery] = useState("")
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false)
   const [startDateMonth, setStartDateMonth] = useState(new Date())
@@ -78,22 +79,23 @@ export function ServiceModal2({
 
   // Fetch customers when modal opens
   useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        setIsCustomersLoading(true)
-        const response = await fetch('/api/customers')
-        const data = await response.json()
-        setCustomers(data)
-      } catch (error) {
-        console.error("Failed to fetch customers:", error)
-      } finally {
-        setIsCustomersLoading(false)
+    if (visible) {
+      if (selectedService) {
+        setFormData({
+          name: selectedService.name,
+          description: selectedService.description || "",
+          customerID: selectedService.customerID,
+          paymentType: selectedService.paymentType,
+          periodPrice: selectedService.periodPrice?.toString() || "",
+          currency: selectedService.currency,
+          startingDate: new Date(selectedService.startingDate),
+          endingDate: selectedService.endingDate ? new Date(selectedService.endingDate) : null,
+        })
+      } else {
+        setFormData(INITIAL_FORM_STATE)
       }
     }
-
-    if (visible) fetchCustomers()
-  }, [visible])
-
+  }, [visible, selectedService])
   // Duration calculation effects
   useEffect(() => {
     const calculateDuration = () => {
@@ -176,7 +178,7 @@ export function ServiceModal2({
       <DialogContent className="sm:max-w-3xl w-full max-w-[95vw] max-h-[95vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
-            Create New Service
+            {selectedService ? "Edit Service" : "Create New Service"}
           </DialogTitle>
         </DialogHeader>
 
@@ -393,14 +395,15 @@ export function ServiceModal2({
             Cancel
           </Button>
           <Button
-            type="submit"
             onClick={handleSubmit}
-            disabled={isLoading}
             className="w-full sm:w-auto"
+            disabled={isLoading}
           >
             {isLoading ? (
-              <BeatLoader color="#ffffff" size={8} className="py-1" />
-            ) : "Create Service"}
+              <BeatLoader size={8} color="white" />
+            ) : (
+              selectedService ? "Save Changes" : "Create Service"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
