@@ -5,7 +5,7 @@ import axios from 'axios'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { ServiceTable } from '@/components/servicesPage/ServicesTable'
-import { ServiceModal } from '@/components/mainPage/ServiceModal'
+import { ServiceModal2 } from '@/components/servicesPage/ServiceModal2'
 import { DeleteConfirmModal } from '@/components/mainPage/DeleteConfirmModal'
 import { Plus, Mail } from 'lucide-react'
 
@@ -97,7 +97,7 @@ export default function ServicesPage() {
         }}
       />
 
-      <ServiceModal
+      <ServiceModal2
         visible={serviceModalVisible}
         onClose={() => {
           setServiceModalVisible(false)
