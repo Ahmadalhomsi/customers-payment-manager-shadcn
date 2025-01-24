@@ -29,7 +29,7 @@ const validatePassword = (password) => {
   const hasLower = /[a-z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
   const hasSpecial = /[^A-Za-z0-9]/.test(password);
-  
+
   return {
     minLength,
     hasUpper,
@@ -90,7 +90,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
 
     if (errors[name]) {
       setErrors(prev => {
-        const newErrors = {...prev};
+        const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
       });
