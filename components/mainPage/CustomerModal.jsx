@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const FormField = ({ label, id, ...props }) => (
   <div className="grid grid-cols-4 items-center gap-4">
@@ -22,7 +23,24 @@ const FormField = ({ label, id, ...props }) => (
   </div>
 );
 
-export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) {
+const validatePassword = (password) => {
+  const minLength = password.length >= 8;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  
+  return {
+    minLength,
+    hasUpper,
+    hasLower,
+    hasNumber,
+    hasSpecial,
+    allValid: password === '' || (minLength && hasUpper && hasLower && hasNumber && hasSpecial),
+  };
+};
+
+export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, customers }) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -30,14 +48,32 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) 
     phone: "",
     password: "",
   });
+  const [passwordValidation, setPasswordValidation] = useState({
+    minLength: false,
+    hasUpper: false,
+    hasLower: false,
+    hasNumber: false,
+    hasSpecial: false,
+    allValid: false,
+  });
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (visible) {
       setFormData(
         selectedCustomer
-          ? { ...selectedCustomer }
+          ? { ...selectedCustomer, password: "" }
           : { name: "", email: "", phone: "", password: "" }
       );
+      setPasswordValidation({
+        minLength: false,
+        hasUpper: false,
+        hasLower: false,
+        hasNumber: false,
+        hasSpecial: false,
+        allValid: false,
+      });
+      setErrors({});
     }
   }, [visible, selectedCustomer]);
 
@@ -47,11 +83,56 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) 
       ...prev,
       [name]: value,
     }));
+
+    if (name === "password") {
+      setPasswordValidation(validatePassword(value));
+    }
+
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (customers.some(c => c.email === formData.email && c.id !== selectedCustomer?.id)) {
+      newErrors.email = "Email already exists";
+    }
+
+    // Password validation for both new and existing customers
+    if (formData.password) {
+      const passwordValid = validatePassword(formData.password);
+      if (!passwordValid.allValid) {
+        newErrors.password = "Password does not meet requirements";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = () => {
-    onSubmit(formData);
-    onClose();
+    if (validateForm()) {
+      onSubmit(formData);
+      onClose();
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Form Validation Failed",
+        description: "Please check the form for errors.",
+      });
+    }
   };
 
   return (
@@ -70,7 +151,9 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) 
             name="name"
             value={formData.name}
             onChange={handleChange}
+            required
           />
+          {errors.name && <p className="text-destructive text-sm ml-24">{errors.name}</p>}
 
           <FormField
             label="Email"
@@ -79,7 +162,9 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) 
             type="email"
             value={formData.email}
             onChange={handleChange}
+            required
           />
+          {errors.email && <p className="text-destructive text-sm ml-24">{errors.email}</p>}
 
           <FormField
             label="Phone"
@@ -114,6 +199,26 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer }) 
                 )}
               </Button>
             </div>
+            {formData.password && (
+              <div className="text-sm mt-2 space-y-1">
+                <div className={passwordValidation.minLength ? 'text-green-600' : 'text-destructive'}>
+                  • At least 8 characters
+                </div>
+                <div className={passwordValidation.hasUpper ? 'text-green-600' : 'text-destructive'}>
+                  • One uppercase letter
+                </div>
+                <div className={passwordValidation.hasLower ? 'text-green-600' : 'text-destructive'}>
+                  • One lowercase letter
+                </div>
+                <div className={passwordValidation.hasNumber ? 'text-green-600' : 'text-destructive'}>
+                  • One number
+                </div>
+                <div className={passwordValidation.hasSpecial ? 'text-green-600' : 'text-destructive'}>
+                  • One special character
+                </div>
+              </div>
+            )}
+            {errors.password && <p className="text-destructive text-sm">{errors.password}</p>}
           </FormField>
         </div>
 

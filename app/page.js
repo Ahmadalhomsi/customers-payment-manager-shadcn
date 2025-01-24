@@ -177,6 +177,7 @@ export default function CustomersPage() {
         }}
         onSubmit={handleCustomerSubmit}
         selectedCustomer={selectedCustomer}
+        customers={customers}
       />
 
       <DeleteConfirmModal
