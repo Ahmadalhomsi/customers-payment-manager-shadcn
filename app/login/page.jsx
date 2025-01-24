@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff } from "lucide-react";
+import { BeatLoader } from "react-spinners"; // Import BeatLoader
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [isVisible, setIsVisible] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
     const toggleVisibility = () => setIsVisible(!isVisible);
@@ -20,6 +22,7 @@ export default function LoginPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(""); // Reset any previous errors
+        setIsLoading(true); // Start loading
 
         try {
             const response = await fetch("/api/login", {
@@ -45,6 +48,7 @@ export default function LoginPage() {
             }
         } catch (err) {
             setError("Something went wrong. Please try again.");
+            setIsLoading(false); // Stop loading
         }
     };
 
@@ -94,9 +98,14 @@ export default function LoginPage() {
 
                         <Button
                             type="submit"
-                            className="w-full bg-primary hover:bg-primary/90"
+                            className="w-full bg-primary hover:bg-primary/90 flex items-center justify-center"
+                            disabled={isLoading}
                         >
-                            Login
+                            {isLoading ? (
+                                <BeatLoader color="#ffffff" size={10} /> // Use BeatLoader
+                            ) : (
+                                "Login"
+                            )}
                         </Button>
                     </form>
                 </CardContent>
