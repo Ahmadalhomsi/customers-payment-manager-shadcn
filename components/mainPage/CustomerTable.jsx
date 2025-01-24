@@ -47,8 +47,8 @@ export function CustomerTable({
     if (sortConfig.key !== column) {
       return <ChevronDown className="h-4 w-4 opacity-30" />;
     }
-    return sortConfig.direction === 'asc' ? 
-      <ChevronUp className="h-4 w-4" /> : 
+    return sortConfig.direction === 'asc' ?
+      <ChevronUp className="h-4 w-4" /> :
       <ChevronDown className="h-4 w-4" />;
   };
 
@@ -63,6 +63,12 @@ export function CustomerTable({
       if (sortConfig.key === 'status') {
         aValue = getCustomerStatus(a);
         bValue = getCustomerStatus(b);
+      }
+
+      // Handle date sorting
+      if (sortConfig.key === 'createdAt') {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
       }
 
       // Case-insensitive string comparison
@@ -110,6 +116,10 @@ export function CustomerTable({
     return 'inactive';
   };
 
+  const formatDate = (dateString) => {
+    return dateString ? new Date(dateString).toLocaleDateString() : 'N/A';
+  };
+
   const filteredCustomers = sortCustomers(
     customers.filter(customer => {
       const matchesSearch = Object.values(customer).some(value =>
@@ -153,8 +163,8 @@ export function CustomerTable({
         <Table>
           <TableHeader className="bg-background">
             <TableRow>
-              <TableHead 
-                className="w-[200px] cursor-pointer hover:bg-muted/50" 
+              <TableHead
+                className="w-[200px] cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-1">
@@ -162,8 +172,8 @@ export function CustomerTable({
                   <SortIcon column="name" />
                 </div>
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/50" 
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('status')}
               >
                 <div className="flex items-center gap-1">
@@ -171,8 +181,8 @@ export function CustomerTable({
                   <SortIcon column="status" />
                 </div>
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/50" 
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('email')}
               >
                 <div className="flex items-center gap-1">
@@ -180,13 +190,22 @@ export function CustomerTable({
                   <SortIcon column="email" />
                 </div>
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/50" 
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('phone')}
               >
                 <div className="flex items-center gap-1">
                   Phone
                   <SortIcon column="phone" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort('createdAt')}
+              >
+                <div className="flex items-center gap-1">
+                  Created At
+                  <SortIcon column="createdAt" />
                 </div>
               </TableHead>
               <TableHead className="w-[200px]">Password</TableHead>
@@ -213,6 +232,7 @@ export function CustomerTable({
                   </TableCell>
                   <TableCell className="text-foreground/80">{customer.email}</TableCell>
                   <TableCell className="text-foreground/80">{customer.phone}</TableCell>
+                  <TableCell className="text-foreground/80">{formatDate(customer.createdAt)}</TableCell>
                   <TableCell className="w-[200px]">
                     <div className="flex items-center gap-2">
                       <span className="font-mono">
