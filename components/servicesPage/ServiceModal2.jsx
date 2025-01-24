@@ -197,9 +197,9 @@ export function ServiceModal2({
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
+              <PopoverContent className="w-full p-0 pointer-events-auto">
                 <Command shouldFilter={false}>
-                  <CommandInput 
+                  <CommandInput
                     placeholder="Search customers..."
                     value={searchQuery}
                     onValueChange={setSearchQuery}
@@ -212,7 +212,7 @@ export function ServiceModal2({
                     ) : (
                       <CommandGroup>
                         {customers
-                          .filter(customer => 
+                          .filter(customer =>
                             customer.name.toLowerCase().includes(searchQuery.toLowerCase())
                           )
                           .map(customer => (
