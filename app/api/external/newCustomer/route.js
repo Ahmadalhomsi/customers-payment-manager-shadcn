@@ -6,9 +6,10 @@ import { addYears, subWeeks } from 'date-fns';
 
 export async function POST(request) {
     const data = await request.json()
-    const { customerName, email, password, phone } = data;
+    const { token, customerName, email, password, phone } = data;
     try {
         const customer = await prisma.customer.create({
+
             data: { name: customerName, email, password: password, phone },
         });
 
@@ -21,6 +22,7 @@ export async function POST(request) {
 
             const newService = await prisma.service.create({
                 data: {
+                    id: token,
                     customerID: customer.id,
                     name: 'Default Service',
                     description: 'Automatic service fom API',
