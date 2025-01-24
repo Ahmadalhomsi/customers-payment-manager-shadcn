@@ -36,9 +36,9 @@ const INITIAL_FORM_STATE = {
   paymentType: "Monthly",
   periodPrice: '',
   currency: "TL",
-  startingDate: null,
+  startingDate: new Date(), // Default to today
   endingDate: null,
-}
+};
 
 export function ServiceModal({
   visible,
@@ -51,35 +51,116 @@ export function ServiceModal({
   const [isLoading, setIsLoading] = useState(false)
   const [startDateMonth, setStartDateMonth] = useState(new Date())
   const [endDateMonth, setEndDateMonth] = useState(new Date())
+  const DURATIONS = [
+    { value: '6months', label: '6 Months' },
+    { value: '1year', label: '1 Year' },
+    { value: '2years', label: '2 Years' },
+    { value: '3years', label: '3 Years' },
+    { value: 'custom', label: 'Custom' },
+  ];
+
+  // Add this state variable
+  const [selectedDuration, setSelectedDuration] = useState('custom');
 
   useEffect(() => {
     if (selectedService) {
-      const startingDate = new Date(selectedService.startingDate)
-      const endingDate = selectedService.endingDate ? new Date(selectedService.endingDate) : null
+      const startingDate = new Date(selectedService.startingDate);
+      const endingDate = selectedService.endingDate ? new Date(selectedService.endingDate) : null;
+
+      // Calculate initial duration
+      let duration = 'custom';
+      if (endingDate) {
+        const startYear = startingDate.getFullYear();
+        const startMonth = startingDate.getMonth();
+        const startDay = startingDate.getDate();
+
+        const endYear = endingDate.getFullYear();
+        const endMonth = endingDate.getMonth();
+        const endDay = endingDate.getDate();
+
+        // Check for exact duration matches
+        if (endYear === startYear + 1 && endMonth === startMonth && endDay === startDay) {
+          duration = '1year';
+        } else if (endYear === startYear + 2 && endMonth === startMonth && endDay === startDay) {
+          duration = '2years';
+        } else if (endYear === startYear + 3 && endMonth === startMonth && endDay === startDay) {
+          duration = '3years';
+        } else {
+          const monthsDiff = (endYear - startYear) * 12 + (endMonth - startMonth);
+          if (monthsDiff === 6 && endDay === startDay) {
+            duration = '6months';
+          }
+        }
+      }
 
       setFormData({
         ...selectedService,
         startingDate,
         endingDate,
-      })
-
-      setStartDateMonth(startingDate)
-      if (endingDate) {
-        setEndDateMonth(endingDate)
-      }
+      });
+      setSelectedDuration(duration);
+      setStartDateMonth(startingDate);
+      if (endingDate) setEndDateMonth(endingDate);
     } else {
-      setFormData(INITIAL_FORM_STATE)
-      setStartDateMonth(new Date())
-      setEndDateMonth(new Date())
+      setFormData(INITIAL_FORM_STATE);
+      setStartDateMonth(new Date());
+      setEndDateMonth(new Date());
+      setSelectedDuration('custom');
     }
-  }, [selectedService])
+  }, [selectedService]);
+
+  // Calculate duration when dates change
+  useEffect(() => {
+    const calculateDuration = () => {
+      if (!formData.startingDate || !formData.endingDate) {
+        setSelectedDuration('custom')
+        return
+      }
+
+      const start = new Date(formData.startingDate)
+      const end = new Date(formData.endingDate)
+
+      // Create test dates for comparison
+      const testDates = [
+        { duration: '6months', date: new Date(start).setMonth(start.getMonth() + 6) },
+        { duration: '1year', date: new Date(start).setFullYear(start.getFullYear() + 1) },
+        { duration: '2years', date: new Date(start).setFullYear(start.getFullYear() + 2) },
+        { duration: '3years', date: new Date(start).setFullYear(start.getFullYear() + 3) },
+      ]
+
+      const match = testDates.find(td => td.date === end.getTime())
+      setSelectedDuration(match ? match.duration : 'custom')
+    }
+
+    calculateDuration()
+  }, [formData.startingDate, formData.endingDate])
+
+  useEffect(() => {
+    if (selectedDuration !== 'custom' && formData.startingDate) {
+      const start = new Date(formData.startingDate)
+      const end = new Date(start)
+
+      switch (selectedDuration) {
+        case '6months': end.setMonth(end.getMonth() + 6); break
+        case '1year': end.setFullYear(end.getFullYear() + 1); break
+        case '2years': end.setFullYear(end.getFullYear() + 2); break
+        case '3years': end.setFullYear(end.getFullYear() + 3); break
+      }
+
+      setFormData(prev => ({ ...prev, endingDate: end }))
+      setEndDateMonth(end)
+    }
+  }, [selectedDuration, formData.startingDate])
 
   const handleChange = (name, value) => {
+    if (name === 'endingDate') {
+      setSelectedDuration('custom');
+    }
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.startingDate) {
@@ -196,37 +277,68 @@ export function ServiceModal({
             </div>
           </div>
 
-          {/* Dates */}
+          {/* Dates Section */}
+          {/* Dates Section */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-2 sm:gap-4">
             <Label className="text-left sm:text-right sm:pt-2">
               Dates <span className="text-red-500">*</span>
             </Label>
-            <div className="w-full sm:col-span-3 flex flex-col sm:flex-row gap-4">
-              <div className="flex flex-col gap-2 w-full">
-                <Label>Start Date</Label>
-                <Calendar
-                  mode="single"
-                  selected={formData.startingDate}
-                  onSelect={(date) => handleChange("startingDate", date)}
-                  month={startDateMonth}
-                  onMonthChange={setStartDateMonth}
-                  className="rounded-md border w-full"
-                  required
-                />
+            <div className="w-full sm:col-span-3 space-y-4">
+              {/* Duration Selector */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                <Label className="text-left sm:text-right">
+                  Duration
+                </Label>
+                <Select
+                  value={selectedDuration}
+                  onValueChange={(value) => {
+                    if (value !== 'custom' && !formData.startingDate) {
+                      alert('Please select a start date first')
+                      return
+                    }
+                    setSelectedDuration(value)
+                  }}
+                  className="sm:col-span-3"
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DURATIONS.map((duration) => (
+                      <SelectItem key={duration.value} value={duration.value}>
+                        {duration.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex flex-col gap-2 w-full">
-                <Label>End Date</Label>
-                <Calendar
-                  mode="single"
-                  selected={formData.endingDate}
-                  onSelect={(date) => handleChange("endingDate", date)}
-                  month={endDateMonth}
-                  onMonthChange={setEndDateMonth}
-                  className="rounded-md border w-full"
-                  disabled={(date) =>
-                    date < formData.startingDate
-                  }
-                />
+
+              {/* Date Pickers */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col gap-2 w-full">
+                  <Label>Start Date</Label>
+                  <Calendar
+                    mode="single"
+                    selected={formData.startingDate}
+                    onSelect={(date) => handleChange("startingDate", date)}
+                    month={startDateMonth}
+                    onMonthChange={setStartDateMonth}
+                    className="rounded-md border w-full"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-2 w-full">
+                  <Label>End Date</Label>
+                  <Calendar
+                    mode="single"
+                    selected={formData.endingDate}
+                    onSelect={(date) => handleChange("endingDate", date)}
+                    month={endDateMonth}
+                    onMonthChange={setEndDateMonth}
+                    className="rounded-md border w-full"
+                    disabled={(date) => date < formData.startingDate}
+                  />
+                </div>
               </div>
             </div>
           </div>
