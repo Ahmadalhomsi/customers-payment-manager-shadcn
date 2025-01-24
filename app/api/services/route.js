@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { subWeeks } from 'date-fns';
 import { NextResponse } from 'next/server';
 
 export async function POST(req) {
@@ -13,15 +14,15 @@ export async function POST(req) {
             );
         }
 
-        const { 
-            name, 
-            description, 
-            paymentType, 
-            periodPrice, 
-            currency, 
+        const {
+            name,
+            description,
+            paymentType,
+            periodPrice,
+            currency,
             customerID,
             startingDate,
-            endingDate 
+            endingDate
         } = data;
 
         // Validate required fields
@@ -48,12 +49,24 @@ export async function POST(req) {
                 }
             }
         });
-        
+
+        // Calculate the reminder date (one week before the service ends)
+        const reminderDate = subWeeks(endingDate, 1);
+
+        // Create a reminder for one week before the service ends
+        await prisma.reminder.create({
+            data: {
+                scheduledAt: reminderDate,
+                status: "SCHEDULED",
+                message: "Your service is ending in one week! Please renew to avoid interruption.",  // Custom message
+                serviceID: service.id,
+            },
+        });
 
         return NextResponse.json(service, { status: 201 });
     } catch (error) {
         console.error('Service creation error:', error.message);
-        
+
         // Handle specific Prisma errors
         if (error.code === 'P2002') {
             return NextResponse.json(
@@ -61,7 +74,7 @@ export async function POST(req) {
                 { status: 409 }
             );
         }
-        
+
         if (error.code === 'P2003') {
             return NextResponse.json(
                 { error: 'Invalid customer ID' },
