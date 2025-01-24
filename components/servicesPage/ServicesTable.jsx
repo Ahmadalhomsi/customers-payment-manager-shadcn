@@ -119,13 +119,61 @@ export function ServiceTable({
                     <Table>
                         <TableHeader className="bg-background">
                             <TableRow>
-                                <TableHead className="w-[100px]">ID</TableHead>
-                                <TableHead>Service Name</TableHead>
+                                <TableHead
+                                    className="w-[100px] cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('id')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        ID
+                                        <SortIcon column="id" />
+                                    </div>
+                                </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('name')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Service Name
+                                        <SortIcon column="name" />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Description</TableHead>
-                                <TableHead>Customer</TableHead>
-                                <TableHead>Payment</TableHead>
-                                <TableHead>Dates</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('customerID')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Customer
+                                        <SortIcon column="customerID" />
+                                    </div>
+                                </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('paymentType')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Payment
+                                        <SortIcon column="paymentType" />
+                                    </div>
+                                </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('startingDate')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Dates
+                                        <SortIcon column="startingDate" />
+                                    </div>
+                                </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('status')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Status
+                                        <SortIcon column="status" />
+                                    </div>
+                                </TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
