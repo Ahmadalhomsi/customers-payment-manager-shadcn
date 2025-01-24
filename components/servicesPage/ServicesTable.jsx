@@ -186,7 +186,7 @@ export function ServiceTable({
 
                                 return (
                                     <TableRow key={service.id} className="hover:bg-muted/50 transition-colors">
-                                        <TableCell className="font-mono text-xs">{service.id.slice(0, 6)}...</TableCell>
+                                        <TableCell className="font-mono text-xs">{service.id}</TableCell>
                                         <TableCell className="font-medium">{service.name}</TableCell>
                                         <TableCell>
                                             {service.description ? (
@@ -195,7 +195,7 @@ export function ServiceTable({
                                                         <Info className="h-4 w-4 text-muted-foreground" />
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        <p className="max-w-[200px]">{service.description}</p>
+                                                        <p className="max-w-[300px]">{service.description}</p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             ) : '-'}
