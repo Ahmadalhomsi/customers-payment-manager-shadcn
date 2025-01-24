@@ -13,6 +13,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
 import { Edit, Trash2, Plus, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { CalendarIcon } from "lucide-react"
+import { Calendar } from "@/components/ui/calendar"
+import { addDays, format } from "date-fns"
 
 export function CustomerTable({
   customers,
@@ -26,6 +35,10 @@ export function CustomerTable({
   const [statusFilter, setStatusFilter] = useState('all');
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+  const [dateRangeFilter, setDateRangeFilter] = useState({
+    from: undefined,
+    to: undefined
+  });
 
   const togglePasswordVisibility = (customerId) => {
     setVisiblePasswords(prev => ({
@@ -120,19 +133,45 @@ export function CustomerTable({
     return dateString ? new Date(dateString).toLocaleDateString() : 'N/A';
   };
 
+  const isDateInRange = (date, dateRange) => {
+    if (!dateRange?.from && !dateRange?.to) return true;
+    const checkDate = new Date(date);
+
+    if (dateRange?.from && dateRange?.to) {
+      return checkDate >= dateRange.from && checkDate <= dateRange.to;
+    }
+
+    if (dateRange?.from) {
+      return checkDate >= dateRange.from;
+    }
+
+    if (dateRange?.to) {
+      return checkDate <= dateRange.to;
+    }
+
+    return true;
+  };
+
   const filteredCustomers = sortCustomers(
     customers.filter(customer => {
       const matchesSearch = Object.values(customer).some(value =>
         String(value).toLowerCase().includes(searchTerm.toLowerCase())
       );
       const status = getCustomerStatus(customer);
-      return matchesSearch && (statusFilter === 'all' || status === statusFilter);
+      const matchesDateRange = isDateInRange(
+        customer.createdAt,
+        dateRangeFilter
+      );
+
+      return matchesSearch &&
+        (statusFilter === 'all' || status === statusFilter) &&
+        matchesDateRange;
     })
   );
 
   return (
     <div className="space-y-4 relative">
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap items-center">
         <Input
           placeholder="Search customers..."
           value={searchTerm}
@@ -151,6 +190,42 @@ export function CustomerTable({
             <SelectItem value="overdue">Overdue</SelectItem>
           </SelectContent>
         </Select>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-[260px] justify-start text-left font-normal",
+                !dateRangeFilter?.from && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRangeFilter?.from ? (
+                dateRangeFilter.to ? (
+                  <>
+                    {format(dateRangeFilter.from, "LLL dd, y")} -{" "}
+                    {format(dateRangeFilter.to, "LLL dd, y")}
+                  </>
+                ) : (
+                  format(dateRangeFilter.from, "LLL dd, y")
+                )
+              ) : (
+                <span>Pick a date range</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={dateRangeFilter?.from}
+              selected={dateRangeFilter}
+              onSelect={setDateRangeFilter}
+              numberOfMonths={2}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="relative rounded-lg border shadow-sm">
