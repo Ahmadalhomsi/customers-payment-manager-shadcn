@@ -49,8 +49,8 @@ export function ServiceModal({
 }) {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE)
   const [isLoading, setIsLoading] = useState(false)
-  const [startDateMonth, setStartDateMonth] = useState(new Date()) // State for starting date calendar month
-  const [endDateMonth, setEndDateMonth] = useState(new Date()) // State for ending date calendar month
+  const [startDateMonth, setStartDateMonth] = useState(new Date())
+  const [endDateMonth, setEndDateMonth] = useState(new Date())
 
   useEffect(() => {
     if (selectedService) {
@@ -63,15 +63,14 @@ export function ServiceModal({
         endingDate,
       })
 
-      // Set the calendar months to the respective dates
       setStartDateMonth(startingDate)
       if (endingDate) {
         setEndDateMonth(endingDate)
       }
     } else {
       setFormData(INITIAL_FORM_STATE)
-      setStartDateMonth(new Date()) // Reset to current month for starting date
-      setEndDateMonth(new Date()) // Reset to current month for ending date
+      setStartDateMonth(new Date())
+      setEndDateMonth(new Date())
     }
   }, [selectedService])
 
@@ -106,49 +105,52 @@ export function ServiceModal({
 
   return (
     <Dialog open={visible} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-3xl w-full max-w-[95vw] max-h-[95vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
             {selectedService ? "Edit" : "Add"} Service for{" "}
             <span className="font-semibold">{selectedCustomer?.name}</span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
+        <div className="grid gap-4 sm:gap-6 py-2 sm:py-4">
+          {/* Service Name */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+            <Label htmlFor="name" className="text-left sm:text-right">
               Service Name <span className="text-red-500">*</span>
             </Label>
             <Input
               id="name"
               value={formData.name || ""}
               onChange={(e) => handleChange("name", e.target.value)}
-              className="col-span-3"
+              className="w-full sm:col-span-3"
               placeholder="Enter service name"
               required
             />
           </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">
+          {/* Description */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+            <Label htmlFor="description" className="text-left sm:text-right">
               Description
             </Label>
             <Input
               id="description"
               value={formData.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
-              className="col-span-3"
+              className="w-full sm:col-span-3"
               placeholder="Enter service description"
             />
           </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Payment Type</Label>
+          {/* Payment Type */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+            <Label className="text-left sm:text-right">Payment Type</Label>
             <Select
               value={formData.paymentType}
               onValueChange={(value) => handleChange("paymentType", value)}
             >
-              <SelectTrigger className="col-span-3">
+              <SelectTrigger className="w-full sm:col-span-3">
                 <SelectValue placeholder="Select payment type" />
               </SelectTrigger>
               <SelectContent>
@@ -161,9 +163,10 @@ export function ServiceModal({
             </Select>
           </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Price</Label>
-            <div className="col-span-3 flex gap-2">
+          {/* Price */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+            <Label className="text-left sm:text-right">Price</Label>
+            <div className="w-full sm:col-span-3 flex flex-col sm:flex-row gap-2">
               <Input
                 type="number"
                 min="0"
@@ -172,14 +175,14 @@ export function ServiceModal({
                 onChange={(e) =>
                   handleChange("periodPrice", parseFloat(e.target.value) || 0)
                 }
-                className="flex-1"
+                className="w-full"
                 placeholder="0.00"
               />
               <Select
                 value={formData.currency}
                 onValueChange={(value) => handleChange("currency", value)}
               >
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-full sm:w-24">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -193,32 +196,33 @@ export function ServiceModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label className="text-right pt-2">
+          {/* Dates */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-2 sm:gap-4">
+            <Label className="text-left sm:text-right sm:pt-2">
               Dates <span className="text-red-500">*</span>
             </Label>
-            <div className="col-span-3 flex gap-6">
-              <div className="flex flex-col gap-2">
+            <div className="w-full sm:col-span-3 flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col gap-2 w-full">
                 <Label>Start Date</Label>
                 <Calendar
                   mode="single"
                   selected={formData.startingDate}
                   onSelect={(date) => handleChange("startingDate", date)}
-                  month={startDateMonth} // Pass the starting date month
-                  onMonthChange={setStartDateMonth} // Update starting date month
-                  className="rounded-md border"
+                  month={startDateMonth}
+                  onMonthChange={setStartDateMonth}
+                  className="rounded-md border w-full"
                   required
                 />
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 w-full">
                 <Label>End Date</Label>
                 <Calendar
                   mode="single"
                   selected={formData.endingDate}
                   onSelect={(date) => handleChange("endingDate", date)}
-                  month={endDateMonth} // Pass the ending date month
-                  onMonthChange={setEndDateMonth} // Update ending date month
-                  className="rounded-md border"
+                  month={endDateMonth}
+                  onMonthChange={setEndDateMonth}
+                  className="rounded-md border w-full"
                   disabled={(date) =>
                     date < formData.startingDate
                   }
@@ -228,14 +232,19 @@ export function ServiceModal({
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose}>
+        <DialogFooter className="border-t pt-4 mt-4">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="w-full sm:w-auto"
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             onClick={handleSubmit}
             disabled={isLoading}
+            className="w-full sm:w-auto"
           >
             {isLoading ? (
               <BeatLoader
