@@ -1,39 +1,57 @@
-"use client"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+"use client";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ThemeSwitch } from "@/components/theme-switch"
-import { Sun, Moon, Github, LogOut, Menu, LayoutDashboard, ChartPie, Settings } from "lucide-react"
-import { usePathname, useRouter } from "next/navigation"
-import { BadgeNotification } from "@/components/BadgeNotification"
-import { useState } from "react"
+} from "@/components/ui/dropdown-menu";
+import { ThemeSwitch } from "@/components/theme-switch";
+import { Menu, Home, Briefcase, LogOut } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { BadgeNotification } from "@/components/BadgeNotification";
+import { useState } from "react";
 
 export function Navbar() {
-  const router = useRouter()
-  const pathname = usePathname()
-  const isLoginPage = pathname === "/login"
+  const router = useRouter();
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/login";
   const [notifications, setNotifications] = useState([]);
 
   const handleLogout = async () => {
-    await fetch("/api/logout")
-    router.push("/login")
-  }
+    await fetch("/api/logout");
+    router.push("/login");
+  };
 
-  if (isLoginPage) return null
+  if (isLoginPage) return null;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between px-4">
         {/* Left Section */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center">
           <Link href="/" className="flex items-center gap-2 font-bold">
             <span className="h-6 w-6 bg-primary rounded-lg" />
             <span className="text-primary">MAPOS</span>
+          </Link>
+        </div>
+
+        {/* Middle Section (Links for Desktop) */}
+        <div className="hidden md:flex items-center gap-6">
+          <Link
+            href="/"
+            className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
+          >
+            <Home className="mr-2 h-4 w-4" />
+            Main Page
+          </Link>
+          <Link
+            href="/services"
+            className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
+          >
+            <Briefcase className="mr-2 h-4 w-4" />
+            Services
           </Link>
         </div>
 
@@ -44,29 +62,25 @@ export function Navbar() {
             onNotificationsChange={setNotifications}
           />
           <ThemeSwitch />
+
+          {/* Dropdown for Mobile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="md:hidden">
                 <Menu className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/main">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Main Dashboard
+                <Link href="/">
+                  <Home className="mr-2 h-4 w-4" />
+                  Main Page
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/analytics">
-                  <ChartPie className="mr-2 h-4 w-4" />
-                  Analytics Dashboard
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings Dashboard
+                <Link href="/services">
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  Services
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -79,6 +93,7 @@ export function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Logout Button for Desktop */}
           <Button
             variant="destructive"
             size="sm"
@@ -91,5 +106,5 @@ export function Navbar() {
         </div>
       </div>
     </nav>
-  )
+  );
 }
