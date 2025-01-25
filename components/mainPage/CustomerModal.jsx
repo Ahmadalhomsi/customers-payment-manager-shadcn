@@ -60,9 +60,10 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
 
   useEffect(() => {
     if (visible) {
+      // Pre-fill the form with the selected customer's data, including the actual password
       setFormData(
         selectedCustomer
-          ? { ...selectedCustomer, password: "" }
+          ? { ...selectedCustomer } // Include the actual password
           : { name: "", email: "", phone: "", password: "" }
       );
       setPasswordValidation({
@@ -110,10 +111,10 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
       newErrors.email = "Email already exists";
     }
 
-    // Password validation for both new and existing customers
-    if (!formData.password.trim()) {
+    // Password validation for new customers or when updating password
+    if (!selectedCustomer && !formData.password.trim()) {
       newErrors.password = "Password is required";
-    } else {
+    } else if (formData.password.trim()) {
       const passwordValid = validatePassword(formData.password);
       if (!passwordValid.allValid) {
         newErrors.password = "Password does not meet requirements";
@@ -200,7 +201,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
                 onChange={handleChange}
                 onKeyDown={handleKeyDown} // Add keydown handler to input
                 className="pr-10"
-                required
+                required={!selectedCustomer} // Only required for new customers
               />
               <Button
                 type="button"
