@@ -248,7 +248,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
             {selectedCustomer ? "Save Changes" : "Create"}
           </Button>
         </DialogFooter>
-      </DialogContent>
+      </DialogContent>  
     </Dialog>
   );
 }

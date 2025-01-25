@@ -1,40 +1,40 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { BeatLoader } from 'react-spinners';
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { BeatLoader } from "react-spinners";
 
 const PAYMENT_TYPES = [
   { value: "Monthly", label: "Monthly" },
   { value: "Yearly", label: "Yearly" },
-]
+];
 
 const CURRENCIES = [
   { value: "TL", label: "₺" },
   { value: "USD", label: "$" },
   { value: "EUR", label: "€" },
-]
+];
 
 const INITIAL_FORM_STATE = {
   name: "",
   description: "",
   paymentType: "Monthly",
-  periodPrice: '',
+  periodPrice: "",
   currency: "TL",
   startingDate: new Date(), // Default to today
   endingDate: null,
@@ -47,28 +47,30 @@ export function ServiceModal({
   selectedCustomer,
   selectedService,
 }) {
-  const [formData, setFormData] = useState(INITIAL_FORM_STATE)
-  const [isLoading, setIsLoading] = useState(false)
-  const [startDateMonth, setStartDateMonth] = useState(new Date())
-  const [endDateMonth, setEndDateMonth] = useState(new Date())
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const [isLoading, setIsLoading] = useState(false);
+  const [startDateMonth, setStartDateMonth] = useState(new Date());
+  const [endDateMonth, setEndDateMonth] = useState(new Date());
   const DURATIONS = [
-    { value: '6months', label: '6 Months' },
-    { value: '1year', label: '1 Year' },
-    { value: '2years', label: '2 Years' },
-    { value: '3years', label: '3 Years' },
-    { value: 'custom', label: 'Custom' },
+    { value: "6months", label: "6 Months" },
+    { value: "1year", label: "1 Year" },
+    { value: "2years", label: "2 Years" },
+    { value: "3years", label: "3 Years" },
+    { value: "custom", label: "Custom" },
   ];
 
   // Add this state variable
-  const [selectedDuration, setSelectedDuration] = useState('custom');
+  const [selectedDuration, setSelectedDuration] = useState("custom");
 
   useEffect(() => {
     if (selectedService) {
       const startingDate = new Date(selectedService.startingDate);
-      const endingDate = selectedService.endingDate ? new Date(selectedService.endingDate) : null;
+      const endingDate = selectedService.endingDate
+        ? new Date(selectedService.endingDate)
+        : null;
 
       // Calculate initial duration
-      let duration = 'custom';
+      let duration = "custom";
       if (endingDate) {
         const startYear = startingDate.getFullYear();
         const startMonth = startingDate.getMonth();
@@ -79,16 +81,29 @@ export function ServiceModal({
         const endDay = endingDate.getDate();
 
         // Check for exact duration matches
-        if (endYear === startYear + 1 && endMonth === startMonth && endDay === startDay) {
-          duration = '1year';
-        } else if (endYear === startYear + 2 && endMonth === startMonth && endDay === startDay) {
-          duration = '2years';
-        } else if (endYear === startYear + 3 && endMonth === startMonth && endDay === startDay) {
-          duration = '3years';
+        if (
+          endYear === startYear + 1 &&
+          endMonth === startMonth &&
+          endDay === startDay
+        ) {
+          duration = "1year";
+        } else if (
+          endYear === startYear + 2 &&
+          endMonth === startMonth &&
+          endDay === startDay
+        ) {
+          duration = "2years";
+        } else if (
+          endYear === startYear + 3 &&
+          endMonth === startMonth &&
+          endDay === startDay
+        ) {
+          duration = "3years";
         } else {
-          const monthsDiff = (endYear - startYear) * 12 + (endMonth - startMonth);
+          const monthsDiff =
+            (endYear - startYear) * 12 + (endMonth - startMonth);
           if (monthsDiff === 6 && endDay === startDay) {
-            duration = '6months';
+            duration = "6months";
           }
         }
       }
@@ -105,7 +120,7 @@ export function ServiceModal({
       setFormData(INITIAL_FORM_STATE);
       setStartDateMonth(new Date());
       setEndDateMonth(new Date());
-      setSelectedDuration('custom');
+      setSelectedDuration("custom");
     }
   }, [selectedService]);
 
@@ -113,48 +128,68 @@ export function ServiceModal({
   useEffect(() => {
     const calculateDuration = () => {
       if (!formData.startingDate || !formData.endingDate) {
-        setSelectedDuration('custom')
-        return
+        setSelectedDuration("custom");
+        return;
       }
 
-      const start = new Date(formData.startingDate)
-      const end = new Date(formData.endingDate)
+      const start = new Date(formData.startingDate);
+      const end = new Date(formData.endingDate);
 
       // Create test dates for comparison
       const testDates = [
-        { duration: '6months', date: new Date(start).setMonth(start.getMonth() + 6) },
-        { duration: '1year', date: new Date(start).setFullYear(start.getFullYear() + 1) },
-        { duration: '2years', date: new Date(start).setFullYear(start.getFullYear() + 2) },
-        { duration: '3years', date: new Date(start).setFullYear(start.getFullYear() + 3) },
-      ]
+        {
+          duration: "6months",
+          date: new Date(start).setMonth(start.getMonth() + 6),
+        },
+        {
+          duration: "1year",
+          date: new Date(start).setFullYear(start.getFullYear() + 1),
+        },
+        {
+          duration: "2years",
+          date: new Date(start).setFullYear(start.getFullYear() + 2),
+        },
+        {
+          duration: "3years",
+          date: new Date(start).setFullYear(start.getFullYear() + 3),
+        },
+      ];
 
-      const match = testDates.find(td => td.date === end.getTime())
-      setSelectedDuration(match ? match.duration : 'custom')
-    }
+      const match = testDates.find((td) => td.date === end.getTime());
+      setSelectedDuration(match ? match.duration : "custom");
+    };
 
-    calculateDuration()
-  }, [formData.startingDate, formData.endingDate])
+    calculateDuration();
+  }, [formData.startingDate, formData.endingDate]);
 
   useEffect(() => {
-    if (selectedDuration !== 'custom' && formData.startingDate) {
-      const start = new Date(formData.startingDate)
-      const end = new Date(start)
+    if (selectedDuration !== "custom" && formData.startingDate) {
+      const start = new Date(formData.startingDate);
+      const end = new Date(start);
 
       switch (selectedDuration) {
-        case '6months': end.setMonth(end.getMonth() + 6); break
-        case '1year': end.setFullYear(end.getFullYear() + 1); break
-        case '2years': end.setFullYear(end.getFullYear() + 2); break
-        case '3years': end.setFullYear(end.getFullYear() + 3); break
+        case "6months":
+          end.setMonth(end.getMonth() + 6);
+          break;
+        case "1year":
+          end.setFullYear(end.getFullYear() + 1);
+          break;
+        case "2years":
+          end.setFullYear(end.getFullYear() + 2);
+          break;
+        case "3years":
+          end.setFullYear(end.getFullYear() + 3);
+          break;
       }
 
-      setFormData(prev => ({ ...prev, endingDate: end }))
-      setEndDateMonth(end)
+      setFormData((prev) => ({ ...prev, endingDate: end }));
+      setEndDateMonth(end);
     }
-  }, [selectedDuration, formData.startingDate])
+  }, [selectedDuration, formData.startingDate]);
 
   const handleChange = (name, value) => {
-    if (name === 'endingDate') {
-      setSelectedDuration('custom');
+    if (name === "endingDate") {
+      setSelectedDuration("custom");
     }
     setFormData((prev) => ({
       ...prev,
@@ -164,29 +199,40 @@ export function ServiceModal({
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.startingDate) {
-      alert("Please fill in required fields")
-      return
+      alert("Please fill in required fields");
+      return;
     }
 
     if (formData.endingDate && formData.startingDate > formData.endingDate) {
-      alert("End date must be after start date")
-      return
+      alert("End date must be after start date");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await onSubmit(formData)
-      onClose()
+      await onSubmit(formData);
+      onClose();
     } catch (error) {
-      console.error("Submission error:", error)
+      console.error("Submission error:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+
+  // Handle "Enter" key press
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent default form submission behavior
+      handleSubmit();
+    }
+  };
 
   return (
     <Dialog open={visible} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl w-full max-w-[95vw] max-h-[95vh] overflow-y-auto p-4 sm:p-6">
+      <DialogContent
+        className="sm:max-w-3xl w-full max-w-[95vw] max-h-[95vh] overflow-y-auto p-4 sm:p-6"
+        onKeyDown={handleKeyDown} // Add keydown handler to the dialog
+      >
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
             {selectedService ? "Edit" : "Add"} Service for{" "}
@@ -204,6 +250,7 @@ export function ServiceModal({
               id="name"
               value={formData.name || ""}
               onChange={(e) => handleChange("name", e.target.value)}
+              onKeyDown={handleKeyDown} // Add keydown handler to input
               className="w-full sm:col-span-3"
               placeholder="Enter service name"
               required
@@ -219,6 +266,7 @@ export function ServiceModal({
               id="description"
               value={formData.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
+              onKeyDown={handleKeyDown} // Add keydown handler to input
               className="w-full sm:col-span-3"
               placeholder="Enter service description"
             />
@@ -256,6 +304,7 @@ export function ServiceModal({
                 onChange={(e) =>
                   handleChange("periodPrice", parseFloat(e.target.value) || 0)
                 }
+                onKeyDown={handleKeyDown} // Add keydown handler to input
                 className="w-full"
                 placeholder="0.00"
               />
@@ -278,7 +327,6 @@ export function ServiceModal({
           </div>
 
           {/* Dates Section */}
-          {/* Dates Section */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-2 sm:gap-4">
             <Label className="text-left sm:text-right sm:pt-2">
               Dates <span className="text-red-500">*</span>
@@ -286,17 +334,15 @@ export function ServiceModal({
             <div className="w-full sm:col-span-3 space-y-4">
               {/* Duration Selector */}
               <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                <Label className="text-left sm:text-right">
-                  Duration
-                </Label>
+                <Label className="text-left sm:text-right">Duration</Label>
                 <Select
                   value={selectedDuration}
                   onValueChange={(value) => {
-                    if (value !== 'custom' && !formData.startingDate) {
-                      alert('Please select a start date first')
-                      return
+                    if (value !== "custom" && !formData.startingDate) {
+                      alert("Please select a start date first");
+                      return;
                     }
-                    setSelectedDuration(value)
+                    setSelectedDuration(value);
                   }}
                   className="sm:col-span-3"
                 >
@@ -359,17 +405,17 @@ export function ServiceModal({
             className="w-full sm:w-auto"
           >
             {isLoading ? (
-              <BeatLoader
-                color="#ffffff"
-                size={8}
-                className="py-1"
-              />
-            ) : selectedService ? "Update Service" : "Create Service"}
+              <BeatLoader color="#ffffff" size={8} className="py-1" />
+            ) : selectedService ? (
+              "Update Service"
+            ) : (
+              "Create Service"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-export default ServiceModal
+export default ServiceModal;
