@@ -54,11 +54,15 @@ const INITIAL_FORM_STATE = {
   name: "",
   description: "",
   customerID: "",
-  paymentType: "Monthly",
+  paymentType: "1year", // Start with default duration
   periodPrice: "",
   currency: "TL",
   startingDate: new Date(),
-  endingDate: null,
+  endingDate: (() => {
+    const defaultEnd = new Date();
+    defaultEnd.setFullYear(defaultEnd.getFullYear() + 1);
+    return defaultEnd;
+  })(),
 };
 
 export function ServiceModal2({
@@ -75,53 +79,64 @@ export function ServiceModal2({
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
   const [startDateMonth, setStartDateMonth] = useState(new Date());
   const [endDateMonth, setEndDateMonth] = useState(new Date());
-  const [selectedDuration, setSelectedDuration] = useState("custom");
+  const [selectedDuration, setSelectedDuration] = useState("1year");
 
   // Fetch customers when modal opens
   useEffect(() => {
-    if (visible) {
-      if (selectedService) {
-        setFormData({
-          name: selectedService.name,
-          description: selectedService.description || "",
-          customerID: selectedService.customerID,
-          paymentType: selectedService.paymentType,
-          periodPrice: selectedService.periodPrice?.toString() || "",
-          currency: selectedService.currency,
-          startingDate: new Date(selectedService.startingDate),
-          endingDate: selectedService.endingDate ? new Date(selectedService.endingDate) : null,
-        });
-      } else {
-        setFormData(INITIAL_FORM_STATE);
-      }
+    if (visible && selectedService) {
+      // Calculate initial duration from paymentType
+      const paymentType = selectedService.paymentType;
+      const isCustom = !DURATIONS.some(d => d.value === paymentType);
+
+      setFormData({
+        ...selectedService,
+        startingDate: new Date(selectedService.startingDate),
+        endingDate: selectedService.endingDate ? new Date(selectedService.endingDate) : null,
+        paymentType: isCustom ? "custom" : paymentType
+      });
+
+      setSelectedDuration(isCustom ? "custom" : paymentType);
+    } else {
+      setFormData(INITIAL_FORM_STATE);
+      setSelectedDuration("custom");
     }
   }, [visible, selectedService]);
 
   // Duration calculation effects
   useEffect(() => {
     const calculateDuration = () => {
-      if (!formData.startingDate || !formData.endingDate) {
-        setSelectedDuration("custom");
-        return;
-      }
+      if (!formData.startingDate || !formData.endingDate) return;
 
       const start = new Date(formData.startingDate);
       const end = new Date(formData.endingDate);
 
-      const testDates = [
-        { duration: "6months", date: new Date(start).setMonth(start.getMonth() + 6) },
-        { duration: "1year", date: new Date(start).setFullYear(start.getFullYear() + 1) },
-        { duration: "2years", date: new Date(start).setFullYear(start.getFullYear() + 2) },
-        { duration: "3years", date: new Date(start).setFullYear(start.getFullYear() + 3) },
-      ];
+      // Calculate all possible duration matches
+      const matches = DURATIONS.filter(d => d.value !== "custom").map(duration => {
+        const testDate = new Date(start);
+        switch (duration.value) {
+          case '6months': testDate.setMonth(testDate.getMonth() + 6); break;
+          case '1year': testDate.setFullYear(testDate.getFullYear() + 1); break;
+          case '2years': testDate.setFullYear(testDate.getFullYear() + 2); break;
+          case '3years': testDate.setFullYear(testDate.getFullYear() + 3); break;
+        }
+        return { duration: duration.value, date: testDate.getTime() };
+      });
 
-      const match = testDates.find((td) => td.date === end.getTime());
-      setSelectedDuration(match ? match.duration : "custom");
+      // Check if any predefined duration matches
+      const match = matches.find(td => td.date === end.getTime());
+      const newDuration = match ? match.duration : 'custom';
+
+      // Only update if duration changed
+      if (newDuration !== selectedDuration) {
+        setSelectedDuration(newDuration);
+        handleChange('paymentType', newDuration); // Update formData.paymentType
+      }
     };
 
     calculateDuration();
-  }, [formData.startingDate, formData.endingDate]);
+  }, [formData.startingDate, formData.endingDate]); // Run when dates change
 
+  // Date calculation effect
   useEffect(() => {
     if (selectedDuration !== "custom" && formData.startingDate) {
       const start = new Date(formData.startingDate);
@@ -147,10 +162,8 @@ export function ServiceModal2({
     }
   }, [selectedDuration, formData.startingDate]);
 
+
   const handleChange = (name, value) => {
-    if (name === "endingDate") {
-      setSelectedDuration("custom");
-    }
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -158,8 +171,13 @@ export function ServiceModal2({
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.startingDate || !formData.customerID) {
+    if (!formData.name || !formData.startingDate || !formData.endingDate || !formData.customerID) {
       alert("Please fill in all required fields");
+      return;
+    }
+
+    if (formData.startingDate > formData.endingDate) {
+      alert("End date must be after start date");
       return;
     }
 
@@ -183,7 +201,8 @@ export function ServiceModal2({
   // Handle "Enter" key press
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      e.preventDefault(); // Prevent default form submission behavior
+      e.preventDefault();
+      e.stopPropagation(); // Add this to prevent event bubbling
       handleSubmit();
     }
   };
@@ -295,26 +314,6 @@ export function ServiceModal2({
             />
           </div>
 
-          {/* Payment Type */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-            <Label className="text-left sm:text-right">Payment Type</Label>
-            <Select
-              value={formData.paymentType}
-              onValueChange={(value) => handleChange("paymentType", value)}
-            >
-              <SelectTrigger className="w-full sm:col-span-3">
-                <SelectValue placeholder="Select payment type" />
-              </SelectTrigger>
-              <SelectContent>
-                {PAYMENT_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Price */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
             <Label className="text-left sm:text-right">Price</Label>
@@ -353,21 +352,18 @@ export function ServiceModal2({
               Dates <span className="text-red-500">*</span>
             </Label>
             <div className="w-full sm:col-span-3 space-y-4">
-              {/* Duration Selector */}
+              {/* Payment Type - Modified to use duration */}
               <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                <Label className="text-left sm:text-right">Duration</Label>
+                <Label className="text-left sm:text-right">Payment Type</Label>
                 <Select
-                  value={selectedDuration}
+                  value={formData.paymentType}
                   onValueChange={(value) => {
-                    if (value !== "custom" && !formData.startingDate) {
-                      alert("Please select a start date first");
-                      return;
-                    }
+                    // Update both paymentType and duration calculation
+                    handleChange("paymentType", value);
                     setSelectedDuration(value);
                   }}
-                  className="sm:col-span-3"
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full sm:col-span-3">
                     <SelectValue placeholder="Select duration" />
                   </SelectTrigger>
                   <SelectContent>
@@ -383,7 +379,9 @@ export function ServiceModal2({
               {/* Date Pickers */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex flex-col gap-2 w-full">
-                  <Label>Start Date</Label>
+                  <Label>
+                    Start Date <span className="text-red-500">*</span>
+                  </Label>
                   <Calendar
                     mode="single"
                     selected={formData.startingDate}
@@ -395,7 +393,9 @@ export function ServiceModal2({
                   />
                 </div>
                 <div className="flex flex-col gap-2 w-full">
-                  <Label>End Date</Label>
+                  <Label>
+                    End Date <span className="text-red-500">*</span>
+                  </Label>
                   <Calendar
                     mode="single"
                     selected={formData.endingDate}
@@ -404,6 +404,7 @@ export function ServiceModal2({
                     onMonthChange={setEndDateMonth}
                     className="rounded-md border w-full"
                     disabled={(date) => date < formData.startingDate}
+                    required
                   />
                 </div>
               </div>

@@ -214,7 +214,6 @@ export default function CustomersPage() {
         }}
         onDeleteService={async (service) => {
           setSelectedService(service)
-          setServicesViewModalVisible(false)
           setDeleteServiceConfirmVisible(true)
           try {
             await axios.delete(`/api/services/${service.id}`)
