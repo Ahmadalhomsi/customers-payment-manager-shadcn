@@ -40,7 +40,7 @@ model Service {
   id          String  @id @default(cuid())
   name        String
   description String?
-  paymentType String  @default("Yearly") // Monthly, Yearly
+  paymentType String  @default("custom") // Monthly, Yearly
   periodPrice Float?
   currency    String  @default("TL")
 
@@ -49,9 +49,10 @@ model Service {
   // paid         Boolean  @default(false)
 
   // Relations
-  customerID String
-  customer   Customer   @relation("CustomerToService", fields: [customerID], references: [id], onDelete: Cascade)
-  reminders  Reminder[]
+  customerID     String
+  customer       Customer         @relation("CustomerToService", fields: [customerID], references: [id], onDelete: Cascade)
+  reminders      Reminder[]
+  RenewalHistory RenewHistory[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -99,4 +100,19 @@ model Notifications {
   type      String   @default("info")
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model RenewHistory {
+  id              String   @id @default(cuid())
+  name            String
+  type            String   
+  previousEndDate DateTime // Service's ending date before renewal
+  newEndDate      DateTime // New ending date after renewal
+
+  // Relations
+  service   Service @relation(fields: [serviceId], references: [id])
+  serviceId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
