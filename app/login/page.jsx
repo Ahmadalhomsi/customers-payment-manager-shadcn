@@ -52,6 +52,12 @@ export default function LoginPage() {
         }
     };
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSubmit(e);
+        }
+    };
+
     return (
         <div className="flex items-center justify-center min-h-screen p-4">
             <Card className="w-full max-w-md">
@@ -66,6 +72,7 @@ export default function LoginPage() {
                                 placeholder="Username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
+                                onKeyDown={handleKeyDown}
                             />
                         </div>
 
@@ -75,6 +82,7 @@ export default function LoginPage() {
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                onKeyDown={handleKeyDown}
                             />
                             <button
                                 type="button"
