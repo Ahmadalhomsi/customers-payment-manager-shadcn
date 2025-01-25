@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 import { NextResponse } from 'next/server';
 
 export async function GET(req, { params }) {
-    const { id } = params;
+    const { id } = await params;
     try {
         const service = await prisma.service.findUnique({
             where: { id: id },
