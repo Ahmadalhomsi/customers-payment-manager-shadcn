@@ -46,5 +46,6 @@ export const config = {
     "/api/:path*",  // Apply to all API routes
     "/",            // Apply to the root route
     "/login",     // Apply to the profile route
+    "/services"
   ],
 };
