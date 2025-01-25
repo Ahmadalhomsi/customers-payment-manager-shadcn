@@ -97,44 +97,15 @@ export function ServiceModal2({
 
       setSelectedDuration(isCustom ? "custom" : paymentType);
     } else {
-      setFormData(INITIAL_FORM_STATE);
-      setSelectedDuration("custom");
+      // Fix initial state: set paymentType to match selectedDuration
+      setFormData({
+        ...INITIAL_FORM_STATE,
+        paymentType: "1year", // Ensure this matches the initial selectedDuration if needed
+      });
+      setSelectedDuration("1year"); // Changed from "custom" to match INITIAL_FORM_STATE.paymentType
     }
   }, [visible, selectedService]);
 
-  // Duration calculation effects
-  useEffect(() => {
-    const calculateDuration = () => {
-      if (!formData.startingDate || !formData.endingDate) return;
-
-      const start = new Date(formData.startingDate);
-      const end = new Date(formData.endingDate);
-
-      // Calculate all possible duration matches
-      const matches = DURATIONS.filter(d => d.value !== "custom").map(duration => {
-        const testDate = new Date(start);
-        switch (duration.value) {
-          case '6months': testDate.setMonth(testDate.getMonth() + 6); break;
-          case '1year': testDate.setFullYear(testDate.getFullYear() + 1); break;
-          case '2years': testDate.setFullYear(testDate.getFullYear() + 2); break;
-          case '3years': testDate.setFullYear(testDate.getFullYear() + 3); break;
-        }
-        return { duration: duration.value, date: testDate.getTime() };
-      });
-
-      // Check if any predefined duration matches
-      const match = matches.find(td => td.date === end.getTime());
-      const newDuration = match ? match.duration : 'custom';
-
-      // Only update if duration changed
-      if (newDuration !== selectedDuration) {
-        setSelectedDuration(newDuration);
-        handleChange('paymentType', newDuration); // Update formData.paymentType
-      }
-    };
-
-    calculateDuration();
-  }, [formData.startingDate, formData.endingDate]); // Run when dates change
 
   // Date calculation effect
   useEffect(() => {
@@ -157,7 +128,17 @@ export function ServiceModal2({
           break;
       }
 
-      setFormData((prev) => ({ ...prev, endingDate: end }));
+      // Check if the new end date is different from current endingDate
+      setFormData((prev) => {
+        const currentEndTime = prev.endingDate ? prev.endingDate.getTime() : null;
+        const newEndTime = end.getTime();
+
+        if (currentEndTime === newEndTime) {
+          return prev; // Avoid unnecessary update
+        }
+        return { ...prev, endingDate: end };
+      });
+
       setEndDateMonth(end);
     }
   }, [selectedDuration, formData.startingDate]);
