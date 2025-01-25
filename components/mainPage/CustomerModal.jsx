@@ -36,7 +36,7 @@ const validatePassword = (password) => {
     hasLower,
     hasNumber,
     hasSpecial,
-    allValid: password === '' || (minLength && hasUpper && hasLower && hasNumber && hasSpecial),
+    allValid: minLength && hasUpper && hasLower && hasNumber && hasSpecial,
   };
 };
 
@@ -111,7 +111,9 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     }
 
     // Password validation for both new and existing customers
-    if (formData.password) {
+    if (!formData.password.trim()) {
+      newErrors.password = "Password is required";
+    } else {
       const passwordValid = validatePassword(formData.password);
       if (!passwordValid.allValid) {
         newErrors.password = "Password does not meet requirements";
@@ -198,6 +200,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
                 onChange={handleChange}
                 onKeyDown={handleKeyDown} // Add keydown handler to input
                 className="pr-10"
+                required
               />
               <Button
                 type="button"
