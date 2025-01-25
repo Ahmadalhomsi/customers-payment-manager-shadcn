@@ -20,6 +20,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { BeatLoader } from "react-spinners";
 
 const PAYMENT_TYPES = [
+  { value: "1month", label: "1 Month" }, // Added 1 Month
   { value: "6months", label: "6 Months" },
   { value: "1year", label: "1 Year" },
   { value: "2years", label: "2 Years" },
@@ -55,6 +56,7 @@ export function ServiceModal({
   const [startDateMonth, setStartDateMonth] = useState(new Date());
   const [endDateMonth, setEndDateMonth] = useState(new Date());
   const DURATIONS = [
+    { value: "1month", label: "1 Month" }, // Added 1 Month
     { value: "6months", label: "6 Months" },
     { value: "1year", label: "1 Year" },
     { value: "2years", label: "2 Years" },
@@ -64,6 +66,13 @@ export function ServiceModal({
 
   // Add this state variable
   const [selectedDuration, setSelectedDuration] = useState("1year");
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      paymentType: selectedDuration,
+    }));
+  }, [selectedDuration]); // This ensures paymentType stays in sync
 
   useEffect(() => {
     if (selectedService) {
@@ -140,6 +149,7 @@ export function ServiceModal({
 
       // Create test dates for comparison
       const testDates = [
+        { duration: "1month", date: new Date(start).setMonth(start.getMonth() + 1) }, // Added 1month
         {
           duration: "6months",
           date: new Date(start).setMonth(start.getMonth() + 6),
@@ -171,6 +181,9 @@ export function ServiceModal({
       const end = new Date(start);
 
       switch (selectedDuration) {
+        case "1month":
+          end.setMonth(end.getMonth() + 1);
+          break;
         case "6months":
           end.setMonth(end.getMonth() + 6);
           break;
@@ -326,8 +339,7 @@ export function ServiceModal({
                 <Select
                   value={selectedDuration}
                   onValueChange={(value) => {
-                    setSelectedDuration(value);
-                    handleChange("paymentType", value);
+                    setSelectedDuration(value); // Only set selectedDuration here
                   }}
                 >
                   <SelectTrigger className="w-full sm:col-span-3">
