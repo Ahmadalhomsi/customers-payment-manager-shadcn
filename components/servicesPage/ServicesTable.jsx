@@ -183,6 +183,15 @@ export function ServiceTable({
                                 </TableHead>
                                 <TableHead
                                     className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('createdAt')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Created At
+                                        <SortIcon column="createdAt" />
+                                    </div>
+                                </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
                                     onClick={() => handleSort('startingDate')}
                                 >
                                     <div className="flex items-center gap-1">
@@ -235,6 +244,11 @@ export function ServiceTable({
                                                     {service.periodPrice?.toFixed(2) || '0.00'} {service.currency}
                                                 </span>
                                             </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <time className="text-sm">
+                                                {service.createdAt ? format(new Date(service.createdAt), 'MMM dd, yyyy') : '-'}
+                                            </time>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
