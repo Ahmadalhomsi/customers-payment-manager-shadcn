@@ -41,14 +41,22 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           <Link
             href="/"
-            className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
+            className={`flex items-center text-sm font-medium ${
+              pathname === "/"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-primary"
+            }`}
           >
             <Home className="mr-2 h-4 w-4" />
             Main Page
           </Link>
           <Link
             href="/services"
-            className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
+            className={`flex items-center text-sm font-medium ${
+              pathname.startsWith("/services")
+                ? "text-primary"
+                : "text-muted-foreground hover:text-primary"
+            }`}
           >
             <Briefcase className="mr-2 h-4 w-4" />
             Services
@@ -71,13 +79,21 @@ export function Navbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem
+                asChild
+                className={pathname === "/" ? "text-primary" : ""}
+              >
                 <Link href="/">
                   <Home className="mr-2 h-4 w-4" />
                   Main Page
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem
+                asChild
+                className={
+                  pathname.startsWith("/services") ? "text-primary" : ""
+                }
+              >
                 <Link href="/services">
                   <Briefcase className="mr-2 h-4 w-4" />
                   Services
