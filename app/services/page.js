@@ -62,11 +62,12 @@ export default function ServicesPage() {
       } else {
         await axios.post('/api/services', formData)
       }
-      fetchServices()
+      await fetchServices() // Ensure fetch completes before closing modal
       setServiceModalVisible(false)
       setSelectedService(null)
     } catch (error) {
       console.log('Error submitting service:', error)
+      alert('Failed to save service. Please try again.') // User feedback
     }
   }
 
