@@ -23,8 +23,19 @@ const statusColors = {
 }
 
 const paymentTypeColors = {
-    Yearly: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-    Monthly: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+    '6months': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    '1year': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    '2years': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+    '3years': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+    'custom': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+}
+
+const paymentTypeLabels = {
+    '6months': '6 Months',
+    '1year': '1 Year',
+    '2years': '2 Years',
+    '3years': '3 Years',
+    'custom': 'Custom'
 }
 
 export function ServiceTable({
@@ -66,8 +77,22 @@ export function ServiceTable({
 
     const sortedServices = [...services].sort((a, b) => {
         if (!sortConfig) return 0
-        const aValue = a[sortConfig.key]
-        const bValue = b[sortConfig.key]
+        const key = sortConfig.key
+        const aValue = a[key]
+        const bValue = b[key]
+
+        // Custom sorting for paymentType
+        if (key === 'paymentType') {
+            const paymentOrder = ['6months', '1year', '2years', '3years', 'custom']
+            const aIndex = paymentOrder.indexOf(aValue)
+            const bIndex = paymentOrder.indexOf(bValue)
+            const aOrder = aIndex === -1 ? paymentOrder.length : aIndex
+            const bOrder = bIndex === -1 ? paymentOrder.length : bIndex
+
+            return sortConfig.direction === 'asc'
+                ? aOrder - bOrder
+                : bOrder - aOrder
+        }
 
         if (typeof aValue === 'string') {
             return sortConfig.direction === 'asc'
@@ -204,7 +229,7 @@ export function ServiceTable({
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <Badge className={paymentTypeColors[service.paymentType]}>
-                                                    {service.paymentType}
+                                                    {paymentTypeLabels[service.paymentType]}
                                                 </Badge>
                                                 <span>
                                                     {service.periodPrice?.toFixed(2) || '0.00'} {service.currency}
