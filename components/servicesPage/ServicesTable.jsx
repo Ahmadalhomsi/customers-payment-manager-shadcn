@@ -54,7 +54,8 @@ export function ServiceTable({
     customers,
     onEdit,
     onDelete,
-    isLoading = false
+    isLoading = false,
+    onViewHistory,  // Add this prop
 }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
@@ -385,6 +386,14 @@ export function ServiceTable({
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="flex justify-end gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => onViewHistory(service)}
+                                                className="h-8 w-8 p-0 hover:bg-purple-100 hover:text-purple-600"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"

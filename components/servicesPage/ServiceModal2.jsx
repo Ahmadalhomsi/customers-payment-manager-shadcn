@@ -83,27 +83,51 @@ export function ServiceModal2({
     const [selectedDuration, setSelectedDuration] = useState("1year");
 
     // Fetch customers when modal opens
+    // Fetch customers when modal opens
     useEffect(() => {
         if (visible && selectedService) {
-            // Calculate initial duration from paymentType
             const paymentType = selectedService.paymentType;
             const isCustom = !DURATIONS.some(d => d.value === paymentType);
 
+            // Safely parse dates, handling potential string or Date inputs
+            const startingDate = selectedService.startingDate
+                ? (selectedService.startingDate instanceof Date
+                    ? selectedService.startingDate
+                    : new Date(selectedService.startingDate))
+                : new Date();
+
+            const endingDate = selectedService.endingDate
+                ? (selectedService.endingDate instanceof Date
+                    ? selectedService.endingDate
+                    : new Date(selectedService.endingDate))
+                : (() => {
+                    const defaultEnd = new Date(startingDate);
+                    defaultEnd.setFullYear(defaultEnd.getFullYear() + 1);
+                    return defaultEnd;
+                })();
+
             setFormData({
                 ...selectedService,
-                startingDate: new Date(selectedService.startingDate),
-                endingDate: selectedService.endingDate ? new Date(selectedService.endingDate) : null,
+                // Ensure periodPrice is a string, default to empty if null/undefined
+                periodPrice: selectedService.periodPrice?.toString() || "",
+                startingDate: startingDate,
+                endingDate: endingDate,
                 paymentType: isCustom ? "custom" : paymentType
             });
 
+            // Set the month for date pickers
+            setStartDateMonth(startingDate);
+            setEndDateMonth(endingDate);
+
+            // Update selected duration
             setSelectedDuration(isCustom ? "custom" : paymentType);
         } else {
-            // Fix initial state: set paymentType to match selectedDuration
+            // Reset to initial state with proper types
             setFormData({
                 ...INITIAL_FORM_STATE,
-                paymentType: "1year", // Ensure this matches the initial selectedDuration if needed
+                paymentType: "1year",
             });
-            setSelectedDuration("1year"); // Changed from "custom" to match INITIAL_FORM_STATE.paymentType
+            setSelectedDuration("1year");
         }
     }, [visible, selectedService]);
 
@@ -370,7 +394,12 @@ export function ServiceModal2({
                                     <Calendar
                                         mode="single"
                                         selected={formData.startingDate}
-                                        onSelect={(date) => handleChange("startingDate", date)}
+                                        onSelect={(date) => {
+                                            handleChange("startingDate", date);
+                                            // Set payment type to custom when date is changed
+                                            handleChange("paymentType", "custom");
+                                            setSelectedDuration("custom");
+                                        }}
                                         month={startDateMonth}
                                         onMonthChange={setStartDateMonth}
                                         className="rounded-md border w-full"
@@ -384,7 +413,12 @@ export function ServiceModal2({
                                     <Calendar
                                         mode="single"
                                         selected={formData.endingDate}
-                                        onSelect={(date) => handleChange("endingDate", date)}
+                                        onSelect={(date) => {
+                                            handleChange("endingDate", date);
+                                            // Set payment type to custom when date is changed
+                                            handleChange("paymentType", "custom");
+                                            setSelectedDuration("custom");
+                                        }}
                                         month={endDateMonth}
                                         onMonthChange={setEndDateMonth}
                                         className="rounded-md border w-full"

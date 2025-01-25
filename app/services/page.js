@@ -8,6 +8,8 @@ import { ServiceTable } from '@/components/servicesPage/ServicesTable'
 import { ServiceModal2 } from '@/components/servicesPage/ServiceModal2'
 import { DeleteConfirmModal } from '@/components/mainPage/DeleteConfirmModal'
 import { Plus, Mail } from 'lucide-react'
+import { RenewHistoryModal } from '@/components/RenewHistoryModal'
+
 
 export default function ServicesPage() {
   const [services, setServices] = useState([])
@@ -17,6 +19,11 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(true)
   const [sortConfig, setSortConfig] = useState(null)
   const [customers, setCustomers] = useState([])
+
+  const [renewHistoryOpen, setRenewHistoryOpen] = useState(false)
+  const [selectedServiceForHistory, setSelectedServiceForHistory] = useState(null)
+  const [renewHistory, setRenewHistory] = useState([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   useEffect(() => {
     fetchServices()
@@ -40,6 +47,18 @@ export default function ServicesPage() {
       setCustomers(response.data)
     } catch (error) {
       console.log('Error fetching customers:', error)
+    }
+  }
+
+  const fetchRenewHistory = async (serviceId) => {
+    try {
+      setLoadingHistory(true)
+      const response = await axios.get(`/api/renew-histories/${serviceId}`)
+      setRenewHistory(response.data)
+    } catch (error) {
+      console.log('Error fetching renewal history:', error)
+    } finally {
+      setLoadingHistory(false)
     }
   }
 
@@ -96,6 +115,11 @@ export default function ServicesPage() {
           setSelectedService(service)
           setDeleteConfirmVisible(true)
         }}
+        onViewHistory={(service) => {
+          setSelectedServiceForHistory(service)
+          fetchRenewHistory(service.id)
+          setRenewHistoryOpen(true)
+        }}
       />
 
       <ServiceModal2
@@ -115,6 +139,25 @@ export default function ServicesPage() {
         onConfirm={handleDelete}
         itemName={selectedService?.name}
         itemType="service"
+      />
+
+      <RenewHistoryModal
+        visible={renewHistoryOpen}
+        onClose={() => {
+          setRenewHistoryOpen(false)
+          setSelectedServiceForHistory(null)
+        }}
+        renewHistory={renewHistory}
+        loadingOnModal={loadingHistory}
+        selectedService={selectedServiceForHistory}
+        onDeleteRenewal={async (renewal) => {
+          try {
+            await axios.delete(`/api/renew-histories/${renewal.id}`)
+            fetchRenewHistory(selectedServiceForHistory.id)
+          } catch (error) {
+            console.log('Error deleting renewal:', error)
+          }
+        }}
       />
     </div>
   )
