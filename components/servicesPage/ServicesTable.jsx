@@ -58,6 +58,7 @@ export function ServiceTable({
     const [statusFilter, setStatusFilter] = useState('all')
     const [sortConfig, setSortConfig] = useState(null)
     const [dateRangeFilter, setDateRangeFilter] = useState()
+    const [endDateRangeFilter, setEndDateRangeFilter] = useState()
 
     const getServiceStatus = (service) => {
         const today = new Date()
@@ -119,23 +120,37 @@ export function ServiceTable({
         const status = getServiceStatus(service)
         const matchesStatus = statusFilter === 'all' || status === statusFilter
 
-        let matchesDate = true
+        // Start Date Filter
+        let matchesStartDate = true
         if (dateRangeFilter) {
             const { from, to } = dateRangeFilter
             const serviceStart = new Date(service.startingDate)
-            const serviceEnd = new Date(service.endingDate)
 
             if (from && to) {
-                // Check if service dates overlap with filter range
-                matchesDate = serviceStart <= to && serviceEnd >= from
+                matchesStartDate = serviceStart >= from && serviceStart <= to
             } else if (from) {
-                matchesDate = serviceStart >= from
+                matchesStartDate = serviceStart >= from
             } else if (to) {
-                matchesDate = serviceEnd <= to
+                matchesStartDate = serviceStart <= to
             }
         }
 
-        return matchesSearch && matchesStatus && matchesDate
+        // End Date Filter
+        let matchesEndDate = true
+        if (endDateRangeFilter) {
+            const { from, to } = endDateRangeFilter
+            const serviceEnd = new Date(service.endingDate)
+
+            if (from && to) {
+                matchesEndDate = serviceEnd >= from && serviceEnd <= to
+            } else if (from) {
+                matchesEndDate = serviceEnd >= from
+            } else if (to) {
+                matchesEndDate = serviceEnd <= to
+            }
+        }
+
+        return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate
     })
 
     return (
@@ -161,7 +176,7 @@ export function ServiceTable({
                         </SelectContent>
                     </Select>
 
-                    {/* Date Range Picker */}
+                    {/* Start Date Range Picker */}
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
@@ -182,7 +197,7 @@ export function ServiceTable({
                                         format(dateRangeFilter.from, "LLL dd, y")
                                     )
                                 ) : (
-                                    <span>Pick a date range</span>
+                                    <span>Filter by start date</span>
                                 )}
                             </Button>
                         </PopoverTrigger>
@@ -193,6 +208,43 @@ export function ServiceTable({
                                 defaultMonth={dateRangeFilter?.from}
                                 selected={dateRangeFilter}
                                 onSelect={setDateRangeFilter}
+                                numberOfMonths={2}
+                            />
+                        </PopoverContent>
+                    </Popover>
+
+                    {/* End Date Range Picker */}
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-[240px] justify-start text-left font-normal",
+                                    !endDateRangeFilter?.from && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {endDateRangeFilter?.from ? (
+                                    endDateRangeFilter.to ? (
+                                        <>
+                                            {format(endDateRangeFilter.from, "LLL dd, y")} -{" "}
+                                            {format(endDateRangeFilter.to, "LLL dd, y")}
+                                        </>
+                                    ) : (
+                                        format(endDateRangeFilter.from, "LLL dd, y")
+                                    )
+                                ) : (
+                                    <span>Filter by end date</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={endDateRangeFilter?.from}
+                                selected={endDateRangeFilter}
+                                onSelect={setEndDateRangeFilter}
                                 numberOfMonths={2}
                             />
                         </PopoverContent>
