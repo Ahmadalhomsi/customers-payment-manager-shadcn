@@ -135,9 +135,19 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent default form submission behavior
+      handleSubmit();
+    }
+  };
+
   return (
     <Dialog open={visible} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent
+        className="sm:max-w-[425px]"
+        onKeyDown={handleKeyDown} // Add keydown handler to the dialog
+      >
         <DialogHeader>
           <DialogTitle>
             {selectedCustomer ? "Edit Customer" : "Create Customer"}
@@ -151,6 +161,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
             name="name"
             value={formData.name}
             onChange={handleChange}
+            onKeyDown={handleKeyDown} // Add keydown handler to input
             required
           />
           {errors.name && <p className="text-destructive text-sm ml-24">{errors.name}</p>}
@@ -162,6 +173,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
             type="email"
             value={formData.email}
             onChange={handleChange}
+            onKeyDown={handleKeyDown} // Add keydown handler to input
             required
           />
           {errors.email && <p className="text-destructive text-sm ml-24">{errors.email}</p>}
@@ -173,6 +185,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
             type="tel"
             value={formData.phone}
             onChange={handleChange}
+            onKeyDown={handleKeyDown} // Add keydown handler to input
           />
 
           <FormField label="Password" id="password">
@@ -183,6 +196,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
                 type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown} // Add keydown handler to input
                 className="pr-10"
               />
               <Button
