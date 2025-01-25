@@ -16,8 +16,6 @@ export async function GET(request, { params }) {
 
 export async function DELETE(request, { params }) {
     const { id } = await params;
-    console.log('IDaaaaaaa:', id);
-
     try {
         // Implement your Prisma delete here
         const deleted = await prisma.renewHistory.delete({
