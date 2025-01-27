@@ -62,7 +62,8 @@ export default function LoginPage() {
         <div className="flex items-center justify-center min-h-screen p-4">
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle>Login</CardTitle>
+                    <CardTitle>Giriş
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -112,7 +113,7 @@ export default function LoginPage() {
                             {isLoading ? (
                                 <BeatLoader color="#ffffff" size={10} /> // Use BeatLoader
                             ) : (
-                                "Login"
+                                "Giriş Yap"
                             )}
                         </Button>
                     </form>

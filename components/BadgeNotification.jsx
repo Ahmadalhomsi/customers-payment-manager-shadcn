@@ -176,7 +176,7 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
                 disabled={notifications.length === 0}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Clear All
+                Hepsini Sil
               </Button>
             </div>
           </div>
@@ -193,7 +193,7 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
               <div className="p-4 text-destructive text-sm">{error}</div>
             ) : notifications.length === 0 ? (
               <div className="p-4 text-muted-foreground text-sm">
-                No new notifications
+                Bildirim bulunamadı.
               </div>
             ) : (
               notifications.map((notification) => (

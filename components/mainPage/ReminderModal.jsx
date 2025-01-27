@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { format, parseISO } from 'date-fns'
+import { tr } from 'date-fns/locale'
 import {
   Dialog,
   DialogContent,
@@ -21,10 +22,25 @@ import {
 import { Label } from "@/components/ui/label"
 
 const ReminderStatus = {
-  SCHEDULED: 'SCHEDULED',
-  SENT: 'SENT',
-  CANCELED: 'CANCELED',
-  FAILED: 'FAILED',
+  SCHEDULED: 'PLANLANMIŞ',
+  SENT: 'GÖNDERİLDİ',
+  CANCELED: 'İPTAL EDİLDİ',
+  FAILED: 'BAŞARISIZ',
+}
+
+// Status mapping for API communication
+const STATUS_MAP_TO_API = {
+  'PLANLANMIŞ': 'SCHEDULED',
+  'GÖNDERİLDİ': 'SENT',
+  'İPTAL EDİLDİ': 'CANCELED',
+  'BAŞARISIZ': 'FAILED',
+}
+
+const STATUS_MAP_FROM_API = {
+  'SCHEDULED': 'PLANLANMIŞ',
+  'SENT': 'GÖNDERİLDİ',
+  'CANCELED': 'İPTAL EDİLDİ',
+  'FAILED': 'BAŞARISIZ',
 }
 
 export function ReminderModal({
@@ -37,20 +53,19 @@ export function ReminderModal({
 
   useEffect(() => {
     if (selectedReminder) {
-      // Handle both string and Date formats
       const scheduledDate = typeof selectedReminder.scheduledAt === 'string'
         ? parseISO(selectedReminder.scheduledAt)
         : new Date(selectedReminder.scheduledAt)
 
       reset({
         scheduledAt: format(scheduledDate, "yyyy-MM-dd'T'HH:mm"),
-        status: selectedReminder.status,
+        status: STATUS_MAP_FROM_API[selectedReminder.status],
         message: selectedReminder.message,
       })
     } else {
       reset({
-        scheduledAt: format(new Date(), "yyyy-MM-dd'T'HH:mm"), // Default to current datetime
-        status: 'SCHEDULED',
+        scheduledAt: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+        status: 'PLANLANMIŞ',
         message: '',
       })
     }
@@ -59,8 +74,8 @@ export function ReminderModal({
   const handleFormSubmit = (data) => {
     onSubmit({
       ...data,
-      // Convert local datetime to ISO string
       scheduledAt: new Date(data.scheduledAt).toISOString(),
+      status: STATUS_MAP_TO_API[data.status], // Convert Turkish status back to API status
     })
   }
 
@@ -69,12 +84,12 @@ export function ReminderModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {selectedReminder ? 'Edit Reminder' : 'New Reminder'}
+            {selectedReminder ? 'Hatırlatıcı Düzenle' : 'Yeni Hatırlatıcı'}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="scheduledAt">Scheduled At *</Label>
+            <Label htmlFor="scheduledAt">Planlanma Zamanı *</Label>
             <Input
               id="scheduledAt"
               type="datetime-local"
@@ -83,13 +98,13 @@ export function ReminderModal({
           </div>
 
           <div>
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">Durum</Label>
             <Select
               value={watch('status')}
               onValueChange={(val) => setValue('status', val)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder="Durum seçin" />
               </SelectTrigger>
               <SelectContent>
                 {Object.values(ReminderStatus).map((status) => (
@@ -102,20 +117,20 @@ export function ReminderModal({
           </div>
 
           <div>
-            <Label htmlFor="message">Message</Label>
+            <Label htmlFor="message">Mesaj</Label>
             <Input
               id="message"
               {...register('message')}
-              placeholder="Optional message"
+              placeholder="Müşteriye gönderilecek mesaj"
             />
           </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              İptal
             </Button>
             <Button type="submit">
-              {selectedReminder ? 'Save Changes' : 'Create Reminder'}
+              {selectedReminder ? 'Değişiklikleri Kaydet' : 'Hatırlatıcı Oluştur'}
             </Button>
           </div>
         </form>
