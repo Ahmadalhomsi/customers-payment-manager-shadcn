@@ -29,6 +29,7 @@ export async function PUT(req, { params }) {
         }
 
         let renewHistoryData = null;
+        let shouldUpdateReminders = false;
 
         // Check if the request includes a new endingDate that extends the current period
         if (data.endingDate) {
@@ -40,12 +41,14 @@ export async function PUT(req, { params }) {
                 const renewalType = data.paymentType !== undefined ? data.paymentType : existingService.paymentType;
 
                 renewHistoryData = {
-                    name: `Renewal for ${existingService.name}`, // Customize as needed
+                    name: `Renewal for ${existingService.name}`,
                     type: renewalType,
                     previousEndDate: currentEndingDate,
                     newEndDate: newEndingDate,
                     serviceId: id,
                 };
+
+                shouldUpdateReminders = true;
             }
         }
 
@@ -65,8 +68,35 @@ export async function PUT(req, { params }) {
         });
 
         const operations = [updateService];
+
         if (renewHistoryData) {
             operations.push(prisma.renewHistory.create({ data: renewHistoryData }));
+        }
+
+        if (shouldUpdateReminders) {
+            // Delete existing reminders
+            operations.push(
+                prisma.reminder.deleteMany({
+                    where: { serviceID: id }
+                })
+            );
+
+            // Calculate new reminder date (1 week before new end date)
+            const newEndDate = new Date(data.endingDate);
+            const reminderDate = new Date(newEndDate);
+            reminderDate.setDate(reminderDate.getDate() - 7);
+
+            // Create new reminder
+            operations.push(
+                prisma.reminder.create({
+                    data: {
+                        scheduledAt: reminderDate,
+                        status: "SCHEDULED",
+                        message: "Your service is ending in one week! Please renew to avoid interruption.",
+                        serviceID: id,
+                    },
+                })
+            );
         }
 
         // Execute all operations in a transaction
