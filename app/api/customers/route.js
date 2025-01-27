@@ -24,7 +24,7 @@ export async function POST(req) {
             data: {
                 name: "Default Service",
                 description: "Automatically created default service",
-                paymentType: "Yearly",
+                paymentType: "1year",
                 periodPrice: 0.0,  // Assuming no initial cost
                 currency: "TL",
                 startingDate: startingDate,
