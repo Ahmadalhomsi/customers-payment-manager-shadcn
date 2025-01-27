@@ -76,9 +76,18 @@ export function ServiceModal({
 
   useEffect(() => {
     if (selectedService) {
-      const startingDate = new Date(selectedService.startingDate);
+      const parseDate = (dateString) => {
+        const utcDate = new Date(dateString);
+        return new Date(
+          utcDate.getUTCFullYear(),
+          utcDate.getUTCMonth(),
+          utcDate.getUTCDate()
+        );
+      };
+
+      const startingDate = parseDate(selectedService.startingDate);
       const endingDate = selectedService.endingDate
-        ? new Date(selectedService.endingDate)
+        ? parseDate(selectedService.endingDate)
         : null;
 
       // Calculate initial duration
@@ -144,32 +153,49 @@ export function ServiceModal({
         return;
       }
 
+      // Compare UTC dates
       const start = new Date(formData.startingDate);
       const end = new Date(formData.endingDate);
 
-      // Create test dates for comparison
-      const testDates = [
-        { duration: "1month", date: new Date(start).setMonth(start.getMonth() + 1) }, // Added 1month
-        {
-          duration: "6months",
-          date: new Date(start).setMonth(start.getMonth() + 6),
-        },
-        {
-          duration: "1year",
-          date: new Date(start).setFullYear(start.getFullYear() + 1),
-        },
-        {
-          duration: "2years",
-          date: new Date(start).setFullYear(start.getFullYear() + 2),
-        },
-        {
-          duration: "3years",
-          date: new Date(start).setFullYear(start.getFullYear() + 3),
-        },
-      ];
+      // Get UTC date components
+      const startYear = start.getUTCFullYear();
+      const startMonth = start.getUTCMonth();
+      const startDay = start.getUTCDate();
 
-      const match = testDates.find((td) => td.date === end.getTime());
-      setSelectedDuration(match ? match.duration : "custom");
+      const endYear = end.getUTCFullYear();
+      const endMonth = end.getUTCMonth();
+      const endDay = end.getUTCDate();
+
+      // Check for exact duration matches using UTC components
+      if (
+        endYear === startYear + 1 &&
+        endMonth === startMonth &&
+        endDay === startDay
+      ) {
+        setSelectedDuration("1year");
+      } else if (
+        endYear === startYear + 2 &&
+        endMonth === startMonth &&
+        endDay === startDay
+      ) {
+        setSelectedDuration("2years");
+      } else if (
+        endYear === startYear + 3 &&
+        endMonth === startMonth &&
+        endDay === startDay
+      ) {
+        setSelectedDuration("3years");
+      } else {
+        const monthsDiff =
+          (endYear - startYear) * 12 + (endMonth - startMonth);
+        if (monthsDiff === 6 && endDay === startDay) {
+          setSelectedDuration("6months");
+        } else if (monthsDiff === 1 && endDay === startDay) {
+          setSelectedDuration("1month");
+        } else {
+          setSelectedDuration("custom");
+        }
+      }
     };
 
     calculateDuration();
@@ -182,24 +208,31 @@ export function ServiceModal({
 
       switch (selectedDuration) {
         case "1month":
-          end.setMonth(end.getMonth() + 1);
+          end.setUTCMonth(end.getUTCMonth() + 1);
           break;
         case "6months":
-          end.setMonth(end.getMonth() + 6);
+          end.setUTCMonth(end.getUTCMonth() + 6);
           break;
         case "1year":
-          end.setFullYear(end.getFullYear() + 1);
+          end.setUTCFullYear(end.getUTCFullYear() + 1);
           break;
         case "2years":
-          end.setFullYear(end.getFullYear() + 2);
+          end.setUTCFullYear(end.getUTCFullYear() + 2);
           break;
         case "3years":
-          end.setFullYear(end.getFullYear() + 3);
+          end.setUTCFullYear(end.getUTCFullYear() + 3);
           break;
       }
 
-      setFormData((prev) => ({ ...prev, endingDate: end }));
-      setEndDateMonth(end);
+      // Normalize to UTC midnight
+      const normalizedEnd = new Date(Date.UTC(
+        end.getUTCFullYear(),
+        end.getUTCMonth(),
+        end.getUTCDate()
+      ));
+
+      setFormData((prev) => ({ ...prev, endingDate: normalizedEnd }));
+      setEndDateMonth(normalizedEnd);
     }
   }, [selectedDuration, formData.startingDate]);
 
@@ -364,7 +397,15 @@ export function ServiceModal({
                   <Calendar
                     mode="single"
                     selected={formData.startingDate}
-                    onSelect={(date) => handleChange("startingDate", date)}
+                    onSelect={(date) => {
+                      // Convert to UTC date at midnight
+                      const utcDate = new Date(Date.UTC(
+                        date.getFullYear(),
+                        date.getMonth(),
+                        date.getDate()
+                      ));
+                      handleChange("startingDate", utcDate);
+                    }}
                     month={startDateMonth}
                     onMonthChange={setStartDateMonth}
                     className="rounded-md border w-full"
@@ -378,7 +419,15 @@ export function ServiceModal({
                   <Calendar
                     mode="single"
                     selected={formData.endingDate}
-                    onSelect={(date) => handleChange("endingDate", date)}
+                    onSelect={(date) => {
+                      // Convert to UTC date at midnight
+                      const utcDate = new Date(Date.UTC(
+                        date.getFullYear(),
+                        date.getMonth(),
+                        date.getDate()
+                      ));
+                      handleChange("endingDate", utcDate);
+                    }}
                     month={endDateMonth}
                     onMonthChange={setEndDateMonth}
                     className="rounded-md border w-full"
