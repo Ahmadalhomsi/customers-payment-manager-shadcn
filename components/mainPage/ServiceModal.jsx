@@ -18,14 +18,16 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { BeatLoader } from "react-spinners";
+import { tr } from 'date-fns/locale';
+
 
 const PAYMENT_TYPES = [
-  { value: "1month", label: "1 Month" }, // Added 1 Month
-  { value: "6months", label: "6 Months" },
-  { value: "1year", label: "1 Year" },
-  { value: "2years", label: "2 Years" },
-  { value: "3years", label: "3 Years" },
-  { value: "custom", label: "Custom" },
+  { value: "1month", label: "1 Ay" }, // Added 1 Month
+  { value: "6months", label: "6 Ay" },
+  { value: "1year", label: "1 Yıl" },
+  { value: "2years", label: "2 Yıl" },
+  { value: "3years", label: "3 Yıl" },
+  { value: "custom", label: "Özel" },
 ];
 
 const CURRENCIES = [
@@ -55,14 +57,7 @@ export function ServiceModal({
   const [isLoading, setIsLoading] = useState(false);
   const [startDateMonth, setStartDateMonth] = useState(new Date());
   const [endDateMonth, setEndDateMonth] = useState(new Date());
-  const DURATIONS = [
-    { value: "1month", label: "1 Month" }, // Added 1 Month
-    { value: "6months", label: "6 Months" },
-    { value: "1year", label: "1 Year" },
-    { value: "2years", label: "2 Years" },
-    { value: "3years", label: "3 Years" },
-    { value: "custom", label: "Custom" },
-  ];
+
 
   // Add this state variable
   const [selectedDuration, setSelectedDuration] = useState("1year");
@@ -250,12 +245,12 @@ export function ServiceModal({
   const handleSubmit = async () => {
     // Add endingDate to required fields check
     if (!formData.name || !formData.startingDate || !formData.endingDate) {
-      alert("Please fill in required fields");
+      alert("Lütfen tüm alanları doldurunuz");
       return;
     }
 
     if (formData.startingDate > formData.endingDate) {
-      alert("End date must be after start date");
+      alert("Başlangıç tarihi bitiş tarihinden büyük olamaz");
       return;
     }
 
@@ -290,7 +285,7 @@ export function ServiceModal({
       >
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
-            {selectedService ? "Edit Service" : "Create New Service"}
+            {selectedService ? "Hizmet Güncelle" : "Hizmet Ekle"}
           </DialogTitle>
         </DialogHeader>
 
@@ -298,7 +293,7 @@ export function ServiceModal({
           {/* Service Name */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
             <Label htmlFor="name" className="text-left sm:text-right">
-              Service Name <span className="text-red-500">*</span>
+              Hizmet Adı <span className="text-red-500">*</span>
             </Label>
             <Input
               id="name"
@@ -306,7 +301,7 @@ export function ServiceModal({
               onChange={(e) => handleChange("name", e.target.value)}
               onKeyDown={handleKeyDown}
               className="w-full sm:col-span-3"
-              placeholder="Enter service name"
+              placeholder="Hizmet adı giriniz"
               required
             />
           </div>
@@ -314,7 +309,7 @@ export function ServiceModal({
           {/* Description */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
             <Label htmlFor="description" className="text-left sm:text-right">
-              Description
+              Açıklama
             </Label>
             <Input
               id="description"
@@ -328,7 +323,7 @@ export function ServiceModal({
 
           {/* Price */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-            <Label className="text-left sm:text-right">Price</Label>
+            <Label className="text-left sm:text-right">Fiyat</Label>
             <div className="w-full sm:col-span-3 flex flex-col sm:flex-row gap-2">
               <Input
                 type="number"
@@ -363,12 +358,12 @@ export function ServiceModal({
           {/* Dates Section */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-2 sm:gap-4">
             <Label className="text-left sm:text-right sm:pt-2">
-              Dates <span className="text-red-500">*</span>
+              Tarih <span className="text-red-500">*</span>
             </Label>
             <div className="w-full sm:col-span-3 space-y-4">
               {/* Payment Type */}
               <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                <Label className="text-left sm:text-right">Payment Type</Label>
+                <Label className="text-left sm:text-right">Süre</Label>
                 <Select
                   value={selectedDuration}
                   onValueChange={(value) => {
@@ -392,13 +387,13 @@ export function ServiceModal({
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex flex-col gap-2 w-full">
                   <Label>
-                    Start Date <span className="text-red-500">*</span>
+                    Başlangıç Tarihi
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Calendar
                     mode="single"
                     selected={formData.startingDate}
                     onSelect={(date) => {
-                      // Convert to UTC date at midnight
                       const utcDate = new Date(Date.UTC(
                         date.getFullYear(),
                         date.getMonth(),
@@ -410,17 +405,27 @@ export function ServiceModal({
                     onMonthChange={setStartDateMonth}
                     className="rounded-md border w-full"
                     required
+                    locale={tr}
+                    weekStartsOn={1}
+                    formatters={{
+                      formatWeekday: (date) => {
+                        return date.toLocaleDateString('tr', { weekday: 'short' });
+                      },
+                      formatCaption: (date) => {
+                        return date.toLocaleDateString('tr', { month: 'long', year: 'numeric' });
+                      }
+                    }}
                   />
                 </div>
                 <div className="flex flex-col gap-2 w-full">
                   <Label>
-                    End Date <span className="text-red-500">*</span>
+                    Bitiş Tarihi
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Calendar
                     mode="single"
                     selected={formData.endingDate}
                     onSelect={(date) => {
-                      // Convert to UTC date at midnight
                       const utcDate = new Date(Date.UTC(
                         date.getFullYear(),
                         date.getMonth(),
@@ -433,6 +438,16 @@ export function ServiceModal({
                     className="rounded-md border w-full"
                     disabled={(date) => date < formData.startingDate}
                     required
+                    locale={tr}
+                    weekStartsOn={1}
+                    formatters={{
+                      formatWeekday: (date) => {
+                        return date.toLocaleDateString('tr', { weekday: 'short' });
+                      },
+                      formatCaption: (date) => {
+                        return date.toLocaleDateString('tr', { month: 'long', year: 'numeric' });
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -446,7 +461,7 @@ export function ServiceModal({
             onClick={onClose}
             className="w-full sm:w-auto"
           >
-            Cancel
+            İptal
           </Button>
           <Button
             onClick={handleSubmit}
@@ -456,7 +471,7 @@ export function ServiceModal({
             {isLoading ? (
               <BeatLoader size={8} color="white" />
             ) : (
-              selectedService ? "Save Changes" : "Create Service"
+              selectedService ? "Kaydet" : "Oluştur"
             )}
           </Button>
         </DialogFooter>

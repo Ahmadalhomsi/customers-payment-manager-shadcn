@@ -97,7 +97,7 @@ export default function ServicesPage() {
           setSelectedService(null)
           setServiceModalVisible(true)
         }}>
-          <Plus className="mr-2 h-4 w-4" /> Create Service
+          <Plus className="mr-2 h-4 w-4" /> Hizmet Ekle
         </Button>
       </div>
 

@@ -21,7 +21,8 @@ import {
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
-import { addDays, format } from "date-fns"
+import { format } from "date-fns"
+import { tr } from 'date-fns/locale'
 
 export function CustomerTable({
   customers,
@@ -39,6 +40,17 @@ export function CustomerTable({
     from: undefined,
     to: undefined
   });
+
+  const statusTranslations = {
+    active: 'Aktif',
+    inactive: 'Pasif',
+    overdue: 'Süresi Dolmuş',
+    all: 'Tüm durumlar'
+  };
+
+  const getStatusText = (status) => {
+    return statusTranslations[status] || status;
+  };
 
   const togglePasswordVisibility = (customerId) => {
     setVisiblePasswords(prev => ({
@@ -72,19 +84,16 @@ export function CustomerTable({
       let aValue = a[sortConfig.key];
       let bValue = b[sortConfig.key];
 
-      // Handle status sorting
       if (sortConfig.key === 'status') {
         aValue = getCustomerStatus(a);
         bValue = getCustomerStatus(b);
       }
 
-      // Handle date sorting
       if (sortConfig.key === 'createdAt') {
         aValue = new Date(aValue);
         bValue = new Date(bValue);
       }
 
-      // Case-insensitive string comparison
       if (typeof aValue === 'string') {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
@@ -130,7 +139,8 @@ export function CustomerTable({
   };
 
   const formatDate = (dateString) => {
-    return dateString ? new Date(dateString).toLocaleDateString() : 'N/A';
+    if (!dateString) return 'N/A';
+    return format(new Date(dateString), 'dd MMMM yyyy', { locale: tr });
   };
 
   const isDateInRange = (date, dateRange) => {
@@ -173,7 +183,7 @@ export function CustomerTable({
     <div className="space-y-4 relative">
       <div className="flex gap-2 flex-wrap items-center">
         <Input
-          placeholder="Search customers..."
+          placeholder="Müşteri ara..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-xs focus-visible:ring-2"
@@ -181,13 +191,13 @@ export function CustomerTable({
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter status" />
+            <SelectValue placeholder="Durum filtrele" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="overdue">Overdue</SelectItem>
+            <SelectItem value="all">{statusTranslations.all}</SelectItem>
+            <SelectItem value="active">{statusTranslations.active}</SelectItem>
+            <SelectItem value="inactive">{statusTranslations.inactive}</SelectItem>
+            <SelectItem value="overdue">{statusTranslations.overdue}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -204,14 +214,14 @@ export function CustomerTable({
               {dateRangeFilter?.from ? (
                 dateRangeFilter.to ? (
                   <>
-                    {format(dateRangeFilter.from, "LLL dd, y")} -{" "}
-                    {format(dateRangeFilter.to, "LLL dd, y")}
+                    {format(dateRangeFilter.from, "dd MMMM yyyy", { locale: tr })} -{" "}
+                    {format(dateRangeFilter.to, "dd MMMM yyyy", { locale: tr })}
                   </>
                 ) : (
-                  format(dateRangeFilter.from, "LLL dd, y")
+                  format(dateRangeFilter.from, "dd MMMM yyyy", { locale: tr })
                 )
               ) : (
-                <span>Pick a date range</span>
+                <span>Bir tarih aralığı seç</span>
               )}
             </Button>
           </PopoverTrigger>
@@ -223,6 +233,7 @@ export function CustomerTable({
               selected={dateRangeFilter}
               onSelect={setDateRangeFilter}
               numberOfMonths={2}
+              locale={tr}
             />
           </PopoverContent>
         </Popover>
@@ -243,7 +254,7 @@ export function CustomerTable({
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-1">
-                  Name
+                  İsim
                   <SortIcon column="name" />
                 </div>
               </TableHead>
@@ -252,7 +263,7 @@ export function CustomerTable({
                 onClick={() => handleSort('status')}
               >
                 <div className="flex items-center gap-1">
-                  Status
+                  Durum
                   <SortIcon column="status" />
                 </div>
               </TableHead>
@@ -270,7 +281,7 @@ export function CustomerTable({
                 onClick={() => handleSort('phone')}
               >
                 <div className="flex items-center gap-1">
-                  Phone
+                  Telefon
                   <SortIcon column="phone" />
                 </div>
               </TableHead>
@@ -279,12 +290,16 @@ export function CustomerTable({
                 onClick={() => handleSort('createdAt')}
               >
                 <div className="flex items-center gap-1">
-                  Created At
+                  Oluşturulma Tarihi
                   <SortIcon column="createdAt" />
                 </div>
               </TableHead>
-              <TableHead className="w-[200px]">Password</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-[200px]">
+                Şifre
+              </TableHead>
+              <TableHead className="text-right">
+                İşlemler
+              </TableHead>
             </TableRow>
           </TableHeader>
 
@@ -302,7 +317,7 @@ export function CustomerTable({
                       variant="outline"
                       className={`${statusColors[status]} rounded-md px-2 py-1 text-xs font-medium`}
                     >
-                      {status}
+                      {getStatusText(status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-foreground/80">{customer.email}</TableCell>

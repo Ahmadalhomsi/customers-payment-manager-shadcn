@@ -22,8 +22,8 @@ export async function POST(req) {
         // Create the default service for the customer
         const service = await prisma.service.create({
             data: {
-                name: "Default Service",
-                description: "Automatically created default service",
+                name: "Default Hizmet",
+                description: "Otomatik oluşturulan hizmet",
                 paymentType: "1year",
                 periodPrice: 0.0,  // Assuming no initial cost
                 currency: "TL",
@@ -41,7 +41,7 @@ export async function POST(req) {
             data: {
                 scheduledAt: reminderDate,
                 status: "SCHEDULED",
-                message: "Your service is ending in one week! Please renew to avoid interruption.",  // Custom message
+                message: "Hizmetinizin bitmesine bir hafta kaldı! Kesinti yaşamamak için lütfen yenileyin.",
                 serviceID: service.id,
             },
         });
