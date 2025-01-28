@@ -30,10 +30,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { tr } from 'date-fns/locale';
 
 const PAYMENT_TYPES = [
-    { value: "Monthly", label: "Monthly" },
-    { value: "Yearly", label: "Yearly" },
+    { value: "Monthly", label: "Aylık" },
+    { value: "Yearly", label: "Yıllık" },
 ];
 
 const CURRENCIES = [
@@ -43,19 +44,26 @@ const CURRENCIES = [
 ];
 
 const DURATIONS = [
-    { value: "1month", label: "1 Month" },
-    { value: "6months", label: "6 Months" },
-    { value: "1year", label: "1 Year" },
-    { value: "2years", label: "2 Years" },
-    { value: "3years", label: "3 Years" },
-    { value: "custom", label: "Custom" },
+    { value: "1month", label: "1 Ay" },
+    { value: "6months", label: "6 Ay" },
+    { value: "1year", label: "1 Yıl" },
+    { value: "2years", label: "2 Yıl" },
+    { value: "3years", label: "3 Yıl" },
+    { value: "custom", label: "Özel" },
+];
+
+const EXTENSION_PERIODS = [
+    { value: "1month", label: "1 Ay Ekle" },
+    { value: "3months", label: "3 Ay Ekle" },
+    { value: "6months", label: "6 Ay Ekle" },
+    { value: "1year", label: "1 Yıl Ekle" },
 ];
 
 const INITIAL_FORM_STATE = {
     name: "",
     description: "",
     customerID: "",
-    paymentType: "1year", // Start with default duration
+    paymentType: "1year",
     periodPrice: "",
     currency: "TL",
     startingDate: new Date(),
@@ -82,14 +90,11 @@ export function ServiceModal2({
     const [endDateMonth, setEndDateMonth] = useState(new Date());
     const [selectedDuration, setSelectedDuration] = useState("1year");
 
-    // Fetch customers when modal opens
-    // Fetch customers when modal opens
     useEffect(() => {
         if (visible && selectedService) {
             const paymentType = selectedService.paymentType;
             const isCustom = !DURATIONS.some(d => d.value === paymentType);
 
-            // Safely parse dates, handling potential string or Date inputs
             const startingDate = selectedService.startingDate
                 ? (selectedService.startingDate instanceof Date
                     ? selectedService.startingDate
@@ -108,21 +113,16 @@ export function ServiceModal2({
 
             setFormData({
                 ...selectedService,
-                // Ensure periodPrice is a string, default to empty if null/undefined
                 periodPrice: selectedService.periodPrice?.toString() || "",
                 startingDate: startingDate,
                 endingDate: endingDate,
                 paymentType: isCustom ? "custom" : paymentType
             });
 
-            // Set the month for date pickers
             setStartDateMonth(startingDate);
             setEndDateMonth(endingDate);
-
-            // Update selected duration
             setSelectedDuration(isCustom ? "custom" : paymentType);
         } else {
-            // Reset to initial state with proper types
             setFormData({
                 ...INITIAL_FORM_STATE,
                 paymentType: "1year",
@@ -131,8 +131,6 @@ export function ServiceModal2({
         }
     }, [visible, selectedService]);
 
-
-    // Date calculation effect
     useEffect(() => {
         if (selectedDuration !== "custom" && formData.startingDate) {
             const start = new Date(formData.startingDate);
@@ -156,13 +154,12 @@ export function ServiceModal2({
                     break;
             }
 
-            // Check if the new end date is different from current endingDate
             setFormData((prev) => {
                 const currentEndTime = prev.endingDate ? prev.endingDate.getTime() : null;
                 const newEndTime = end.getTime();
 
                 if (currentEndTime === newEndTime) {
-                    return prev; // Avoid unnecessary update
+                    return prev;
                 }
                 return { ...prev, endingDate: end };
             });
@@ -171,6 +168,32 @@ export function ServiceModal2({
         }
     }, [selectedDuration, formData.startingDate]);
 
+    const handleExtendService = (extensionPeriod) => {
+        const end = new Date(formData.endingDate);
+
+        switch (extensionPeriod) {
+            case "1month":
+                end.setMonth(end.getMonth() + 1);
+                break;
+            case "3months":
+                end.setMonth(end.getMonth() + 3);
+                break;
+            case "6months":
+                end.setMonth(end.getMonth() + 6);
+                break;
+            case "1year":
+                end.setFullYear(end.getFullYear() + 1);
+                break;
+        }
+
+        setFormData((prev) => ({
+            ...prev,
+            endingDate: end,
+            paymentType: "custom"
+        }));
+        setSelectedDuration("custom");
+        setEndDateMonth(end);
+    };
 
     const handleChange = (name, value) => {
         setFormData((prev) => ({
@@ -181,17 +204,12 @@ export function ServiceModal2({
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.startingDate || !formData.endingDate || !formData.customerID) {
-            alert("Please fill in all required fields");
+            alert("Lütfen tüm zorunlu alanları doldurun");
             return;
         }
 
         if (formData.startingDate > formData.endingDate) {
-            alert("End date must be after start date");
-            return;
-        }
-
-        if (formData.endingDate && formData.startingDate > formData.endingDate) {
-            alert("End date must be after start date");
+            alert("Bitiş tarihi başlangıç tarihinden sonra olmalıdır");
             return;
         }
 
@@ -203,15 +221,14 @@ export function ServiceModal2({
             onClose();
             setFormData(INITIAL_FORM_STATE);
         } catch (error) {
-            console.error("Submission error:", error);
+            console.error("Gönderim hatası:", error);
         }
     };
 
-    // Handle "Enter" key press
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
             e.preventDefault();
-            e.stopPropagation(); // Add this to prevent event bubbling
+            e.stopPropagation();
             handleSubmit();
         }
     };
@@ -222,19 +239,18 @@ export function ServiceModal2({
         <Dialog open={visible} onOpenChange={onClose}>
             <DialogContent
                 className="sm:max-w-3xl w-full max-w-[95vw] max-h-[95vh] overflow-y-auto p-4 sm:p-6"
-                onKeyDown={handleKeyDown} // Add keydown handler to the dialog
+                onKeyDown={handleKeyDown}
             >
                 <DialogHeader>
                     <DialogTitle className="text-lg sm:text-xl">
-                        {selectedService ? "Edit Service" : "Create New Service"}
+                        {selectedService ? "Hizmeti Düzenle" : "Yeni Hizmet Oluştur"}
                     </DialogTitle>
                 </DialogHeader>
 
                 <div className="grid gap-4 sm:gap-6 py-2 sm:py-4">
-                    {/* Customer Selection */}
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
                         <Label className="text-left sm:text-right">
-                            Customer <span className="text-red-500">*</span>
+                            Müşteri <span className="text-red-500">*</span>
                         </Label>
                         <Popover open={openCustomerCombobox} onOpenChange={setOpenCustomerCombobox}>
                             <PopoverTrigger asChild>
@@ -243,14 +259,14 @@ export function ServiceModal2({
                                     role="combobox"
                                     className="w-full sm:col-span-3 justify-between"
                                 >
-                                    {selectedCustomer ? selectedCustomer.name : "Select customer..."}
+                                    {selectedCustomer ? selectedCustomer.name : "Müşteri seçin..."}
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-full p-0 pointer-events-auto">
                                 <Command shouldFilter={false}>
                                     <CommandInput
-                                        placeholder="Search customers..."
+                                        placeholder="Müşteri ara..."
                                         value={searchQuery}
                                         onValueChange={setSearchQuery}
                                     />
@@ -285,47 +301,44 @@ export function ServiceModal2({
                                                     ))}
                                             </CommandGroup>
                                         )}
-                                        <CommandEmpty>No customers found</CommandEmpty>
+                                        <CommandEmpty>Müşteri bulunamadı</CommandEmpty>
                                     </CommandList>
                                 </Command>
                             </PopoverContent>
                         </Popover>
                     </div>
 
-                    {/* Service Name */}
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
                         <Label htmlFor="name" className="text-left sm:text-right">
-                            Service Name <span className="text-red-500">*</span>
+                            Hizmet Adı <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="name"
                             value={formData.name}
                             onChange={(e) => handleChange("name", e.target.value)}
-                            onKeyDown={handleKeyDown} // Add keydown handler to input
+                            onKeyDown={handleKeyDown}
                             className="w-full sm:col-span-3"
-                            placeholder="Enter service name"
+                            placeholder="Hizmet adını girin"
                             required
                         />
                     </div>
 
-                    {/* Description */}
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
                         <Label htmlFor="description" className="text-left sm:text-right">
-                            Description
+                            Açıklama
                         </Label>
                         <Input
                             id="description"
                             value={formData.description}
                             onChange={(e) => handleChange("description", e.target.value)}
-                            onKeyDown={handleKeyDown} // Add keydown handler to input
+                            onKeyDown={handleKeyDown}
                             className="w-full sm:col-span-3"
-                            placeholder="Enter service description"
+                            placeholder="Hizmet açıklaması girin"
                         />
                     </div>
 
-                    {/* Price */}
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                        <Label className="text-left sm:text-right">Price</Label>
+                        <Label className="text-left sm:text-right">Fiyat</Label>
                         <div className="w-full sm:col-span-3 flex flex-col sm:flex-row gap-2">
                             <Input
                                 type="number"
@@ -333,7 +346,7 @@ export function ServiceModal2({
                                 step="0.01"
                                 value={formData.periodPrice}
                                 onChange={(e) => handleChange("periodPrice", e.target.value)}
-                                onKeyDown={handleKeyDown} // Add keydown handler to input
+                                onKeyDown={handleKeyDown}
                                 className="w-full"
                                 placeholder="0.00"
                             />
@@ -355,25 +368,22 @@ export function ServiceModal2({
                         </div>
                     </div>
 
-                    {/* Dates Section */}
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-2 sm:gap-4">
                         <Label className="text-left sm:text-right sm:pt-2">
-                            Dates <span className="text-red-500">*</span>
+                            Tarihler <span className="text-red-500">*</span>
                         </Label>
                         <div className="w-full sm:col-span-3 space-y-4">
-                            {/* Payment Type - Modified to use duration */}
                             <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                                <Label className="text-left sm:text-right">Payment Type</Label>
+                                <Label className="text-left sm:text-right">Ödeme Tipi</Label>
                                 <Select
                                     value={formData.paymentType}
                                     onValueChange={(value) => {
-                                        // Update both paymentType and duration calculation
                                         handleChange("paymentType", value);
                                         setSelectedDuration(value);
                                     }}
                                 >
                                     <SelectTrigger className="w-full sm:col-span-3">
-                                        <SelectValue placeholder="Select duration" />
+                                        <SelectValue placeholder="Süre seçin" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {DURATIONS.map((duration) => (
@@ -385,18 +395,36 @@ export function ServiceModal2({
                                 </Select>
                             </div>
 
-                            {/* Date Pickers */}
+                            {selectedService && (
+                                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                                    <Label className="text-left sm:text-right">Süre Uzatma</Label>
+                                    <Select
+                                        onValueChange={handleExtendService}
+                                    >
+                                        <SelectTrigger className="w-full sm:col-span-3">
+                                            <SelectValue placeholder="Süre uzatmak için seçin" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {EXTENSION_PERIODS.map((period) => (
+                                                <SelectItem key={period.value} value={period.value}>
+                                                    {period.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex flex-col gap-2 w-full">
                                     <Label>
-                                        Start Date <span className="text-red-500">*</span>
+                                        Başlangıç Tarihi <span className="text-red-500">*</span>
                                     </Label>
                                     <Calendar
                                         mode="single"
                                         selected={formData.startingDate}
                                         onSelect={(date) => {
                                             handleChange("startingDate", date);
-                                            // Set payment type to custom when date is changed
                                             handleChange("paymentType", "custom");
                                             setSelectedDuration("custom");
                                         }}
@@ -404,19 +432,30 @@ export function ServiceModal2({
                                         onMonthChange={setStartDateMonth}
                                         className="rounded-md border w-full"
                                         disabled={(date) => date < formData.startingDate}
+                                        locale={tr}
+                                        formatters={{
+                                            formatCaption: (date, options) => {
+                                                return format(date, "MMMM yyyy", { locale: tr });
+                                            },
+                                            formatDay: (date) => {
+                                                return format(date, "dd", { locale: tr });
+                                            }
+                                        }}
                                         required
                                     />
+                                    <div className="text-sm text-gray-500 mt-1">
+                                        {formData.startingDate && format(formData.startingDate, "dd/MM/yyyy")}
+                                    </div>
                                 </div>
                                 <div className="flex flex-col gap-2 w-full">
                                     <Label>
-                                        End Date <span className="text-red-500">*</span>
+                                        Bitiş Tarihi <span className="text-red-500">*</span>
                                     </Label>
                                     <Calendar
                                         mode="single"
                                         selected={formData.endingDate}
                                         onSelect={(date) => {
                                             handleChange("endingDate", date);
-                                            // Set payment type to custom when date is changed
                                             handleChange("paymentType", "custom");
                                             setSelectedDuration("custom");
                                         }}
@@ -424,8 +463,20 @@ export function ServiceModal2({
                                         onMonthChange={setEndDateMonth}
                                         className="rounded-md border w-full"
                                         disabled={(date) => date < formData.startingDate}
+                                        locale={tr}
+                                        formatters={{
+                                            formatCaption: (date, options) => {
+                                                return format(date, "MMMM yyyy", { locale: tr });
+                                            },
+                                            formatDay: (date) => {
+                                                return format(date, "dd", { locale: tr });
+                                            }
+                                        }}
                                         required
                                     />
+                                    <div className="text-sm text-gray-500 mt-1">
+                                        {formData.endingDate && format(formData.endingDate, "dd/MM/yyyy")}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -434,7 +485,7 @@ export function ServiceModal2({
 
                 <DialogFooter className="border-t pt-4 mt-4">
                     <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
-                        Cancel
+                        İptal
                     </Button>
                     <Button
                         onClick={handleSubmit}
@@ -444,7 +495,7 @@ export function ServiceModal2({
                         {isLoading ? (
                             <BeatLoader size={8} color="white" />
                         ) : (
-                            selectedService ? "Save Changes" : "Create Service"
+                            selectedService ? "Değişiklikleri Kaydet" : "Hizmet Oluştur"
                         )}
                     </Button>
                 </DialogFooter>
