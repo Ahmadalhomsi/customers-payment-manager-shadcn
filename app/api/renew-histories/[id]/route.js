@@ -22,9 +22,6 @@ export async function DELETE(request, { params }) {
             where: { id }
         })
 
-        console.log('Deletedxxxxxxx:', deleted);
-
-
         return NextResponse.json({ success: true })
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message })

@@ -35,18 +35,18 @@ export async function POST(request) {
         if (newEndDate <= existingService.endingDate) {
             await prisma.notifications.create({
                 data: {
-                    title: 'Renewal Failed',
+                    title: 'Yenileme Başarısız',
                     message: endingDate
-                        ? `Invalid end date for ${existingService.name}`
-                        : `Auto-renewal failed for ${existingService.name}`,
+                        ? `${existingService.name} için geçersiz bitiş tarihi`
+                        : `${existingService.name} için otomatik yenileme başarısız oldu`,
                     type: 'error',
                     read: false,
                 },
             });
             return NextResponse.json({
                 error: endingDate
-                    ? "New end date must be after current expiration"
-                    : "Auto-renewal failed"
+                    ? "Yeni bitiş tarihi mevcut sürenin bitiminden sonra olmalıdır"
+                    : "Otomatik yenileme başarısız oldu"
             }, { status: 400 });
         }
 
@@ -58,7 +58,7 @@ export async function POST(request) {
             }),
             prisma.renewHistory.create({
                 data: {
-                    name: `Renewal - ${existingService.name}`,
+                    name: `Yenileme - ${existingService.name}`,
                     type: existingService.paymentType,
                     previousEndDate: existingService.endingDate,
                     newEndDate: newEndDate,
@@ -67,8 +67,8 @@ export async function POST(request) {
             }),
             prisma.notifications.create({
                 data: {
-                    title: 'Service Renewed',
-                    message: `Service ${existingService.name} renewed until ${newEndDate.toISOString().split('T')[0]}`,
+                    title: 'Hizmet Yenilendi',
+                    message: `Hizmet ${existingService.name} ${newEndDate.toISOString().split('T')[0]} tarihine kadar yenilendi`,
                     type: 'success',
                     read: false,
                 },
@@ -78,7 +78,7 @@ export async function POST(request) {
         return NextResponse.json({
             success: true,
             newEndDate: updatedService.endingDate,
-            message: "Service renewed successfully"
+            message: "Hizmet başarıyla yenilendi"
         }, { status: 200 });
 
     } catch (error) {

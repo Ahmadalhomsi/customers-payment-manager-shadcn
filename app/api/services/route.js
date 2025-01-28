@@ -5,7 +5,6 @@ import { NextResponse } from 'next/server';
 export async function POST(req) {
     try {
         const data = await req.json();
-        console.log('Received data:', data);
 
         if (!data) {
             return NextResponse.json(
@@ -58,7 +57,7 @@ export async function POST(req) {
             data: {
                 scheduledAt: reminderDate,
                 status: "SCHEDULED",
-                message: "Your service is ending in one week! Please renew to avoid interruption.",  // Custom message
+                message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",  // Özel mesaj
                 serviceID: service.id,
             },
         });

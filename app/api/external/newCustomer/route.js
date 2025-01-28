@@ -4,34 +4,34 @@ import { addYears, subWeeks } from 'date-fns';
 
 // Password validation function
 const validatePassword = (password) => {
-  const errors = [];
+    const errors = [];
 
-  if (!password) {
-    errors.push("Password is required");
+    if (!password) {
+        errors.push("Şifre boş olamaz");
+        return errors;
+    }
+
+    if (password.length < 8) {
+        errors.push("En az 8 karakter olmalıdır");
+    }
+
+    if (!/[A-Z]/.test(password)) {
+        errors.push("En az bir büyük harf");
+    }
+
+    if (!/[a-z]/.test(password)) {
+        errors.push("En az bir küçük harf");
+    }
+
+    if (!/[0-9]/.test(password)) {
+        errors.push("En az bir rakam");
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+        errors.push("En az bir özel karakter");
+    }
+
     return errors;
-  }
-
-  if (password.length < 8) {
-    errors.push("At least 8 characters");
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    errors.push("One uppercase letter");
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push("One lowercase letter");
-  }
-
-  if (!/[0-9]/.test(password)) {
-    errors.push("One number");
-  }
-
-  if (!/[^A-Za-z0-9]/.test(password)) {
-    errors.push("One special character");
-  }
-
-  return errors;
 };
 
 export async function POST(request) {
@@ -41,9 +41,9 @@ export async function POST(request) {
     // Validate password
     const passwordErrors = validatePassword(password);
     if (passwordErrors.length > 0) {
-        return NextResponse.json({ 
-            error: 'Password validation failed', 
-            details: passwordErrors 
+        return NextResponse.json({
+            error: 'Şifre doğrulaması başarısız oldu',
+            details: passwordErrors
         }, { status: 400 });
     }
 
@@ -53,18 +53,18 @@ export async function POST(request) {
     });
 
     if (existingCustomer) {
-        return NextResponse.json({ 
-            error: 'Email already exists' 
+        return NextResponse.json({
+            error: 'Bu e-posta adresi zaten kullanımda'
         }, { status: 409 });
     }
 
     try {
         const customer = await prisma.customer.create({
-            data: { 
-                name: customerName, 
-                email, 
-                password: password, 
-                phone 
+            data: {
+                name: customerName,
+                email,
+                password: password,
+                phone
             },
         });
 
@@ -76,8 +76,8 @@ export async function POST(request) {
             data: {
                 id: token,
                 customerID: customer.id,
-                name: 'Default Service',
-                description: 'Automatic service from API',
+                name: 'Default Hizmet',
+                description: 'API ile otomatik oluşturulan hizmet',
                 periodPrice: 0.0,
                 startingDate: startingDate,
                 endingDate: endingDate,
@@ -91,15 +91,15 @@ export async function POST(request) {
             data: {
                 scheduledAt: reminderDate,
                 status: "SCHEDULED",
-                message: "Your service is ending in one week! Please renew to avoid interruption.",
+                message: "Hizmetinizin bitmesine bir hafta kaldı! Kesinti yaşamamak için lütfen yenileyin.",
                 serviceID: newService.id,
             },
         });
 
         await prisma.notifications.create({
             data: {
-                title: 'New Customer Created from API',
-                message: `New customer ${customerName} created with email ${email}`,
+                title: 'API ile Yeni Müşteri Oluşturuldu',
+                message: `Yeni müşteri ${customerName} e-posta ${email} ile oluşturuldu`,
                 type: 'success',
                 read: false,
             },

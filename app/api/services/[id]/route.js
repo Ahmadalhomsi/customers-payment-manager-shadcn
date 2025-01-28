@@ -41,7 +41,7 @@ export async function PUT(req, { params }) {
                 const renewalType = data.paymentType !== undefined ? data.paymentType : existingService.paymentType;
 
                 renewHistoryData = {
-                    name: `Renewal for ${existingService.name}`,
+                    name: `${existingService.name} için Yenileme`,
                     type: renewalType,
                     previousEndDate: currentEndingDate,
                     newEndDate: newEndingDate,
@@ -92,7 +92,7 @@ export async function PUT(req, { params }) {
                     data: {
                         scheduledAt: reminderDate,
                         status: "SCHEDULED",
-                        message: "Your service is ending in one week! Please renew to avoid interruption.",
+                        message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",
                         serviceID: id,
                     },
                 })
