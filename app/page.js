@@ -93,6 +93,9 @@ export default function CustomersPage() {
     try {
       setLoading(true);
       const response = await axios.get('/api/customers')
+      if (response.status === 206) {
+        toast.error('Yasak: Müşteri parolalarını görüntüleme izniniz yok')
+      }
       setCustomers(response.data)
     } catch (error) {
       if (error.status === 403) {

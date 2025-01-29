@@ -83,7 +83,7 @@ export async function GET(req) {
                     const { password, ...customerWithoutPassword } = customer;
                     return customerWithoutPassword;
                 }),
-                { status: 200 }
+                { status: 206 }
             );
         }
 
