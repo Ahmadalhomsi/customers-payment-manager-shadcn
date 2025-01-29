@@ -25,11 +25,27 @@ export default function ServicesPage() {
   const [selectedServiceForHistory, setSelectedServiceForHistory] = useState(null)
   const [renewHistory, setRenewHistory] = useState([])
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [permissions, setPermissions] = useState(null);
 
   useEffect(() => {
     fetchServices()
     fetchCustomers()
+    fetchAdminData();
+
   }, [])
+
+  const fetchAdminData = async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+
+      if (res.ok) {
+        const data = await res.json();
+        setPermissions(data.permissions);
+      }
+    } catch (error) {
+      console.error("Failed to fetch admin data:", error);
+    }
+  };
 
   const fetchServices = async () => {
     try {
@@ -101,12 +117,14 @@ export default function ServicesPage() {
   return (
     <div className="p-4">
       <div className="flex gap-2 mb-4">
-        <Button onClick={() => {
+
+        {permissions?.canEditServices && (<Button onClick={() => {
           setSelectedService(null)
           setServiceModalVisible(true)
         }}>
           <Plus className="mr-2 h-4 w-4" /> Hizmet Ekle
         </Button>
+        )}
       </div>
 
       <ServiceTable

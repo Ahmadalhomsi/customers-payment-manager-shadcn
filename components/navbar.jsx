@@ -35,9 +35,7 @@ export function Navbar() {
         if (res.ok) {
           const data = await res.json();
           setAdminName(data.name);
-          setPermissions(data.permissions);
-          console.log(data.permissions);
-          
+          setPermissions(data.permissions);         
         }
       } catch (error) {
         console.error("Failed to fetch admin data:", error);

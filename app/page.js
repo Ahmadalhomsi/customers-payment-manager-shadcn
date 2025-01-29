@@ -31,9 +31,10 @@ export default function CustomersPage() {
   const [reminderToDelete, setReminderToDelete] = useState(null);
   const [sortConfig, setSortConfig] = useState(null);
   const [reminderModalVisible, setReminderModalVisible] = useState(false)
-
+  const [permissions, setPermissions] = useState(null);
 
   useEffect(() => {
+    fetchAdminData();
     fetchCustomers();
   }, []);
 
@@ -50,6 +51,19 @@ export default function CustomersPage() {
         else
           console.log('Error deleting customer:', error)
       }
+    }
+  };
+
+  const fetchAdminData = async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+
+      if (res.ok) {
+        const data = await res.json();
+        setPermissions(data.permissions);
+      }
+    } catch (error) {
+      console.error("Failed to fetch admin data:", error);
     }
   };
 
@@ -160,12 +174,14 @@ export default function CustomersPage() {
   return (
     <div className="p-4">
       <div className="flex gap-2 mb-4">
-        <Button onClick={() => {
-          setSelectedCustomer(null); // Ensure selectedCustomer is reset
-          setCustomerModalVisible(true);
-        }}>
-          <Plus className="mr-2 h-4 w-4" /> Müşteri Ekle
-        </Button>
+        {permissions?.canEditCustomers && (
+          <Button onClick={() => {
+            setSelectedCustomer(null); // Ensure selectedCustomer is reset
+            setCustomerModalVisible(true);
+          }}>
+            <Plus className="mr-2 h-4 w-4" /> Müşteri Ekle
+          </Button>
+        )}
       </div>
 
       <CustomerTable
