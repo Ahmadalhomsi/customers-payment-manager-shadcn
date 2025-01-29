@@ -20,6 +20,7 @@ export function Navbar() {
   const isLoginPage = pathname === "/login";
   const [notifications, setNotifications] = useState([]);
   const [adminName, setAdminName] = useState("");
+  const [permissions, setPermissions] = useState(null);
 
   const handleLogout = async () => {
     await fetch("/api/logout");
@@ -27,22 +28,23 @@ export function Navbar() {
   };
 
   useEffect(() => {
-    const fetchAdminName = async () => {
+    const fetchAdminData = async () => {
       try {
         const res = await fetch("/api/auth/me");
 
         if (res.ok) {
           const data = await res.json();
-          console.log(data);
-
-          setAdminName(data.name); // Set admin name from JWT
+          setAdminName(data.name);
+          setPermissions(data.permissions);
+          console.log(data.permissions);
+          
         }
       } catch (error) {
-        console.error("Failed to fetch admin name:", error);
+        console.error("Failed to fetch admin data:", error);
       }
     };
 
-    fetchAdminName();
+    fetchAdminData();
   }, []);
 
   if (isLoginPage) return null;
@@ -68,22 +70,28 @@ export function Navbar() {
             <Home className="mr-2 h-4 w-4" />
             Ana Sayfa
           </Link>
-          <Link
-            href="/services"
-            className={`flex items-center text-sm font-medium ${pathname.startsWith("/services") ? "text-primary" : "text-muted-foreground hover:text-primary"
-              }`}
-          >
-            <Briefcase className="mr-2 h-4 w-4" />
-            Hizmetler
-          </Link>
-          <Link
-            href="/admins"
-            className={`flex items-center text-sm font-medium ${pathname.startsWith("/admins") ? "text-primary" : "text-muted-foreground hover:text-primary"
-              }`}
-          >
-            <User className="mr-2 h-4 w-4" />
-            Admin
-          </Link>
+
+          {permissions?.canViewServices && (
+            <Link
+              href="/services"
+              className={`flex items-center text-sm font-medium ${pathname.startsWith("/services") ? "text-primary" : "text-muted-foreground hover:text-primary"
+                }`}
+            >
+              <Briefcase className="mr-2 h-4 w-4" />
+              Hizmetler
+            </Link>
+          )}
+
+          {permissions?.canViewAdmins && (
+            <Link
+              href="/admins"
+              className={`flex items-center text-sm font-medium ${pathname.startsWith("/admins") ? "text-primary" : "text-muted-foreground hover:text-primary"
+                }`}
+            >
+              <User className="mr-2 h-4 w-4" />
+              Users
+            </Link>
+          )}
         </div>
 
         {/* Right Section */}
@@ -113,18 +121,25 @@ export function Navbar() {
                   Ana Sayfa
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className={pathname.startsWith("/services") ? "text-primary" : ""}>
-                <Link href="/services">
-                  <Briefcase className="mr-2 h-4 w-4" />
-                  Hizmetler
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className={pathname.startsWith("/admins") ? "text-primary" : ""}>
-                <Link href="/admins">
-                  <User className="mr-2 h-4 w-4" />
-                  Admin
-                </Link>
-              </DropdownMenuItem>
+
+              {permissions?.canViewServices && (
+                <DropdownMenuItem asChild className={pathname.startsWith("/services") ? "text-primary" : ""}>
+                  <Link href="/services">
+                    <Briefcase className="mr-2 h-4 w-4" />
+                    Hizmetler
+                  </Link>
+                </DropdownMenuItem>
+              )}
+
+              {permissions?.canViewAdmins && (
+                <DropdownMenuItem asChild className={pathname.startsWith("/admins") ? "text-primary" : ""}>
+                  <Link href="/admins">
+                    <User className="mr-2 h-4 w-4" />
+                    Admin
+                  </Link>
+                </DropdownMenuItem>
+              )}
+
               <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout

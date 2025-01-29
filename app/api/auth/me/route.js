@@ -1,4 +1,5 @@
 import { verifyJWT } from "@/lib/jwt";
+import { permission } from "process";
 
 export async function GET(req) {
     try {
@@ -9,9 +10,10 @@ export async function GET(req) {
 
         const decoded = await verifyJWT(token);
 
-        console.log(decoded);
-        
-        return new Response(JSON.stringify({ name: decoded.name }), { status: 200 });
+        return new Response(JSON.stringify({
+            name: decoded.name,
+            permissions: decoded.permissions
+        }), { status: 200 });
     } catch (error) {
         return new Response(JSON.stringify({ error: "Invalid Token" }), { status: 403 });
     }
