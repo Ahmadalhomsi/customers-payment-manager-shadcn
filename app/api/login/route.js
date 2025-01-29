@@ -61,7 +61,7 @@ export async function POST(req) {
         permissions: {
           canViewCustomers, canEditCustomers, canViewServices, canEditServices,
           canViewReminders, canEditReminders, canViewAdmins, canEditAdmins,
-          canSendEmails
+          canSendEmails, canSeePasswords
         }
       },
       JWT_SECRET,

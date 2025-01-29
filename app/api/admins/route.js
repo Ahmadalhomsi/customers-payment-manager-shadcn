@@ -18,15 +18,16 @@ export async function POST(req) {
 
         // Default permissions (if not provided)
         const defaultPermissions = {
-            canViewCustomers: true,
-            canEditCustomers: true,
-            canViewServices: true,
-            canEditServices: true,
-            canViewReminders: true,
-            canEditReminders: true,
-            canViewAdmins: true,
-            canEditAdmins: true,
-            canSendEmails: true,
+            canViewCustomers: false,
+            canEditCustomers: false,
+            canViewServices: false,
+            canEditServices: false,
+            canViewReminders: false,
+            canEditReminders: false,
+            canViewAdmins: false,
+            canEditAdmins: false,
+            canSendEmails: false,
+            canSeePasswords: false,
         };
 
         // Merge default permissions with provided ones

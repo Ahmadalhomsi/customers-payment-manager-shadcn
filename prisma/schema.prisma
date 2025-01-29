@@ -21,15 +21,16 @@ model Admin {
   active   Boolean @default(true)
 
   // Permissions
-  canViewCustomers Boolean @default(true)
-  canEditCustomers Boolean @default(true)
-  canViewServices  Boolean @default(true)
-  canEditServices  Boolean @default(true)
-  canViewReminders Boolean @default(true)
-  canEditReminders Boolean @default(true)
-  canViewAdmins    Boolean @default(true)
-  canEditAdmins    Boolean @default(true)
-  canSendEmails    Boolean @default(true) // test button
+  canViewCustomers Boolean @default(false)
+  canEditCustomers Boolean @default(false) // or delete
+  canViewServices  Boolean @default(false)
+  canEditServices  Boolean @default(false)
+  canViewReminders Boolean @default(false)
+  canEditReminders Boolean @default(false)
+  canViewAdmins    Boolean @default(false)
+  canEditAdmins    Boolean @default(false)
+  canSendEmails    Boolean @default(false) // test button
+  canSeePasswords  Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
