@@ -1,3 +1,4 @@
+import { verifyJWT } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 import { subWeeks } from 'date-fns';
 import { NextResponse } from 'next/server';

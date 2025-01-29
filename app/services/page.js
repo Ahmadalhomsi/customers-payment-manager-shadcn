@@ -38,7 +38,7 @@ export default function ServicesPage() {
       setServices(response.data)
     } catch (error) {
       if (error.response.status === 403)
-        toast('Yasak: Hizmet görüntüleme izniniz yok')
+        toast.error('Yasak: Hizmet görüntüleme izniniz yok')
     }
     setLoading(false)
   }
@@ -49,7 +49,7 @@ export default function ServicesPage() {
       setCustomers(response.data)
     } catch (error) {
       if (error.response.status === 403)
-        toast('Yasak: Müşterileri görüntüleme izniniz yok')
+        toast.error('Yasak: Müşterileri görüntüleme izniniz yok')
       else
         console.log('Error fetching customers:', error)
     }
@@ -62,7 +62,7 @@ export default function ServicesPage() {
       setRenewHistory(response.data)
     } catch (error) {
       if (error.response.status === 403)
-        toast('Yasak: Yenileme geçmişini görüntüleme izniniz yok')
+        toast.error('Yasak: Yenileme geçmişini görüntüleme izniniz yok')
       else
         console.log('Error fetching renew history:', error)
     } finally {
