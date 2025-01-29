@@ -3,6 +3,7 @@ const express = require('express');
 const next = require('next');
 const cron = require('node-cron');
 const { isSameDay } = require('date-fns');
+import axios from 'axios'
 
 // Determine whether you're in production or development mode
 const dev = process.env.NODE_ENV !== 'production';
@@ -31,7 +32,8 @@ app.prepare().then(() => {
         console.log('Running daily reminder check...');
         try {
             const reminders = await prisma.reminder.findMany({
-                where: { status: "SCHEDULED" }
+                where: { status: "SCHEDULED" },
+                include: { service: { select: { customer: true } } },
             });
 
             const today = new Date();
@@ -43,10 +45,11 @@ app.prepare().then(() => {
                     if (isSameDay(scheduledDate, today)) {
                         console.log(`Processing reminder ${reminder.id}...`);
 
-                        // Here you would add your actual reminder sending logic
-                        // For example: sendEmail(reminder);
-                        // Simulate processing
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        // await axios.post('http://localhost:3000/api/mailer', {
+                        //     to: reminder.service.customer.email,
+                        //     subject: 'Reminder',
+                        //     text: reminder.message,
+                        // });
 
                         // Update reminder status after successful processing
                         await prisma.reminder.update({
