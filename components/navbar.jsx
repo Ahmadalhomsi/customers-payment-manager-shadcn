@@ -31,11 +31,10 @@ export function Navbar() {
     const fetchAdminData = async () => {
       try {
         const res = await fetch("/api/auth/me");
-
         if (res.ok) {
           const data = await res.json();
           setAdminName(data.name);
-          setPermissions(data.permissions);         
+          setPermissions(data.permissions);
         }
       } catch (error) {
         console.error("Failed to fetch admin data:", error);
@@ -43,7 +42,7 @@ export function Navbar() {
     };
 
     fetchAdminData();
-  }, []);
+  }, [pathname]); // Fetch data when pathname changes
 
   if (isLoginPage) return null;
 
