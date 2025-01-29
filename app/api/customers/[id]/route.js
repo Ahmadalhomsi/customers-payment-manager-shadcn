@@ -1,24 +1,17 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 
-
-export async function GET(req, { params }) {
-    const { id } = await params;
-
-    try {
-        const customer = await prisma.customer.findUnique({
-            where: { id: id },
-        });
-        return NextResponse.json(customer, { status: 200 });
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Failed to fetch customer' }, { status: 500 });
-    }
-}
-
 export async function PUT(req, { params }) {
     const { id } = await params;
     const { name, email, password } = await req.json();
+
+    const token = req.cookies.get("token")?.value;
+    const decoded = await verifyJWT(token);
+
+    if (!decoded.permissions.canEditCustomers) {
+        return NextResponse.json({ error: 'Yasak: Müşteri güncelleme izniniz yok' }, { status: 403 });
+    }
+
     try {
         const customer = await prisma.customer.update({
             where: { id: id },
@@ -33,6 +26,14 @@ export async function PUT(req, { params }) {
 
 export async function DELETE(req, { params }) {
     const { id } = await params;
+
+    const token = req.cookies.get("token")?.value;
+    const decoded = await verifyJWT(token);
+
+    if (!decoded.permissions.canEditCustomers) {
+        return NextResponse.json({ error: 'Yasak: Müşteri silme izniniz yok' }, { status: 403 });
+    }
+
     try {
         await prisma.customer.delete({
             where: { id },
