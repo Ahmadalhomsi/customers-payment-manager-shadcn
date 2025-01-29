@@ -102,7 +102,7 @@ export function RenewHistoryModal({
 
     return (
         <Dialog open={visible} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className="max-w-6xl">
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold">
                         {selectedService?.name} için Yenileme Geçmişi
