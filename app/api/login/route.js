@@ -57,6 +57,7 @@ export async function POST(req) {
     const token = jwt.sign(
       {
         username: admin.username,
+        name: admin.name,
         id: admin.id,
         permissions: {
           canViewCustomers, canEditCustomers, canViewServices, canEditServices,

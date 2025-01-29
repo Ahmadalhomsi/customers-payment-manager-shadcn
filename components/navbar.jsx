@@ -1,4 +1,7 @@
-"use client";
+"use client"
+
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,21 +11,39 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { Menu, Home, Briefcase, LogOut, User } from "lucide-react"; // Import the User icon
-import { usePathname, useRouter } from "next/navigation";
+import { Menu, Home, Briefcase, LogOut, User } from "lucide-react";
 import { BadgeNotification } from "@/components/BadgeNotification";
-import { useState } from "react";
 
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
   const [notifications, setNotifications] = useState([]);
+  const [adminName, setAdminName] = useState("");
 
   const handleLogout = async () => {
     await fetch("/api/logout");
     router.push("/login");
   };
+
+  useEffect(() => {
+    const fetchAdminName = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log(data);
+
+          setAdminName(data.name); // Set admin name from JWT
+        }
+      } catch (error) {
+        console.error("Failed to fetch admin name:", error);
+      }
+    };
+
+    fetchAdminName();
+  }, []);
 
   if (isLoginPage) return null;
 
@@ -41,9 +62,7 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           <Link
             href="/"
-            className={`flex items-center text-sm font-medium ${pathname === "/"
-              ? "text-primary"
-              : "text-muted-foreground hover:text-primary"
+            className={`flex items-center text-sm font-medium ${pathname === "/" ? "text-primary" : "text-muted-foreground hover:text-primary"
               }`}
           >
             <Home className="mr-2 h-4 w-4" />
@@ -51,9 +70,7 @@ export function Navbar() {
           </Link>
           <Link
             href="/services"
-            className={`flex items-center text-sm font-medium ${pathname.startsWith("/services")
-              ? "text-primary"
-              : "text-muted-foreground hover:text-primary"
+            className={`flex items-center text-sm font-medium ${pathname.startsWith("/services") ? "text-primary" : "text-muted-foreground hover:text-primary"
               }`}
           >
             <Briefcase className="mr-2 h-4 w-4" />
@@ -61,9 +78,7 @@ export function Navbar() {
           </Link>
           <Link
             href="/admins"
-            className={`flex items-center text-sm font-medium ${pathname.startsWith("/admins")
-              ? "text-primary"
-              : "text-muted-foreground hover:text-primary"
+            className={`flex items-center text-sm font-medium ${pathname.startsWith("/admins") ? "text-primary" : "text-muted-foreground hover:text-primary"
               }`}
           >
             <User className="mr-2 h-4 w-4" />
@@ -79,6 +94,11 @@ export function Navbar() {
           />
           <ThemeSwitch />
 
+          {/* Show Admin Name */}
+          {adminName && (
+            <span className="text-sm font-medium text-primary">{adminName}</span>
+          )}
+
           {/* Dropdown for Mobile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -87,41 +107,25 @@ export function Navbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                asChild
-                className={pathname === "/" ? "text-primary" : ""}
-              >
+              <DropdownMenuItem asChild className={pathname === "/" ? "text-primary" : ""}>
                 <Link href="/">
                   <Home className="mr-2 h-4 w-4" />
                   Ana Sayfa
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                asChild
-                className={
-                  pathname.startsWith("/services") ? "text-primary" : ""
-                }
-              >
+              <DropdownMenuItem asChild className={pathname.startsWith("/services") ? "text-primary" : ""}>
                 <Link href="/services">
                   <Briefcase className="mr-2 h-4 w-4" />
                   Hizmetler
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                asChild
-                className={
-                  pathname.startsWith("/admins") ? "text-primary" : ""
-                }
-              >
+              <DropdownMenuItem asChild className={pathname.startsWith("/admins") ? "text-primary" : ""}>
                 <Link href="/admins">
                   <User className="mr-2 h-4 w-4" />
                   Admin
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleLogout}
-                className="text-destructive focus:text-destructive"
-              >
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>
@@ -129,12 +133,7 @@ export function Navbar() {
           </DropdownMenu>
 
           {/* Logout Button for Desktop */}
-          <Button
-            variant="destructive"
-            size="sm"
-            className="hidden md:flex"
-            onClick={handleLogout}
-          >
+          <Button variant="destructive" size="sm" className="hidden md:flex" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
