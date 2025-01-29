@@ -1,42 +1,53 @@
-import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { verifyJWT } from '@/lib/jwt'; // You'll need to create this helper
 import { addYears, subWeeks } from 'date-fns';  // Use date-fns to handle date calculations
 
 export async function POST(req) {
-    const { name, email, phone, password } = await req.json();
     try {
-        // First, create the customer
+        // Get the authorization header
+        const authHeader = req.headers.get('authorization');
+        if (!authHeader?.startsWith('Bearer ')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // Extract and verify the token
+        const token = authHeader.split(' ')[1];
+        const decoded = await verifyJWT(token);
+
+        // Check if the user has permission to create customers
+        if (!decoded.permissions.canEditCustomers) {
+            return NextResponse.json({ error: 'Forbidden: You do not have permission to create customers' }, { status: 403 });
+        }
+
+        // Extract request body
+        const { name, email, phone, password } = await req.json();
+
+        // Create the customer
         const customer = await prisma.customer.create({
-            data: {
-                name,
-                email,
-                phone,
-                password
-            },
+            data: { name, email, phone, password },
         });
 
-        // Calculate the starting and ending dates for the service
+        // Calculate service dates
         const startingDate = new Date();
-        const endingDate = addYears(startingDate, 1);  // Service ends one year from now
+        const endingDate = addYears(startingDate, 1);
+        const reminderDate = subWeeks(endingDate, 1);
 
-        // Create the default service for the customer
+        // Create a default service
         const service = await prisma.service.create({
             data: {
                 name: "Default Hizmet",
                 description: "Otomatik oluşturulan hizmet",
                 paymentType: "1year",
-                periodPrice: 0.0,  // Assuming no initial cost
+                periodPrice: 0.0,
                 currency: "TL",
-                startingDate: startingDate,
-                endingDate: endingDate,
+                startingDate,
+                endingDate,
                 customerID: customer.id,
             },
         });
 
-        // Calculate the reminder date (one week before the service ends)
-        const reminderDate = subWeeks(endingDate, 1);
-
-        // Create a reminder for one week before the service ends
+        // Create a reminder
         await prisma.reminder.create({
             data: {
                 scheduledAt: reminderDate,
@@ -47,24 +58,49 @@ export async function POST(req) {
         });
 
         return NextResponse.json(customer, { status: 201 });
+
     } catch (error) {
         console.log(error);
         return NextResponse.json({ error: 'Failed to create customer and associated service' }, { status: 500 });
     }
 }
 
-export async function GET() {
+
+export async function GET(request) {
     try {
+        // Get the authorization header
+        const authHeader = request.headers.get('authorization');
+        if (!authHeader?.startsWith('Bearer ')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // Extract and verify the token
+        const token = authHeader.split(' ')[1];
+        const decoded = await verifyJWT(token);
+
+        // Get customers from database
         const customers = await prisma.customer.findMany({
             include: {
                 services: true,
             },
         });
+
+        // If user can't see passwords, remove them from the response
+        if (!decoded.permissions.canSeePasswords) {
+            return NextResponse.json(
+                customers.map(customer => {
+                    const { password, ...customerWithoutPassword } = customer;
+                    return customerWithoutPassword;
+                }),
+                { status: 200 }
+            );
+        }
+
+        // If user has permission, return full data including passwords
         return NextResponse.json(customers, { status: 200 });
     } catch (error) {
         console.log(error);
         return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
     }
 }
-
 
