@@ -166,9 +166,6 @@ export default function CustomersPage() {
         }}>
           <Plus className="mr-2 h-4 w-4" /> Müşteri Ekle
         </Button>
-        <Button variant="outline" onClick={sendSMTPemail}>
-          <Mail className="mr-2 h-4 w-4" /> SMTP Email Gönder
-        </Button>
       </div>
 
       <CustomerTable

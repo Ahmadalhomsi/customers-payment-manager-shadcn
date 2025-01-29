@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-
+// This is just for testing it needs to be updated
 export async function POST(req) {
     const nodemailer = require('nodemailer');
     const smtpHost = process.env.MAIL_HOST;
