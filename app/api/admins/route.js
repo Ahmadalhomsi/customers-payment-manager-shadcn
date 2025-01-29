@@ -22,64 +22,7 @@ export async function GET(req) {
     }
 }
 
-// Create Admin (POST)
-export async function POST(req) {
-    try {
-        const token = req.cookies.get("token")?.value;
-        const decoded = await verifyJWT(token);
 
-        if (!decoded.permissions.canEditAdmins) {
-            return NextResponse.json({ error: 'Yasak: Admin oluşturma izniniz yok' }, { status: 403 });
-        }
-
-        const { username, name, password, active, permissions } = await req.json();
-
-        // Check if username already exists
-        const existingAdmin = await prisma.admin.findUnique({ where: { username } });
-        if (existingAdmin) {
-            return NextResponse.json({ message: "Username already exists" }, { status: 400 });
-        }
-
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Default permissions (if not provided)
-        const defaultPermissions = {
-            canViewCustomers: false,
-            canEditCustomers: false,
-            canViewServices: false,
-            canEditServices: false,
-            canViewReminders: false,
-            canEditReminders: false,
-            canViewAdmins: false,
-            canEditAdmins: false,
-            canSendEmails: false,
-            canSeePasswords: false,
-        };
-
-        // Merge default permissions with provided ones
-        const finalPermissions = { ...defaultPermissions, ...permissions };
-
-        // Create new admin
-        const newAdmin = await prisma.admin.create({
-            data: {
-                username,
-                name,
-                password: hashedPassword,
-                active: active ?? true,
-                ...finalPermissions, // Spread permissions into model fields
-            },
-        });
-
-        return NextResponse.json(
-            { message: "Admin created successfully", admin: newAdmin },
-            { status: 201 }
-        );
-    } catch (error) {
-        console.error("Error creating admin:", error);
-        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
-    }
-}
 
 // Update Admin (PUT)
 export async function PUT(req) {
@@ -97,6 +40,9 @@ export async function PUT(req) {
         if (password) {
             updatedData.password = await bcrypt.hash(password, 10);
         }
+        console.log("AAAAA");
+
+        console.log(updatedData);
 
         // Update admin
         const updatedAdmin = await prisma.admin.update({
@@ -109,7 +55,7 @@ export async function PUT(req) {
             { status: 200 }
         );
     } catch (error) {
-        console.error("Error updating admin:", error);
+        console.log("Error updating admin:", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 }

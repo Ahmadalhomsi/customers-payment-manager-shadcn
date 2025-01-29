@@ -29,19 +29,18 @@ export async function GET(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
-
-
     try {
         const token = req.cookies.get("token")?.value;
         const decoded = await verifyJWT(token);
 
-        // Check if the user has permission to view customers
+        // Check if the user has permission to edit services
         if (!decoded.permissions.canEditServices) {
             return NextResponse.json({ error: 'Yasak: Hizmet güncelleme izniniz yok' }, { status: 403 });
         }
 
         const { id } = await params;
         const data = await req.json();
+
         // Fetch the existing service to check current end date and payment type
         const existingService = await prisma.service.findUnique({
             where: { id: id },
@@ -54,14 +53,25 @@ export async function PUT(req, { params }) {
         let renewHistoryData = null;
         let shouldUpdateReminders = false;
 
-        // Check if the request includes a new endingDate that extends the current period
         if (data.endingDate) {
             const newEndingDate = new Date(data.endingDate);
             const currentEndingDate = new Date(existingService.endingDate);
 
             if (newEndingDate > currentEndingDate) {
-                // Determine the renewal type (use new paymentType or keep existing)
-                const renewalType = data.paymentType !== undefined ? data.paymentType : existingService.paymentType;
+                // Calculate the difference in days
+                const diffInDays = Math.floor((newEndingDate - currentEndingDate) / (1000 * 60 * 60 * 24));
+
+                // Determine renewal type based on date difference
+                let renewalType;
+                if (diffInDays >= 365) {
+                    renewalType = "1year";
+                } else if (diffInDays >= 180 && diffInDays < 365) {
+                    renewalType = "6months";
+                } else if (diffInDays >= 28 && diffInDays < 180) {
+                    renewalType = "1month";
+                } else {
+                    renewalType = "custom";
+                }
 
                 renewHistoryData = {
                     name: `${existingService.name} için Yenileme`,

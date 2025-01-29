@@ -91,7 +91,7 @@ export default function AdminsPage() {
 
         try {
             const url = editingAdmin
-                ? `/api/admins?id=${editingAdmin.id}`
+                ? `/api/admins/${editingAdmin.id}`
                 : "/api/admins";
             const method = editingAdmin ? "PUT" : "POST";
 
@@ -103,11 +103,10 @@ export default function AdminsPage() {
 
             if (!response.ok) throw new Error("Yönetici kaydedilemedi");
 
-            toast({
-                description: editingAdmin
-                    ? "Yönetici güncellendi"
-                    : "Yeni yönetici oluşturuldu",
-            });
+            toast.success(editingAdmin
+                ? "Yönetici güncellendi"
+                : "Yeni yönetici oluşturuldu"
+            );
 
             setIsDialogOpen(false);
             fetchAdmins();
