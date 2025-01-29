@@ -29,7 +29,6 @@ model Admin {
   canEditReminders Boolean @default(false)
   canViewAdmins    Boolean @default(false)
   canEditAdmins    Boolean @default(false)
-  canSendEmails    Boolean @default(false) // test button
   canSeePasswords  Boolean @default(false)
 
   createdAt DateTime @default(now())

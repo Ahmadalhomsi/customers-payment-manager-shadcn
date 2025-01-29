@@ -43,7 +43,6 @@ export default function AdminsPage() {
             canEditReminders: false,
             canViewAdmins: false,
             canEditAdmins: false,
-            canSendEmails: false,
             canSeePasswords: false,
         },
     });
@@ -57,7 +56,6 @@ export default function AdminsPage() {
         canEditReminders: "Hatırlatıcıları Düzenleme",
         canViewAdmins: "Yöneticileri Görüntüleme",
         canEditAdmins: "Yöneticileri Düzenleme",
-        canSendEmails: "E-posta Gönderme",
         canSeePasswords: "Şifreleri Görüntüleme",
     };
 
@@ -161,7 +159,6 @@ export default function AdminsPage() {
                 canEditReminders: false,
                 canViewAdmins: false,
                 canEditAdmins: false,
-                canSendEmails: false,
                 canSeePasswords: false,
             },
         });
@@ -185,7 +182,6 @@ export default function AdminsPage() {
                 canEditReminders: admin.canEditReminders,
                 canViewAdmins: admin.canViewAdmins,
                 canEditAdmins: admin.canEditAdmins,
-                canSendEmails: admin.canSendEmails,
                 canSeePasswords: admin.canSeePasswords,
             },
         });
