@@ -46,13 +46,28 @@ export async function POST(req) {
       });
     }
 
-    // Create a JWT token
-    const token = jwt.sign({ username: admin.username, id: admin.id, type: admin.type }, JWT_SECRET, {
-      expiresIn: JWT_EXPIRATION,
-    });
+    // Extract permissions from the admin object
+    const {
+      canViewCustomers, canEditCustomers, canViewServices, canEditServices,
+      canViewReminders, canEditReminders, canViewAdmins, canEditAdmins,
+      canSendEmails
+    } = admin;
 
-    // console.log("Login successful");
-    // Send the JWT token in the response
+    // Create a JWT token with permissions
+    const token = jwt.sign(
+      {
+        username: admin.username,
+        id: admin.id,
+        permissions: {
+          canViewCustomers, canEditCustomers, canViewServices, canEditServices,
+          canViewReminders, canEditReminders, canViewAdmins, canEditAdmins,
+          canSendEmails
+        }
+      },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRATION }
+    );
+
     return NextResponse.json({
       message: "Başarılı giriş",
       token,

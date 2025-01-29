@@ -15,11 +15,21 @@ datasource db {
 
 model Admin {
   id       String  @id @default(cuid())
-  username    String  @unique
+  username String  @unique
   name     String?
   password String
-  type     String  @default("normal") // normal, super
   active   Boolean @default(true)
+
+  // Permissions
+  canViewCustomers Boolean @default(true)
+  canEditCustomers Boolean @default(true)
+  canViewServices  Boolean @default(true)
+  canEditServices  Boolean @default(true)
+  canViewReminders Boolean @default(true)
+  canEditReminders Boolean @default(true)
+  canViewAdmins    Boolean @default(true)
+  canEditAdmins    Boolean @default(true)
+  canSendEmails    Boolean @default(true) // test button
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
