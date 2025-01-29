@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { Menu, Home, Briefcase, LogOut } from "lucide-react";
+import { Menu, Home, Briefcase, LogOut, User } from "lucide-react"; // Import the User icon
 import { usePathname, useRouter } from "next/navigation";
 import { BadgeNotification } from "@/components/BadgeNotification";
 import { useState } from "react";
@@ -59,6 +59,16 @@ export function Navbar() {
             <Briefcase className="mr-2 h-4 w-4" />
             Hizmetler
           </Link>
+          <Link
+            href="/admins"
+            className={`flex items-center text-sm font-medium ${pathname.startsWith("/admins")
+              ? "text-primary"
+              : "text-muted-foreground hover:text-primary"
+              }`}
+          >
+            <User className="mr-2 h-4 w-4" />
+            Admin
+          </Link>
         </div>
 
         {/* Right Section */}
@@ -95,6 +105,17 @@ export function Navbar() {
                 <Link href="/services">
                   <Briefcase className="mr-2 h-4 w-4" />
                   Hizmetler
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                asChild
+                className={
+                  pathname.startsWith("/admins") ? "text-primary" : ""
+                }
+              >
+                <Link href="/admins">
+                  <User className="mr-2 h-4 w-4" />
+                  Admin
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
