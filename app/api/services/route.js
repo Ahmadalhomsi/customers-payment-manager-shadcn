@@ -4,6 +4,14 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req) {
     try {
+        const token = req.cookies.get("token")?.value;
+        const decoded = await verifyJWT(token);
+
+        // Check if the user has permission to view customers
+        if (!decoded.permissions.canEditServices) {
+            return NextResponse.json({ error: 'Yasak: Hizmet oluşturma izniniz yok' }, { status: 403 });
+        }
+
         const data = await req.json();
 
         if (!data) {
@@ -88,11 +96,24 @@ export async function POST(req) {
     }
 }
 
-export async function GET() {
+export async function GET(req) {
     try {
+
+        const token = req.cookies.get("token")?.value;
+        const decoded = await verifyJWT(token);
+
+        let includeCustomer = false;
+        // Check if the user has permission to view customers
+        if (!decoded.permissions.canViewServices) {
+            return NextResponse.json({ error: 'Yasak: Hizmet görüntüleme izniniz yok' }, { status: 403 });
+        }
+        else if (!decoded.permissions.canViewCustomers) {
+            includeCustomer = false;
+        }
+
         const services = await prisma.service.findMany({
             include: {
-                customer: true,
+                customer: includeCustomer,
             },
         });
         return NextResponse.json(services, { status: 200 });

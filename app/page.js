@@ -114,7 +114,11 @@ export default function CustomersPage() {
       const response = await axios.get(`/api/services/customer/${customerId}`);
       setServices(response.data);
     } catch (error) {
-      console.log('Error fetching services:', error);
+      if (error.status === 403) {
+        toast.error('Yasak: Hizmetleri görüntüleme izniniz yok')
+      }
+      else
+        console.log('Error fetching services:', error)
     }
     setLoadingOnModal(false);
   }

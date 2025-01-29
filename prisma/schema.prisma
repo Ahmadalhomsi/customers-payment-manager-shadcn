@@ -22,8 +22,8 @@ model Admin {
 
   // Permissions
   canViewCustomers Boolean @default(false)
-  canEditCustomers Boolean @default(false) // or delete
-  canViewServices  Boolean @default(false)
+  canEditCustomers Boolean @default(false) // edit or add or delete
+  canViewServices  Boolean @default(false) // or edit reminders
   canEditServices  Boolean @default(false)
   canViewReminders Boolean @default(false)
   canEditReminders Boolean @default(false)

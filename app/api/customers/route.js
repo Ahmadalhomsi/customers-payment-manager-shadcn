@@ -64,15 +64,21 @@ export async function GET(req) {
         const token = req.cookies.get("token")?.value;
         const decoded = await verifyJWT(token);
 
+        let includeService = true;
         // Check if the user has permission to view customers
         if (!decoded.permissions.canViewCustomers) {
             return NextResponse.json({ error: 'Yasak: Müşterileri görüntüleme izniniz yok' }, { status: 403 });
         }
 
+        // Check if the user has permission to view customers
+        if (!decoded.permissions.canViewServices) {
+            includeService = false;
+        }
+
         // Get customers from database
         const customers = await prisma.customer.findMany({
             include: {
-                services: true,
+                services: includeService,
             },
         });
 

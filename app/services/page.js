@@ -9,6 +9,7 @@ import { ServiceModal2 } from '@/components/servicesPage/ServiceModal2'
 import { DeleteConfirmModal } from '@/components/mainPage/DeleteConfirmModal'
 import { Plus, Mail } from 'lucide-react'
 import { RenewHistoryModal } from '@/components/RenewHistoryModal'
+import { toast } from 'sonner'
 
 
 export default function ServicesPage() {
@@ -36,7 +37,8 @@ export default function ServicesPage() {
       const response = await axios.get('/api/services')
       setServices(response.data)
     } catch (error) {
-      console.log('Error fetching services:', error)
+      if (error.response.status === 403)
+        toast('Yasak: Hizmet görüntüleme izniniz yok')
     }
     setLoading(false)
   }
@@ -46,7 +48,10 @@ export default function ServicesPage() {
       const response = await axios.get('/api/customers')
       setCustomers(response.data)
     } catch (error) {
-      console.log('Error fetching customers:', error)
+      if (error.response.status === 403)
+        toast('Yasak: Müşterileri görüntüleme izniniz yok')
+      else
+        console.log('Error fetching customers:', error)
     }
   }
 
@@ -56,7 +61,10 @@ export default function ServicesPage() {
       const response = await axios.get(`/api/renew-histories/${serviceId}`)
       setRenewHistory(response.data)
     } catch (error) {
-      console.log('Error fetching renewal history:', error)
+      if (error.response.status === 403)
+        toast('Yasak: Yenileme geçmişini görüntüleme izniniz yok')
+      else
+        console.log('Error fetching renew history:', error)
     } finally {
       setLoadingHistory(false)
     }

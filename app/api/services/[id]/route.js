@@ -1,12 +1,26 @@
+import { verifyJWT } from '@/lib/jwt';
 import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 import { NextResponse } from 'next/server';
 
 export async function GET(req, { params }) {
-    const { id } = await params;
     try {
+        const token = req.cookies.get("token")?.value;
+        const decoded = await verifyJWT(token);
+
+        let includeReminder = true;
+        // Check if the user has permission to view customers
+        if (!decoded.permissions.canViewServices) {
+            return NextResponse.json({ error: 'Yasak: Hizmet görüntüleme izniniz yok' }, { status: 403 });
+        }
+        else if (!decoded.permissions.canViewReminders) {
+            includeReminder = false;
+        }
+
+        const { id } = await params;
+
         const service = await prisma.service.findUnique({
             where: { id: id },
-            include: { reminders: true }
+            include: { reminders: includeReminder },
         });
         return NextResponse.json(service, { status: 200 });
     } catch (error) {
@@ -15,10 +29,19 @@ export async function GET(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
-    const { id } = await params;
-    const data = await req.json();
+
 
     try {
+        const token = req.cookies.get("token")?.value;
+        const decoded = await verifyJWT(token);
+
+        // Check if the user has permission to view customers
+        if (!decoded.permissions.canEditServices) {
+            return NextResponse.json({ error: 'Yasak: Hizmet güncelleme izniniz yok' }, { status: 403 });
+        }
+
+        const { id } = await params;
+        const data = await req.json();
         // Fetch the existing service to check current end date and payment type
         const existingService = await prisma.service.findUnique({
             where: { id: id },
