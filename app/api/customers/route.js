@@ -78,6 +78,11 @@ export async function GET(request) {
         const token = authHeader.split(' ')[1];
         const decoded = await verifyJWT(token);
 
+        // Check if the user has permission to view customers
+        if (!decoded.permissions.canViewCustomers) {
+            return NextResponse.json({ error: 'Forbidden: You do not have permission to view customers' }, { status: 403 });
+        }
+
         // Get customers from database
         const customers = await prisma.customer.findMany({
             include: {
