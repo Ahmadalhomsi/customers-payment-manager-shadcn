@@ -285,7 +285,11 @@ export default function CustomersPage() {
             const serviceRes = await axios.get(`/api/services/${selectedService.id}?includeReminders=true`)
             setSelectedService(serviceRes.data)
           } catch (error) {
-            console.log('Error deleting reminder:', error)
+            if (error.status === 403) {
+              toast.error('Yasak: Hatırlatıcı silme izniniz yok')
+            }
+            else
+              console.log('Error deleting reminder:', error)
           }
         }}
         loading={loadingOnModal}
@@ -297,12 +301,28 @@ export default function CustomersPage() {
         onSubmit={async (reminderData) => {
           try {
             if (selectedReminder) {
-              await axios.put(`/api/reminders/${selectedReminder.id}`, reminderData)
+              try {
+                await axios.put(`/api/reminders/${selectedReminder.id}`, reminderData)
+              } catch (error) {
+                if (error.status === 403) {
+                  toast.error('Yasak: Hatırlatıcı güncelleme izniniz yok')
+                }
+                else
+                  console.log('Error updating reminder:', error)
+              }
             } else {
-              await axios.post('/api/reminders', {
-                ...reminderData,
-                serviceID: selectedService.id
-              })
+              try {
+                await axios.post('/api/reminders', {
+                  ...reminderData,
+                  serviceID: selectedService.id
+                })
+              } catch (error) {
+                if (error.status === 403) {
+                  toast.error('Yasak: Hatırlatıcı oluşturma izniniz yok')
+                }
+                else
+                  console.log('Error creating reminder:', error)
+              }
             }
 
             // Refresh service data with reminders
