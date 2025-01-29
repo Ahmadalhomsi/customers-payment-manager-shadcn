@@ -40,6 +40,7 @@ export default function LoginPage() {
                 document.cookie = `token=${result.token}; path=/; max-age=86400; samesite=strict; secure`;
                 router.push("/");
             } else {
+                setIsLoading(false); // Stop loading
                 if (response.status === 429) {
                     setError("Too many failed attempts. Try again later.");
                 } else {
