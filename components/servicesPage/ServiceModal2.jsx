@@ -54,7 +54,6 @@ const DURATIONS = [
 
 const EXTENSION_PERIODS = [
     { value: "1month", label: "1 Ay Ekle" },
-    { value: "3months", label: "3 Ay Ekle" },
     { value: "6months", label: "6 Ay Ekle" },
     { value: "1year", label: "1 Yıl Ekle" },
 ];
@@ -174,9 +173,6 @@ export function ServiceModal2({
         switch (extensionPeriod) {
             case "1month":
                 end.setMonth(end.getMonth() + 1);
-                break;
-            case "3months":
-                end.setMonth(end.getMonth() + 3);
                 break;
             case "6months":
                 end.setMonth(end.getMonth() + 6);
