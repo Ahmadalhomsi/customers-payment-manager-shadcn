@@ -92,7 +92,8 @@ export default function CustomersPage() {
       const response = await axios.get('/api/customers')
       setCustomers(response.data)
     } catch (error) {
-      console.log('Error fetching customers:', error)
+      console.log(error.status);
+      
     }
     setLoading(false)
   }

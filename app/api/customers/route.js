@@ -1,23 +1,16 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import { verifyJWT } from '@/lib/jwt'; // You'll need to create this helper
 import { addYears, subWeeks } from 'date-fns';  // Use date-fns to handle date calculations
 
 export async function POST(req) {
     try {
-        // Get the authorization header
-        const authHeader = req.headers.get('authorization');
-        if (!authHeader?.startsWith('Bearer ')) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Extract and verify the token
-        const token = authHeader.split(' ')[1];
+        const token = req.cookies.get("token")?.value;
         const decoded = await verifyJWT(token);
 
         // Check if the user has permission to create customers
         if (!decoded.permissions.canEditCustomers) {
-            return NextResponse.json({ error: 'Forbidden: You do not have permission to create customers' }, { status: 403 });
+            return NextResponse.json({ error: 'Yasak: Müşteri oluşturma izniniz yok' }, { status: 403 });
         }
 
         // Extract request body
@@ -66,21 +59,14 @@ export async function POST(req) {
 }
 
 
-export async function GET(request) {
+export async function GET(req) {
     try {
-        // Get the authorization header
-        const authHeader = request.headers.get('authorization');
-        if (!authHeader?.startsWith('Bearer ')) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Extract and verify the token
-        const token = authHeader.split(' ')[1];
+        const token = req.cookies.get("token")?.value;
         const decoded = await verifyJWT(token);
 
         // Check if the user has permission to view customers
         if (!decoded.permissions.canViewCustomers) {
-            return NextResponse.json({ error: 'Forbidden: You do not have permission to view customers' }, { status: 403 });
+            return NextResponse.json({ error: 'Yasak: Müşterileri görüntüleme izniniz yok' }, { status: 403 });
         }
 
         // Get customers from database
