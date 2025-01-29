@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const MAX_ATTEMPTS = 5;
 const BLOCK_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
@@ -8,8 +9,6 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"; // Ensure this i
 const JWT_EXPIRATION = "1d"; // JWT expiration time
 
 export async function POST(req) {
-  
-  
   const { username, password } = await req.json();
   const ipAddress = req.headers.get("x-forwarded-for") || req.ip || "unknown"; // Get user's IP address
 
@@ -26,11 +25,20 @@ export async function POST(req) {
     );
   }
 
-  const adminUsername = process.env.ADMIN_USERNAME;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  // Fetch the admin user from the database
+  const admin = await prisma.admin.findUnique({
+    where: { username },
+  });
 
-  // Check credentials
-  if (username === adminUsername && password === adminPassword) {
+  // Check if the admin exists and is active
+  if (!admin || !admin.active) {
+    return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+  }
+
+  // Compare the provided password with the hashed password in the database
+  const passwordMatch = await bcrypt.compare(password, admin.password);
+
+  if (passwordMatch) {
     // Reset failed attempts on successful login
     if (failedAttempt) {
       await prisma.failedLoginAttempt.delete({
@@ -39,7 +47,7 @@ export async function POST(req) {
     }
 
     // Create a JWT token
-    const token = jwt.sign({ username }, JWT_SECRET, {
+    const token = jwt.sign({ username: admin.username, id: admin.id, type: admin.type }, JWT_SECRET, {
       expiresIn: JWT_EXPIRATION,
     });
 

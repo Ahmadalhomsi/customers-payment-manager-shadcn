@@ -14,10 +14,13 @@ datasource db {
 }
 
 model Admin {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  password  String
+  id       String  @id @default(cuid())
+  username    String  @unique
+  name     String?
+  password String
+  type     String  @default("normal") // normal, super
+  active   Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -50,7 +53,7 @@ model Service {
 
   // Relations
   customerID     String
-  customer       Customer         @relation("CustomerToService", fields: [customerID], references: [id], onDelete: Cascade)
+  customer       Customer       @relation("CustomerToService", fields: [customerID], references: [id], onDelete: Cascade)
   reminders      Reminder[]
   RenewalHistory RenewHistory[]
 
@@ -105,7 +108,7 @@ model Notifications {
 model RenewHistory {
   id              String   @id @default(cuid())
   name            String
-  type            String   
+  type            String
   previousEndDate DateTime // Service's ending date before renewal
   newEndDate      DateTime // New ending date after renewal
 
