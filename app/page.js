@@ -11,8 +11,8 @@ import { ServiceModal } from '../components/mainPage/ServiceModal'
 import { ServicesViewModal } from '../components/mainPage/ServicesViewModal'
 import { RemindersViewModal } from '../components/mainPage/RemindersViewModal'
 import { ReminderModal } from '../components/mainPage/ReminderModal'
-
 import { Plus, Mail } from 'lucide-react'
+import { toast } from "sonner"
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState([])
@@ -92,8 +92,12 @@ export default function CustomersPage() {
       const response = await axios.get('/api/customers')
       setCustomers(response.data)
     } catch (error) {
-      console.log(error.status);
-      
+      if (error.status === 403) {
+        toast.error('Yasak: Müşterileri görüntüleme izniniz yok')
+      }
+      else
+        console.log('Müşterileri getirirken hata oluştu:', error)
+
     }
     setLoading(false)
   }
