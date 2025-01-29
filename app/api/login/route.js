@@ -20,7 +20,7 @@ export async function POST(req) {
   // If the IP is blocked
   if (failedAttempt && failedAttempt.blockedUntil && new Date() < failedAttempt.blockedUntil) {
     return NextResponse.json(
-      { message: "Too many failed attempts. Try again later." },
+      { message: "Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyin." },
       { status: 429 }
     );
   }
@@ -51,10 +51,10 @@ export async function POST(req) {
       expiresIn: JWT_EXPIRATION,
     });
 
-    console.log("Login successful");
+    // console.log("Login successful");
     // Send the JWT token in the response
     return NextResponse.json({
-      message: "Login successful",
+      message: "Başarılı giriş",
       token,
     });
   }

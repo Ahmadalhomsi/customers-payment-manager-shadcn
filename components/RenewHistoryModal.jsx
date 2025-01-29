@@ -22,14 +22,13 @@ const paymentTypeColors = {
 };
 
 const paymentTypeLabels = {
-    '1month': '1 Month',
-    '6months': '6 Months',
-    '1year': '1 Year',
-    '2years': '2 Years',
-    '3years': '3 Years',
-    'custom': 'Custom'
+    '1month': '1 Ay',
+    '6months': '6 Ay',
+    '1year': '1 Yıl',
+    '2years': '2 Yıl',
+    '3years': '3 Yıl',
+    'custom': 'Özel'
 };
-
 
 export function RenewHistoryModal({
     visible,
@@ -74,7 +73,7 @@ export function RenewHistoryModal({
             return (
                 <TableRow>
                     <TableCell colSpan={7} className="text-center">
-                        No renewal history found.
+                        Yenileme geçmişi bulunamadı.
                     </TableCell>
                 </TableRow>
             );
@@ -106,20 +105,20 @@ export function RenewHistoryModal({
             <DialogContent className="max-w-4xl">
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold">
-                        Renew History for {selectedService?.name}
+                        {selectedService?.name} için Yenileme Geçmişi
                     </DialogTitle>
                 </DialogHeader>
 
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Renewal ID</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Previous End</TableHead>
-                            <TableHead>New End</TableHead>
-                            <TableHead>Created At</TableHead>
-                            <TableHead>Actions</TableHead>
+                            <TableHead>Yenileme ID</TableHead>
+                            <TableHead>İsim</TableHead>
+                            <TableHead>Tür</TableHead>
+                            <TableHead>Önceki Bitiş</TableHead>
+                            <TableHead>Yeni Bitiş</TableHead>
+                            <TableHead>Oluşturulma Tarihi</TableHead>
+                            <TableHead>İşlemler</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

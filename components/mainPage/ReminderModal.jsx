@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { format, parseISO } from 'date-fns'
+import { tr } from 'date-fns/locale'
 import {
   Dialog,
   DialogContent,
@@ -19,12 +20,28 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { Calendar } from "@/components/ui/calendar"
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form"
 
 const ReminderStatus = {
-  SCHEDULED: 'SCHEDULED',
-  SENT: 'SENT',
-  CANCELED: 'CANCELED',
-  FAILED: 'FAILED',
+  SCHEDULED: 'PLANLANMIŞ',
+  SENT: 'GÖNDERİLDİ',
+  CANCELED: 'İPTAL EDİLDİ',
+  FAILED: 'BAŞARISIZ',
+}
+
+const STATUS_MAP_TO_API = {
+  'PLANLANMIŞ': 'SCHEDULED',
+  'GÖNDERİLDİ': 'SENT',
+  'İPTAL EDİLDİ': 'CANCELED',
+  'BAŞARISIZ': 'FAILED',
+}
+
+const STATUS_MAP_FROM_API = {
+  'SCHEDULED': 'PLANLANMIŞ',
+  'SENT': 'GÖNDERİLDİ',
+  'CANCELED': 'İPTAL EDİLDİ',
+  'FAILED': 'BAŞARISIZ',
 }
 
 export function ReminderModal({
@@ -33,34 +50,45 @@ export function ReminderModal({
   onSubmit,
   selectedReminder,
 }) {
-  const { register, handleSubmit, reset, setValue, watch } = useForm()
+  const form = useForm({
+    defaultValues: {
+      date: new Date(),
+      time: format(new Date(), 'HH:mm'),
+      status: 'PLANLANMIŞ',
+      message: '',
+    }
+  })
 
   useEffect(() => {
     if (selectedReminder) {
-      // Handle both string and Date formats
       const scheduledDate = typeof selectedReminder.scheduledAt === 'string'
         ? parseISO(selectedReminder.scheduledAt)
         : new Date(selectedReminder.scheduledAt)
 
-      reset({
-        scheduledAt: format(scheduledDate, "yyyy-MM-dd'T'HH:mm"),
-        status: selectedReminder.status,
+      form.reset({
+        date: scheduledDate,
+        time: format(scheduledDate, 'HH:mm'),
+        status: STATUS_MAP_FROM_API[selectedReminder.status],
         message: selectedReminder.message,
       })
     } else {
-      reset({
-        scheduledAt: format(new Date(), "yyyy-MM-dd'T'HH:mm"), // Default to current datetime
-        status: 'SCHEDULED',
+      const now = new Date()
+      form.reset({
+        date: now,
+        time: format(now, 'HH:mm'),
+        status: 'PLANLANMIŞ',
         message: '',
       })
     }
-  }, [selectedReminder, reset])
+  }, [selectedReminder, form])
 
   const handleFormSubmit = (data) => {
+    const dateStr = format(data.date, 'yyyy-MM-dd')
+    const dateTime = new Date(`${dateStr}T${data.time}`)
     onSubmit({
       ...data,
-      // Convert local datetime to ISO string
-      scheduledAt: new Date(data.scheduledAt).toISOString(),
+      scheduledAt: dateTime.toISOString(),
+      status: STATUS_MAP_TO_API[data.status],
     })
   }
 
@@ -69,56 +97,105 @@ export function ReminderModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {selectedReminder ? 'Edit Reminder' : 'New Reminder'}
+            {selectedReminder ? 'Hatırlatıcı Düzenle' : 'Yeni Hatırlatıcı'}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          <div>
-            <Label htmlFor="scheduledAt">Scheduled At *</Label>
-            <Input
-              id="scheduledAt"
-              type="datetime-local"
-              {...register('scheduledAt', { required: true })}
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Tarih *</FormLabel>
+                  <div className="flex flex-col space-y-2">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      locale={tr}
+                      disabled={(date) =>
+                        date < new Date(new Date().setHours(0, 0, 0, 0))
+                      }
+                      initialFocus
+                      className="rounded-md border w-full"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Seçilen tarih: {field.value ? format(field.value, 'dd/MM/yyyy') : 'Tarih seçilmedi'}
+                    </p>
+                  </div>
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={watch('status')}
-              onValueChange={(val) => setValue('status', val)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(ReminderStatus).map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="message">Message</Label>
-            <Input
-              id="message"
-              {...register('message')}
-              placeholder="Optional message"
+            <FormField
+              control={form.control}
+              name="time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Saat *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="time"
+                      className="w-[120px]"
+                      {...field}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              {selectedReminder ? 'Save Changes' : 'Create Reminder'}
-            </Button>
-          </div>
-        </form>
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Durum</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Durum seçin" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(ReminderStatus).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="message"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mesaj</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Müşteriye gönderilecek mesaj"
+                      {...field}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                İptal
+              </Button>
+              <Button type="submit">
+                {selectedReminder ? 'Değişiklikleri Kaydet' : 'Hatırlatıcı Oluştur'}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )

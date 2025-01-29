@@ -135,10 +135,10 @@ export default function CustomersPage() {
           setSelectedCustomer(null); // Ensure selectedCustomer is reset
           setCustomerModalVisible(true);
         }}>
-          <Plus className="mr-2 h-4 w-4" /> Create Customer
+          <Plus className="mr-2 h-4 w-4" /> Müşteri Ekle
         </Button>
         <Button variant="outline" onClick={sendSMTPemail}>
-          <Mail className="mr-2 h-4 w-4" /> Send Email
+          <Mail className="mr-2 h-4 w-4" /> SMTP Email Gönder
         </Button>
       </div>
 

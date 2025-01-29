@@ -102,22 +102,22 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
+      newErrors.name = "İsim gereklidir";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = "Email gereklidir";
     } else if (customers.some(c => c.email === formData.email && c.id !== selectedCustomer?.id)) {
-      newErrors.email = "Email already exists";
+      newErrors.email = "Bu email adresi zaten kullanımda";
     }
 
     // Password validation for new customers or when updating password
     if (!selectedCustomer && !formData.password.trim()) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Şifre gereklidir";
     } else if (formData.password.trim()) {
       const passwordValid = validatePassword(formData.password);
       if (!passwordValid.allValid) {
-        newErrors.password = "Password does not meet requirements";
+        newErrors.password = "Şifre en az 8 karakterden oluşmalı ve en az bir büyük harf, bir küçük harf, bir sayı ve bir özel karakter içermelidir";
       }
     }
 
@@ -132,8 +132,8 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     } else {
       toast({
         variant: "destructive",
-        title: "Form Validation Failed",
-        description: "Please check the form for errors.",
+        title: "Hata",
+        description: "Lütfen formu doğru şekilde doldurun",
       });
     }
   };
@@ -153,13 +153,13 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
       >
         <DialogHeader>
           <DialogTitle>
-            {selectedCustomer ? "Edit Customer" : "Create Customer"}
+            {selectedCustomer ? "Müşteri Güncelle" : "Müşteri Ekle"}
           </DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
           <FormField
-            label="Name"
+            label="İsim"
             id="name"
             name="name"
             value={formData.name}
@@ -182,7 +182,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
           {errors.email && <p className="text-destructive text-sm ml-24">{errors.email}</p>}
 
           <FormField
-            label="Phone"
+            label="Telefon"
             id="phone"
             name="phone"
             type="tel"
@@ -191,7 +191,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
             onKeyDown={handleKeyDown} // Add keydown handler to input
           />
 
-          <FormField label="Password" id="password">
+          <FormField label="Şifre" id="password">
             <div className="relative">
               <Input
                 id="password"
@@ -220,19 +220,19 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
             {formData.password && (
               <div className="text-sm mt-2 space-y-1">
                 <div className={passwordValidation.minLength ? 'text-green-600' : 'text-destructive'}>
-                  • At least 8 characters
+                  • En az 8 karakter
                 </div>
                 <div className={passwordValidation.hasUpper ? 'text-green-600' : 'text-destructive'}>
-                  • One uppercase letter
+                  • En az bir büyük harf
                 </div>
                 <div className={passwordValidation.hasLower ? 'text-green-600' : 'text-destructive'}>
-                  • One lowercase letter
+                  • En az bir küçük harf
                 </div>
                 <div className={passwordValidation.hasNumber ? 'text-green-600' : 'text-destructive'}>
-                  • One number
+                  • En az bir sayı
                 </div>
                 <div className={passwordValidation.hasSpecial ? 'text-green-600' : 'text-destructive'}>
-                  • One special character
+                  • En az bir özel karakter
                 </div>
               </div>
             )}
@@ -248,7 +248,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
             {selectedCustomer ? "Save Changes" : "Create"}
           </Button>
         </DialogFooter>
-      </DialogContent>  
+      </DialogContent>
     </Dialog>
   );
 }
