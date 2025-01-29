@@ -2,10 +2,18 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
+import { verifyJWT } from "@/lib/jwt";
 
 // Add this to your existing route.js file
-export async function GET() {
+export async function GET(req) {
     try {
+        const token = req.cookies.get("token")?.value;
+        const decoded = await verifyJWT(token);
+
+        if (!decoded.permissions.canViewAdmins) {
+            return NextResponse.json({ error: 'Yasak: Admin görüntüleme izniniz yok' }, { status: 403 });
+        }
+
         const admins = await prisma.admin.findMany();
         return NextResponse.json(admins);
     } catch (error) {
@@ -17,6 +25,13 @@ export async function GET() {
 // Create Admin (POST)
 export async function POST(req) {
     try {
+        const token = req.cookies.get("token")?.value;
+        const decoded = await verifyJWT(token);
+
+        if (!decoded.permissions.canEditAdmins) {
+            return NextResponse.json({ error: 'Yasak: Admin oluşturma izniniz yok' }, { status: 403 });
+        }
+
         const { username, name, password, active, permissions } = await req.json();
 
         // Check if username already exists
