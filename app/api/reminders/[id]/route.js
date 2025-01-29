@@ -3,6 +3,13 @@ import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 
 
 export async function GET(req, { params }) {
+    const token = req.cookies.get("token")?.value;
+    const decoded = await verifyJWT(token);
+
+    // Check if the user has permission to view customers
+    if (!decoded.permissions.canViewReminders) {
+        return NextResponse.json({ error: 'Yasak: Hatırlatıcı görüntüleme izniniz yok' }, { status: 403 });
+    }
     const { id } = await params;
 
     try {
@@ -18,6 +25,14 @@ export async function GET(req, { params }) {
 
 
 export async function PUT(request, { params }) {
+    const token = request.cookies.get("token")?.value;
+    const decoded = await verifyJWT(token);
+
+    // Check if the user has permission to view customers
+    if (!decoded.permissions.canEditReminders) {
+        return NextResponse.json({ error: 'Yasak: Hatırlatıcı güncelleme izniniz yok' }, { status: 403 });
+    }
+
     try {
         const data = await request.json()
         const updatedReminder = await prisma.reminder.update({
@@ -38,6 +53,14 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(req, { params }) {
+    const token = req.cookies.get("token")?.value;
+    const decoded = await verifyJWT(token);
+
+    // Check if the user has permission to view customers
+    if (!decoded.permissions.canEditReminders) {
+        return NextResponse.json({ error: 'Yasak: Hatırlatıcı silme izniniz yok' }, { status: 403 });
+    }
+
     const { id } = await params;
     try {
         await prisma.reminder.delete({

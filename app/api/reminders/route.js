@@ -4,6 +4,14 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request) {
     try {
+        const token = request.cookies.get("token")?.value;
+        const decoded = await verifyJWT(token);
+
+        // Check if the user has permission to view customers
+        if (!decoded.permissions.canEditReminders) {
+            return NextResponse.json({ error: 'Yasak: Hatırlatıcı oluşturma izniniz yok' }, { status: 403 });
+        }
+
         const data = await request.json()
         const { message, scheduledAt, serviceID, status } = data;
         const newReminder = await prisma.reminder.create({
@@ -25,6 +33,15 @@ export async function POST(request) {
 }
 
 export async function GET() {
+
+    const token = request.cookies.get("token")?.value;
+    const decoded = await verifyJWT(token);
+
+    // Check if the user has permission to view customers
+    if (!decoded.permissions.canViewReminders) {
+        return NextResponse.json({ error: 'Yasak: Hatırlatıcı görüntüleme izniniz yok' }, { status: 403 });
+    }
+
     try {
         const reminders = await prisma.reminder.findMany({
             include: {
