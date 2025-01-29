@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { CustomerTable } from '../components/mainPage/CustomersTable'
 import { CustomerModal } from '../components/mainPage/CustomerModal'
@@ -45,7 +44,11 @@ export default function CustomersPage() {
         fetchCustomers();
         setDeleteCustomerConfirmVisible(false);
       } catch (error) {
-        console.log('Error deleting customer:', error);
+        if (error.status === 403) {
+          toast.error('Yasak: Müşteri silme izniniz yok')
+        }
+        else
+          console.log('Error deleting customer:', error)
       }
     }
   };
@@ -119,13 +122,27 @@ export default function CustomersPage() {
   const handleCustomerSubmit = async (formData) => {
     try {
       if (selectedCustomer) {
-        // Edit existing customer
-        await axios.put(`/api/customers/${selectedCustomer.id}`, formData);
+        try {
+          await axios.put(`/api/customers/${selectedCustomer.id}`, formData);
+          fetchCustomers();
+        } catch (error) {
+          if (error.status === 403) {
+            toast.error('Yasak: Müşteri güncelleme izniniz yok')
+          }
+          else
+            console.log('Error updating customer:', error)
+        }
       } else {
-        // Create new customer
-        await axios.post('/api/customers', formData);
+        try {
+          await axios.post('/api/customers', formData);
+        } catch (error) {
+          if (error.status === 403) {
+            toast.error('Yasak: Müşteri ekleme izniniz yok')
+          }
+          else
+            console.log('Error adding customer:', error)
+        }
       }
-      fetchCustomers();
       setCustomerModalVisible(false);
       setSelectedCustomer(null); // Reset selected customer after submission
     } catch (error) {
