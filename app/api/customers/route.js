@@ -80,8 +80,10 @@ export async function GET(req) {
         if (!decoded.permissions.canSeePasswords) {
             return NextResponse.json(
                 customers.map(customer => {
-                    const { password, ...customerWithoutPassword } = customer;
-                    return customerWithoutPassword;
+                    return {
+                        ...customer,
+                        password: "", // Set password to empty string
+                    };
                 }),
                 { status: 206 }
             );
