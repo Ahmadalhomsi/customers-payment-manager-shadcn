@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';  // Import the prisma instance from the file
+import { verifyJWT } from '@/lib/jwt';
 
 export async function GET(req, { params }) {
     const token = req.cookies.get("token")?.value;

@@ -1,3 +1,4 @@
+import { verifyJWT } from '@/lib/jwt';
 import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 import { NextResponse } from 'next/server';
 
