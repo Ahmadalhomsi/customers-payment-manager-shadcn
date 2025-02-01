@@ -1,9 +1,17 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
+import { verifyJWT } from "@/lib/jwt";
 
 export async function PUT(req, { params }) {
     try {
+        const token = req.cookies.get("token")?.value;
+        const decoded = await verifyJWT(token);
+
+        if (!decoded.permissions.canEditAdmins) {
+            return NextResponse.json({ error: 'Yasak: Yöneticileri güncelleme izniniz yok' }, { status: 403 });
+        }
+
         const { id } = await params;
         const { username, name, password, active, permissions } = await req.json();
 
