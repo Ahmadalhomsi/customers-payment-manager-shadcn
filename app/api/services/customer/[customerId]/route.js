@@ -8,10 +8,6 @@ export async function GET(req, { params }) {
     const token = req.cookies.get("token")?.value;
     const decoded = await verifyJWT(token);
 
-    console.log(decoded);
-    console.log(!decoded.permissions.canViewReminders);
-
-
 
     let includeReminders = true;
     // Check if the user has permission to view customers
@@ -21,9 +17,6 @@ export async function GET(req, { params }) {
     else if (!decoded.permissions.canViewReminders) {
         includeReminders = false;
     }
-
-    console.log(includeReminders);
-
 
     try {
         const services = await prisma.service.findMany({
