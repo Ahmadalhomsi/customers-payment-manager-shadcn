@@ -10,7 +10,7 @@ export async function POST(req) {
 
         // Check if the user has permission to view customers
         if (!decoded.permissions.canEditServices) {
-            return NextResponse.json({ error: 'Yasak: Hizmet oluşturma izniniz yok' }, { status: 403 });
+            return NextResponse.json({ error: 'Forbidden: You do not have permission to create a service' }, { status: 403 });
         }
 
         const data = await req.json();
@@ -66,7 +66,7 @@ export async function POST(req) {
             data: {
                 scheduledAt: reminderDate,
                 status: "SCHEDULED",
-                message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",  // Özel mesaj
+                message: "Your service will end in one week! Please renew to avoid interruption.",  // Custom message
                 serviceID: service.id,
             },
         });
@@ -106,7 +106,7 @@ export async function GET(req) {
         let includeCustomer = false;
         // Check if the user has permission to view customers
         if (!decoded.permissions.canViewServices) {
-            return NextResponse.json({ error: 'Yasak: Hizmet görüntüleme izniniz yok' }, { status: 403 });
+            return NextResponse.json({ error: 'Forbidden: You do not have permission to view services' }, { status: 403 });
         }
         else if (!decoded.permissions.canViewCustomers) {
             includeCustomer = false;

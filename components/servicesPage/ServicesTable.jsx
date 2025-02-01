@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/popover"
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { cn } from "@/lib/utils"
-import { tr } from 'date-fns/locale'
 
 const statusColors = {
     active: 'bg-green-500/20 text-green-600 dark:text-green-400',
@@ -41,12 +40,12 @@ const paymentTypeColors = {
 }
 
 const paymentTypeLabels = {
-    '1month': '1 Ay',
-    '6months': '6 Ay',
-    '1year': '1 Yıl',
-    '2years': '2 Yıl',
-    '3years': '3 Yıl',
-    'custom': 'Özel'
+    '1month': '1 Month',
+    '6months': '6 Months',
+    '1year': '1 Year',
+    '2years': '2 Years',
+    '3years': '3 Years',
+    'custom': 'Custom'
 }
 
 export function ServiceTable({
@@ -158,7 +157,7 @@ export function ServiceTable({
             <div className="space-y-4 relative">
                 <div className="flex gap-2 flex-wrap items-center">
                     <Input
-                        placeholder="Hizmetleri ara..."
+                        placeholder="Search services..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="max-w-xs focus-visible:ring-2"
@@ -166,13 +165,13 @@ export function ServiceTable({
 
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Duruma göre filtrele" />
+                            <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Tüm Durumlar</SelectItem>
-                            <SelectItem value="active">Aktif</SelectItem>
-                            <SelectItem value="upcoming">Yaklaşan</SelectItem>
-                            <SelectItem value="expired">Süresi Dolmuş</SelectItem>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="upcoming">Upcoming</SelectItem>
+                            <SelectItem value="expired">Expired</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -189,14 +188,14 @@ export function ServiceTable({
                                 {dateRangeFilter?.from ? (
                                     dateRangeFilter.to ? (
                                         <>
-                                            {format(dateRangeFilter.from, "dd MMMM yyyy", { locale: tr })} -{" "}
-                                            {format(dateRangeFilter.to, "dd MMMM yyyy", { locale: tr })}
+                                            {format(dateRangeFilter.from, "dd MMMM yyyy")} -{" "}
+                                            {format(dateRangeFilter.to, "dd MMMM yyyy")}
                                         </>
                                     ) : (
-                                        format(dateRangeFilter.from, "dd MMMM yyyy", { locale: tr })
+                                        format(dateRangeFilter.from, "dd MMMM yyyy")
                                     )
                                 ) : (
-                                    <span>Başlangıç tarihine göre filtrele</span>
+                                    <span>Filter by start date</span>
                                 )}
                             </Button>
                         </PopoverTrigger>
@@ -208,7 +207,6 @@ export function ServiceTable({
                                 selected={dateRangeFilter}
                                 onSelect={setDateRangeFilter}
                                 numberOfMonths={2}
-                                locale={tr}
                             />
                         </PopoverContent>
                     </Popover>
@@ -227,14 +225,14 @@ export function ServiceTable({
                                 {endDateRangeFilter?.from ? (
                                     endDateRangeFilter.to ? (
                                         <>
-                                            {format(endDateRangeFilter.from, "dd MMMM yyyy", { locale: tr })} -{" "}
-                                            {format(endDateRangeFilter.to, "dd MMMM yyyy", { locale: tr })}
+                                            {format(endDateRangeFilter.from, "dd MMMM yyyy")} -{" "}
+                                            {format(endDateRangeFilter.to, "dd MMMM yyyy")}
                                         </>
                                     ) : (
-                                        format(endDateRangeFilter.from, "dd MMMM yyyy", { locale: tr })
+                                        format(endDateRangeFilter.from, "dd MMMM yyyy")
                                     )
                                 ) : (
-                                    <span>Bitiş tarihine göre filtrele</span>
+                                    <span>Filter by end date</span>
                                 )}
                             </Button>
                         </PopoverTrigger>
@@ -246,7 +244,6 @@ export function ServiceTable({
                                 selected={endDateRangeFilter}
                                 onSelect={setEndDateRangeFilter}
                                 numberOfMonths={2}
-                                locale={tr}
                             />
                         </PopoverContent>
                     </Popover>
@@ -276,17 +273,17 @@ export function ServiceTable({
                                     onClick={() => handleSort('name')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Hizmet Adı
+                                        Service Name
                                         <SortIcon column="name" />
                                     </div>
                                 </TableHead>
-                                <TableHead>Açıklama</TableHead>
+                                <TableHead>Description</TableHead>
                                 <TableHead
                                     className="cursor-pointer hover:bg-muted/50"
                                     onClick={() => handleSort('customerID')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Müşteri
+                                        Customer
                                         <SortIcon column="customerID" />
                                     </div>
                                 </TableHead>
@@ -295,7 +292,7 @@ export function ServiceTable({
                                     onClick={() => handleSort('paymentType')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Ödeme
+                                        Payment
                                         <SortIcon column="paymentType" />
                                     </div>
                                 </TableHead>
@@ -304,7 +301,7 @@ export function ServiceTable({
                                     onClick={() => handleSort('createdAt')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Oluşturulma Tarihi
+                                        Created At
                                         <SortIcon column="createdAt" />
                                     </div>
                                 </TableHead>
@@ -313,7 +310,7 @@ export function ServiceTable({
                                     onClick={() => handleSort('startingDate')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Tarihler
+                                        Dates
                                         <SortIcon column="startingDate" />
                                     </div>
                                 </TableHead>
@@ -322,11 +319,11 @@ export function ServiceTable({
                                     onClick={() => handleSort('status')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Durum
+                                        Status
                                         <SortIcon column="status" />
                                     </div>
                                 </TableHead>
-                                <TableHead className="text-right">İşlemler</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
 
@@ -352,7 +349,7 @@ export function ServiceTable({
                                                 </Tooltip>
                                             ) : '-'}
                                         </TableCell>
-                                        <TableCell>{customer?.name || 'Bilinmeyen Müşteri'}</TableCell>
+                                        <TableCell>{customer?.name || 'Unknown Customer'}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <Badge className={paymentTypeColors[service.paymentType]}>
@@ -380,7 +377,7 @@ export function ServiceTable({
                                         </TableCell>
                                         <TableCell>
                                             <Badge className={`${statusColors[status]} rounded-md px-2 py-1 text-xs font-medium`}>
-                                                {status === 'active' ? 'Aktif' : status === 'upcoming' ? 'Yaklaşan' : 'Süresi Dolmuş'}
+                                                {status === 'active' ? 'Active' : status === 'upcoming' ? 'Upcoming' : 'Expired'}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="flex justify-end gap-2">

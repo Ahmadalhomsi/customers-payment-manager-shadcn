@@ -14,14 +14,14 @@ export function DeleteConfirmModal({ visible, onClose, onConfirm, itemName, item
     <AlertDialog open={visible} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Silmeyi Onayla</AlertDialogTitle>
+          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
           <AlertDialogDescription>
-            {itemType} {itemName} silmek istediğinize emin misiniz?
+            Are you sure you want to delete {itemType} {itemName}?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>İptal</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>Sil</AlertDialogAction>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>Delete</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

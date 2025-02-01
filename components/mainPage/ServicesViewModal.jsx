@@ -12,12 +12,12 @@ import { Edit, Trash2, CalendarCheck2, Plus } from "lucide-react";
 import { BeatLoader } from 'react-spinners';
 
 const PAYMENT_TYPES = [
-  { value: "1month", label: "1 Ay" }, 
-  { value: "6months", label: "6 Ay" },
-  { value: "1year", label: "1 Yıl" },
-  { value: "2years", label: "2 Yıl" },
-  { value: "3years", label: "3 Yıl" },
-  { value: "custom", label: "Özel" },
+  { value: "1month", label: "1 Month" }, 
+  { value: "6months", label: "6 Months" },
+  { value: "1year", label: "1 Year" },
+  { value: "2years", label: "2 Years" },
+  { value: "3years", label: "3 Years" },
+  { value: "custom", label: "Custom" },
 ];
 
 export function ServicesViewModal({
@@ -49,7 +49,7 @@ export function ServicesViewModal({
       <DialogContent className="max-w-6xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
-            {selectedCustomer?.name} için Hizmetler
+            Services for {selectedCustomer?.name}
           </DialogTitle>
         </DialogHeader>
 
@@ -59,7 +59,7 @@ export function ServicesViewModal({
             className="flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Hizmet Ekle
+            Add Service
           </Button>
         </div>
 
@@ -67,13 +67,13 @@ export function ServicesViewModal({
           <TableHeader>
             <TableRow>
               <TableHead>ID/Token</TableHead>
-              <TableHead>İsim</TableHead>
-              <TableHead>Açıklama</TableHead>
-              <TableHead>Ödeme Türü</TableHead>
-              <TableHead>Fiyat</TableHead>
-              <TableHead>Başlangıç Tarihi</TableHead>
-              <TableHead>Bitiş Tarihi</TableHead>
-              <TableHead>İşlemler</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Payment Type</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Start Date</TableHead>
+              <TableHead>End Date</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -88,7 +88,7 @@ export function ServicesViewModal({
             ) : services.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center">
-                  Hizmet bulunamadı.
+                  No services found.
                 </TableCell>
               </TableRow>
             ) : (

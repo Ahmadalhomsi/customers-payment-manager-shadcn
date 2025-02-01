@@ -9,7 +9,7 @@ export async function PUT(req, { params }) {
     const decoded = await verifyJWT(token);
 
     if (!decoded.permissions.canEditCustomers) {
-        return NextResponse.json({ error: 'Yasak: Müşteri güncelleme izniniz yok' }, { status: 403 });
+        return NextResponse.json({ error: 'Forbidden: You do not have permission to update customers' }, { status: 403 });
     }
 
     try {
@@ -31,14 +31,14 @@ export async function DELETE(req, { params }) {
     const decoded = await verifyJWT(token);
 
     if (!decoded.permissions.canEditCustomers) {
-        return NextResponse.json({ error: 'Yasak: Müşteri silme izniniz yok' }, { status: 403 });
+        return NextResponse.json({ error: 'Forbidden: You do not have permission to delete customers' }, { status: 403 });
     }
 
     try {
         await prisma.customer.delete({
             where: { id },
         });
-        return NextResponse.json({ message: 'customer deleted' }, { status: 200 });
+        return NextResponse.json({ message: 'Customer deleted' }, { status: 200 });
     } catch (error) {
         console.log(error);
         return NextResponse.json({ error: 'Failed to delete customer' }, { status: 500 });

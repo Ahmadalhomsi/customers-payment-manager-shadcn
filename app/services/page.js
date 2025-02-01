@@ -54,7 +54,7 @@ export default function ServicesPage() {
       setServices(response.data)
     } catch (error) {
       if (error.response.status === 403)
-        toast.error('Yasak: Hizmet görüntüleme izniniz yok')
+        toast.error('Forbidden: You do not have permission to view services')
     }
     setLoading(false)
   }
@@ -65,7 +65,7 @@ export default function ServicesPage() {
       setCustomers(response.data)
     } catch (error) {
       if (error.response.status === 403)
-        toast.error('Yasak: Müşterileri görüntüleme izniniz yok')
+        toast.error('Forbidden: You do not have permission to view customers')
       else
         console.log('Error fetching customers:', error)
     }
@@ -78,7 +78,7 @@ export default function ServicesPage() {
       setRenewHistory(response.data)
     } catch (error) {
       if (error.response.status === 403)
-        toast.error('Yasak: Yenileme geçmişini görüntüleme izniniz yok')
+        toast.error('Forbidden: You do not have permission to view renewal history')
       else
         console.log('Error fetching renew history:', error)
     } finally {
@@ -122,7 +122,7 @@ export default function ServicesPage() {
           setSelectedService(null)
           setServiceModalVisible(true)
         }}>
-          <Plus className="mr-2 h-4 w-4" /> Hizmet Ekle
+          <Plus className="mr-2 h-4 w-4" /> Add Service
         </Button>
         )}
       </div>

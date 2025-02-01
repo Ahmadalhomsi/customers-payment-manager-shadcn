@@ -18,16 +18,14 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { BeatLoader } from "react-spinners";
-import { tr } from 'date-fns/locale';
-
 
 const PAYMENT_TYPES = [
-  { value: "1month", label: "1 Ay" }, // Added 1 Month
-  { value: "6months", label: "6 Ay" },
-  { value: "1year", label: "1 Yıl" },
-  { value: "2years", label: "2 Yıl" },
-  { value: "3years", label: "3 Yıl" },
-  { value: "custom", label: "Özel" },
+  { value: "1month", label: "1 Month" },
+  { value: "6months", label: "6 Months" },
+  { value: "1year", label: "1 Year" },
+  { value: "2years", label: "2 Years" },
+  { value: "3years", label: "3 Years" },
+  { value: "custom", label: "Custom" },
 ];
 
 const CURRENCIES = [
@@ -39,7 +37,7 @@ const CURRENCIES = [
 const INITIAL_FORM_STATE = {
   name: "",
   description: "",
-  paymentType: "1year", // Will mirror duration selection
+  paymentType: "1year",
   periodPrice: "",
   currency: "TL",
   startingDate: new Date(),
@@ -58,8 +56,6 @@ export function ServiceModal({
   const [startDateMonth, setStartDateMonth] = useState(new Date());
   const [endDateMonth, setEndDateMonth] = useState(new Date());
 
-
-  // Add this state variable
   const [selectedDuration, setSelectedDuration] = useState("1year");
 
   useEffect(() => {
@@ -67,7 +63,7 @@ export function ServiceModal({
       ...prev,
       paymentType: selectedDuration,
     }));
-  }, [selectedDuration]); // This ensures paymentType stays in sync
+  }, [selectedDuration]);
 
   useEffect(() => {
     if (selectedService) {
@@ -85,7 +81,6 @@ export function ServiceModal({
         ? parseDate(selectedService.endingDate)
         : null;
 
-      // Calculate initial duration
       let duration = "custom";
       if (endingDate) {
         const startYear = startingDate.getFullYear();
@@ -96,7 +91,6 @@ export function ServiceModal({
         const endMonth = endingDate.getMonth();
         const endDay = endingDate.getDate();
 
-        // Check for exact duration matches
         if (
           endYear === startYear + 1 &&
           endMonth === startMonth &&
@@ -140,7 +134,6 @@ export function ServiceModal({
     }
   }, [selectedService]);
 
-  // Calculate duration when dates change
   useEffect(() => {
     const calculateDuration = () => {
       if (!formData.startingDate || !formData.endingDate) {
@@ -148,11 +141,9 @@ export function ServiceModal({
         return;
       }
 
-      // Compare UTC dates
       const start = new Date(formData.startingDate);
       const end = new Date(formData.endingDate);
 
-      // Get UTC date components
       const startYear = start.getUTCFullYear();
       const startMonth = start.getUTCMonth();
       const startDay = start.getUTCDate();
@@ -161,7 +152,6 @@ export function ServiceModal({
       const endMonth = end.getUTCMonth();
       const endDay = end.getUTCDate();
 
-      // Check for exact duration matches using UTC components
       if (
         endYear === startYear + 1 &&
         endMonth === startMonth &&
@@ -219,7 +209,6 @@ export function ServiceModal({
           break;
       }
 
-      // Normalize to UTC midnight
       const normalizedEnd = new Date(Date.UTC(
         end.getUTCFullYear(),
         end.getUTCMonth(),
@@ -241,20 +230,17 @@ export function ServiceModal({
     }));
   };
 
-  // Update the form validation in handleSubmit
   const handleSubmit = async () => {
-    // Add endingDate to required fields check
     if (!formData.name || !formData.startingDate || !formData.endingDate) {
-      alert("Lütfen tüm alanları doldurunuz");
+      alert("Please fill in all fields");
       return;
     }
 
     if (formData.startingDate > formData.endingDate) {
-      alert("Başlangıç tarihi bitiş tarihinden büyük olamaz");
+      alert("Start date cannot be later than end date");
       return;
     }
 
-    // Rest remains the same
     setIsLoading(true);
     try {
       await onSubmit(formData);
@@ -266,13 +252,10 @@ export function ServiceModal({
     }
   };
 
-
-
-  // Handle "Enter" key press
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      e.stopPropagation(); // Add this to prevent event bubbling
+      e.stopPropagation();
       handleSubmit();
     }
   };
@@ -285,15 +268,14 @@ export function ServiceModal({
       >
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
-            {selectedService ? "Hizmet Güncelle" : "Hizmet Ekle"}
+            {selectedService ? "Update Service" : "Add Service"}
           </DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4 sm:gap-6 py-2 sm:py-4">
-          {/* Service Name */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
             <Label htmlFor="name" className="text-left sm:text-right">
-              Hizmet Adı <span className="text-red-500">*</span>
+              Service Name <span className="text-red-500">*</span>
             </Label>
             <Input
               id="name"
@@ -301,15 +283,14 @@ export function ServiceModal({
               onChange={(e) => handleChange("name", e.target.value)}
               onKeyDown={handleKeyDown}
               className="w-full sm:col-span-3"
-              placeholder="Hizmet adı giriniz"
+              placeholder="Enter service name"
               required
             />
           </div>
 
-          {/* Description */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
             <Label htmlFor="description" className="text-left sm:text-right">
-              Açıklama
+              Description
             </Label>
             <Input
               id="description"
@@ -321,9 +302,8 @@ export function ServiceModal({
             />
           </div>
 
-          {/* Price */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-            <Label className="text-left sm:text-right">Fiyat</Label>
+            <Label className="text-left sm:text-right">Price</Label>
             <div className="w-full sm:col-span-3 flex flex-col sm:flex-row gap-2">
               <Input
                 type="number"
@@ -355,19 +335,17 @@ export function ServiceModal({
             </div>
           </div>
 
-          {/* Dates Section */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-2 sm:gap-4">
             <Label className="text-left sm:text-right sm:pt-2">
-              Tarih <span className="text-red-500">*</span>
+              Date <span className="text-red-500">*</span>
             </Label>
             <div className="w-full sm:col-span-3 space-y-4">
-              {/* Payment Type */}
               <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                <Label className="text-left sm:text-right">Süre</Label>
+                <Label className="text-left sm:text-right">Duration</Label>
                 <Select
                   value={selectedDuration}
                   onValueChange={(value) => {
-                    setSelectedDuration(value); // Only set selectedDuration here
+                    setSelectedDuration(value);
                   }}
                 >
                   <SelectTrigger className="w-full sm:col-span-3">
@@ -383,11 +361,10 @@ export function ServiceModal({
                 </Select>
               </div>
 
-              {/* Date Pickers */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex flex-col gap-2 w-full">
                   <Label>
-                    Başlangıç Tarihi
+                    Start Date
                     <span className="text-red-500">*</span>
                   </Label>
                   <Calendar
@@ -405,21 +382,20 @@ export function ServiceModal({
                     onMonthChange={setStartDateMonth}
                     className="rounded-md border w-full"
                     required
-                    locale={tr}
                     weekStartsOn={1}
                     formatters={{
                       formatWeekday: (date) => {
-                        return date.toLocaleDateString('tr', { weekday: 'short' });
+                        return date.toLocaleDateString({ weekday: 'short' });
                       },
                       formatCaption: (date) => {
-                        return date.toLocaleDateString('tr', { month: 'long', year: 'numeric' });
+                        return date.toLocaleDateString({ month: 'long', year: 'numeric' });
                       }
                     }}
                   />
                 </div>
                 <div className="flex flex-col gap-2 w-full">
                   <Label>
-                    Bitiş Tarihi
+                    End Date
                     <span className="text-red-500">*</span>
                   </Label>
                   <Calendar
@@ -438,14 +414,13 @@ export function ServiceModal({
                     className="rounded-md border w-full"
                     disabled={(date) => date < formData.startingDate}
                     required
-                    locale={tr}
-                    weekStartsOn={1}
+                     weekStartsOn={1}
                     formatters={{
                       formatWeekday: (date) => {
-                        return date.toLocaleDateString('tr', { weekday: 'short' });
+                        return date.toLocaleDateString({ weekday: 'short' });
                       },
                       formatCaption: (date) => {
-                        return date.toLocaleDateString('tr', { month: 'long', year: 'numeric' });
+                        return date.toLocaleDateString({ month: 'long', year: 'numeric' });
                       }
                     }}
                   />
@@ -461,7 +436,7 @@ export function ServiceModal({
             onClick={onClose}
             className="w-full sm:w-auto"
           >
-            İptal
+            Cancel
           </Button>
           <Button
             onClick={handleSubmit}
@@ -471,7 +446,7 @@ export function ServiceModal({
             {isLoading ? (
               <BeatLoader size={8} color="white" />
             ) : (
-              selectedService ? "Kaydet" : "Oluştur"
+              selectedService ? "Save" : "Create"
             )}
           </Button>
         </DialogFooter>

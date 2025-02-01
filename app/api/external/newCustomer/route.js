@@ -7,28 +7,28 @@ const validatePassword = (password) => {
     const errors = [];
 
     if (!password) {
-        errors.push("Şifre boş olamaz");
+        errors.push("Password cannot be empty");
         return errors;
     }
 
     if (password.length < 8) {
-        errors.push("En az 8 karakter olmalıdır");
+        errors.push("Must be at least 8 characters long");
     }
 
     if (!/[A-Z]/.test(password)) {
-        errors.push("En az bir büyük harf");
+        errors.push("Must contain at least one uppercase letter");
     }
 
     if (!/[a-z]/.test(password)) {
-        errors.push("En az bir küçük harf");
+        errors.push("Must contain at least one lowercase letter");
     }
 
     if (!/[0-9]/.test(password)) {
-        errors.push("En az bir rakam");
+        errors.push("Must contain at least one number");
     }
 
     if (!/[^A-Za-z0-9]/.test(password)) {
-        errors.push("En az bir özel karakter");
+        errors.push("Must contain at least one special character");
     }
 
     return errors;
@@ -42,7 +42,7 @@ export async function POST(request) {
     const passwordErrors = validatePassword(password);
     if (passwordErrors.length > 0) {
         return NextResponse.json({
-            error: 'Şifre doğrulaması başarısız oldu',
+            error: 'Password validation failed',
             details: passwordErrors
         }, { status: 400 });
     }
@@ -54,7 +54,7 @@ export async function POST(request) {
 
     if (existingCustomer) {
         return NextResponse.json({
-            error: 'Bu e-posta adresi zaten kullanımda'
+            error: 'This email address is already in use'
         }, { status: 409 });
     }
 
@@ -76,8 +76,8 @@ export async function POST(request) {
             data: {
                 id: token,
                 customerID: customer.id,
-                name: 'Default Hizmet',
-                description: 'API ile otomatik oluşturulan hizmet',
+                name: 'Default Service',
+                description: 'Service automatically created via API',
                 periodPrice: 0.0,
                 startingDate: startingDate,
                 endingDate: endingDate,
@@ -91,15 +91,15 @@ export async function POST(request) {
             data: {
                 scheduledAt: reminderDate,
                 status: "SCHEDULED",
-                message: "Hizmetinizin bitmesine bir hafta kaldı! Kesinti yaşamamak için lütfen yenileyin.",
+                message: "Your service will expire in one week! Please renew to avoid interruption.",
                 serviceID: newService.id,
             },
         });
 
         await prisma.notifications.create({
             data: {
-                title: 'API ile Yeni Müşteri Oluşturuldu',
-                message: `Yeni müşteri ${customerName} e-posta ${email} ile oluşturuldu`,
+                title: 'New Customer Created via API',
+                message: `New customer ${customerName} created with email ${email}`,
                 type: 'success',
                 read: false,
             },

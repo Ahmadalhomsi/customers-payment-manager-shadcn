@@ -3,7 +3,6 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { format, parseISO } from 'date-fns'
-import { tr } from 'date-fns/locale'
 import {
   Dialog,
   DialogContent,
@@ -24,24 +23,24 @@ import { Calendar } from "@/components/ui/calendar"
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form"
 
 const ReminderStatus = {
-  SCHEDULED: 'PLANLANMIŞ',
-  SENT: 'GÖNDERİLDİ',
-  CANCELED: 'İPTAL EDİLDİ',
-  FAILED: 'BAŞARISIZ',
+  SCHEDULED: 'SCHEDULED',
+  SENT: 'SENT',
+  CANCELED: 'CANCELED',
+  FAILED: 'FAILED',
 }
 
 const STATUS_MAP_TO_API = {
-  'PLANLANMIŞ': 'SCHEDULED',
-  'GÖNDERİLDİ': 'SENT',
-  'İPTAL EDİLDİ': 'CANCELED',
-  'BAŞARISIZ': 'FAILED',
+  'SCHEDULED': 'SCHEDULED',
+  'SENT': 'SENT',
+  'CANCELED': 'CANCELED',
+  'FAILED': 'FAILED',
 }
 
 const STATUS_MAP_FROM_API = {
-  'SCHEDULED': 'PLANLANMIŞ',
-  'SENT': 'GÖNDERİLDİ',
-  'CANCELED': 'İPTAL EDİLDİ',
-  'FAILED': 'BAŞARISIZ',
+  'SCHEDULED': 'SCHEDULED',
+  'SENT': 'SENT',
+  'CANCELED': 'CANCELED',
+  'FAILED': 'FAILED',
 }
 
 export function ReminderModal({
@@ -54,7 +53,7 @@ export function ReminderModal({
     defaultValues: {
       date: new Date(),
       time: format(new Date(), 'HH:mm'),
-      status: 'PLANLANMIŞ',
+      status: 'SCHEDULED',
       message: '',
     }
   })
@@ -76,7 +75,7 @@ export function ReminderModal({
       form.reset({
         date: now,
         time: format(now, 'HH:mm'),
-        status: 'PLANLANMIŞ',
+        status: 'SCHEDULED',
         message: '',
       })
     }
@@ -97,7 +96,7 @@ export function ReminderModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {selectedReminder ? 'Hatırlatıcı Düzenle' : 'Yeni Hatırlatıcı'}
+            {selectedReminder ? 'Edit Reminder' : 'New Reminder'}
           </DialogTitle>
         </DialogHeader>
 
@@ -108,13 +107,12 @@ export function ReminderModal({
               name="date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Tarih *</FormLabel>
+                  <FormLabel>Date *</FormLabel>
                   <div className="flex flex-col space-y-2">
                     <Calendar
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      locale={tr}
                       disabled={(date) =>
                         date < new Date(new Date().setHours(0, 0, 0, 0))
                       }
@@ -122,7 +120,7 @@ export function ReminderModal({
                       className="rounded-md border w-full"
                     />
                     <p className="text-sm text-muted-foreground">
-                      Seçilen tarih: {field.value ? format(field.value, 'dd/MM/yyyy') : 'Tarih seçilmedi'}
+                      Selected date: {field.value ? format(field.value, 'dd/MM/yyyy') : 'No date selected'}
                     </p>
                   </div>
                 </FormItem>
@@ -134,7 +132,7 @@ export function ReminderModal({
               name="time"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Saat *</FormLabel>
+                  <FormLabel>Time *</FormLabel>
                   <FormControl>
                     <Input
                       type="time"
@@ -151,11 +149,11 @@ export function ReminderModal({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Durum</FormLabel>
+                  <FormLabel>Status</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Durum seçin" />
+                        <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -175,10 +173,10 @@ export function ReminderModal({
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mesaj</FormLabel>
+                  <FormLabel>Message</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Müşteriye gönderilecek mesaj"
+                      placeholder="Message to be sent to the customer"
                       {...field}
                     />
                   </FormControl>
@@ -188,10 +186,10 @@ export function ReminderModal({
 
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={onClose}>
-                İptal
+                Cancel
               </Button>
               <Button type="submit">
-                {selectedReminder ? 'Değişiklikleri Kaydet' : 'Hatırlatıcı Oluştur'}
+                {selectedReminder ? 'Save Changes' : 'Create Reminder'}
               </Button>
             </div>
           </form>

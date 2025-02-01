@@ -10,7 +10,7 @@ export async function POST(req) {
 
         // Check if the user has permission to create customers
         if (!decoded.permissions.canEditCustomers) {
-            return NextResponse.json({ error: 'Yasak: Müşteri oluşturma izniniz yok' }, { status: 403 });
+            return NextResponse.json({ error: 'Forbidden: You do not have permission to create customers' }, { status: 403 });
         }
 
         // Extract request body
@@ -29,8 +29,8 @@ export async function POST(req) {
         // Create a default service
         const service = await prisma.service.create({
             data: {
-                name: "Default Hizmet",
-                description: "Otomatik oluşturulan hizmet",
+                name: "Default Service",
+                description: "Automatically created service",
                 paymentType: "1year",
                 periodPrice: 0.0,
                 currency: "TL",
@@ -45,7 +45,7 @@ export async function POST(req) {
             data: {
                 scheduledAt: reminderDate,
                 status: "SCHEDULED",
-                message: "Hizmetinizin bitmesine bir hafta kaldı! Kesinti yaşamamak için lütfen yenileyin.",
+                message: "Your service will expire in one week! Please renew to avoid interruption.",
                 serviceID: service.id,
             },
         });
@@ -67,10 +67,10 @@ export async function GET(req) {
         let includeService = true;
         // Check if the user has permission to view customers
         if (!decoded.permissions.canViewCustomers) {
-            return NextResponse.json({ error: 'Yasak: Müşterileri görüntüleme izniniz yok' }, { status: 403 });
+            return NextResponse.json({ error: 'Forbidden: You do not have permission to view customers' }, { status: 403 });
         }
 
-        // Check if the user has permission to view customers
+        // Check if the user has permission to view services
         if (!decoded.permissions.canViewServices) {
             includeService = false;
         }
@@ -102,4 +102,3 @@ export async function GET(req) {
         return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
     }
 }
-

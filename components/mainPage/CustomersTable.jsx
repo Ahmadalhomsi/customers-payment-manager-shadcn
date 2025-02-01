@@ -22,7 +22,6 @@ import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
-import { tr } from 'date-fns/locale'
 
 export function CustomerTable({
   customers,
@@ -42,10 +41,10 @@ export function CustomerTable({
   });
 
   const statusTranslations = {
-    active: 'Aktif',
-    inactive: 'Pasif',
-    overdue: 'Süresi Dolmuş',
-    all: 'Tüm durumlar'
+    active: 'Active',
+    inactive: 'Inactive',
+    overdue: 'Overdue',
+    all: 'All statuses'
   };
 
   const getStatusText = (status) => {
@@ -140,7 +139,7 @@ export function CustomerTable({
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return format(new Date(dateString), 'dd MMMM yyyy', { locale: tr });
+    return format(new Date(dateString), 'dd MMMM yyyy');
   };
 
   const isDateInRange = (date, dateRange) => {
@@ -183,7 +182,7 @@ export function CustomerTable({
     <div className="space-y-4 relative">
       <div className="flex gap-2 flex-wrap items-center">
         <Input
-          placeholder="Müşteri ara..."
+          placeholder="Search customer..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-xs focus-visible:ring-2"
@@ -191,7 +190,7 @@ export function CustomerTable({
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Durum filtrele" />
+            <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{statusTranslations.all}</SelectItem>
@@ -214,14 +213,14 @@ export function CustomerTable({
               {dateRangeFilter?.from ? (
                 dateRangeFilter.to ? (
                   <>
-                    {format(dateRangeFilter.from, "dd MMMM yyyy", { locale: tr })} -{" "}
-                    {format(dateRangeFilter.to, "dd MMMM yyyy", { locale: tr })}
+                    {format(dateRangeFilter.from, "dd MMMM yyyy")} -{" "}
+                    {format(dateRangeFilter.to, "dd MMMM yyyy")}
                   </>
                 ) : (
-                  format(dateRangeFilter.from, "dd MMMM yyyy", { locale: tr })
+                  format(dateRangeFilter.from, "dd MMMM yyyy")
                 )
               ) : (
-                <span>Bir tarih aralığı seç</span>
+                <span>Select a date range</span>
               )}
             </Button>
           </PopoverTrigger>
@@ -233,7 +232,6 @@ export function CustomerTable({
               selected={dateRangeFilter}
               onSelect={setDateRangeFilter}
               numberOfMonths={2}
-              locale={tr}
             />
           </PopoverContent>
         </Popover>
@@ -254,7 +252,7 @@ export function CustomerTable({
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-1">
-                  İsim
+                  Name
                   <SortIcon column="name" />
                 </div>
               </TableHead>
@@ -263,7 +261,7 @@ export function CustomerTable({
                 onClick={() => handleSort('status')}
               >
                 <div className="flex items-center gap-1">
-                  Durum
+                  Status
                   <SortIcon column="status" />
                 </div>
               </TableHead>
@@ -281,7 +279,7 @@ export function CustomerTable({
                 onClick={() => handleSort('phone')}
               >
                 <div className="flex items-center gap-1">
-                  Telefon
+                  Phone
                   <SortIcon column="phone" />
                 </div>
               </TableHead>
@@ -290,15 +288,15 @@ export function CustomerTable({
                 onClick={() => handleSort('createdAt')}
               >
                 <div className="flex items-center gap-1">
-                  Oluşturulma Tarihi
+                  Created At
                   <SortIcon column="createdAt" />
                 </div>
               </TableHead>
               <TableHead className="w-[200px]">
-                Şifre
+                Password
               </TableHead>
               <TableHead className="text-right">
-                İşlemler
+                Actions
               </TableHead>
             </TableRow>
           </TableHeader>

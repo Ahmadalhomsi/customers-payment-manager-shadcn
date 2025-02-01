@@ -46,7 +46,7 @@ export default function CustomersPage() {
         setDeleteCustomerConfirmVisible(false);
       } catch (error) {
         if (error.status === 403) {
-          toast.error('Yasak: Müşteri silme izniniz yok')
+          toast.error('Forbidden: You do not have permission to delete customers')
         }
         else
           console.log('Error deleting customer:', error)
@@ -108,15 +108,15 @@ export default function CustomersPage() {
       setLoading(true);
       const response = await axios.get('/api/customers')
       if (response.status === 206) {
-        toast.error('Yasak: Müşteri parolalarını görüntüleme izniniz yok')
+        toast.error('Forbidden: You do not have permission to view customer passwords')
       }
       setCustomers(response.data)
     } catch (error) {
       if (error.status === 403) {
-        toast.error('Yasak: Müşterileri görüntüleme izniniz yok')
+        toast.error('Forbidden: You do not have permission to view customers')
       }
       else
-        console.log('Müşterileri getirirken hata oluştu:', error)
+        console.log('Error fetching customers:', error)
 
     }
     setLoading(false)
@@ -129,7 +129,7 @@ export default function CustomersPage() {
       setServices(response.data);
     } catch (error) {
       if (error.status === 403) {
-        toast.error('Yasak: Hizmetleri görüntüleme izniniz yok')
+        toast.error('Forbidden: You do not have permission to view services')
       }
       else
         console.log('Error fetching services:', error)
@@ -148,7 +148,7 @@ export default function CustomersPage() {
           fetchCustomers();
         } catch (error) {
           if (error.status === 403) {
-            toast.error('Yasak: Müşteri güncelleme izniniz yok')
+            toast.error('Forbidden: You do not have permission to update customers')
           }
           else
             console.log('Error updating customer:', error)
@@ -158,7 +158,7 @@ export default function CustomersPage() {
           await axios.post('/api/customers', formData);
         } catch (error) {
           if (error.status === 403) {
-            toast.error('Yasak: Müşteri ekleme izniniz yok')
+            toast.error('Forbidden: You do not have permission to add customers')
           }
           else
             console.log('Error adding customer:', error)
@@ -179,7 +179,7 @@ export default function CustomersPage() {
             setSelectedCustomer(null); // Ensure selectedCustomer is reset
             setCustomerModalVisible(true);
           }}>
-            <Plus className="mr-2 h-4 w-4" /> Müşteri Ekle
+            <Plus className="mr-2 h-4 w-4" /> Add Customer
           </Button>
         )}
       </div>
@@ -303,7 +303,7 @@ export default function CustomersPage() {
             setSelectedService(serviceRes.data)
           } catch (error) {
             if (error.status === 403) {
-              toast.error('Yasak: Hatırlatıcı silme izniniz yok')
+              toast.error('Forbidden: You do not have permission to delete reminders')
             }
             else
               console.log('Error deleting reminder:', error)
@@ -322,7 +322,7 @@ export default function CustomersPage() {
                 await axios.put(`/api/reminders/${selectedReminder.id}`, reminderData)
               } catch (error) {
                 if (error.status === 403) {
-                  toast.error('Yasak: Hatırlatıcı güncelleme izniniz yok')
+                  toast.error('Forbidden: You do not have permission to update reminders')
                 }
                 else
                   console.log('Error updating reminder:', error)
@@ -335,7 +335,7 @@ export default function CustomersPage() {
                 })
               } catch (error) {
                 if (error.status === 403) {
-                  toast.error('Yasak: Hatırlatıcı oluşturma izniniz yok')
+                  toast.error('Forbidden: You do not have permission to create reminders')
                 }
                 else
                   console.log('Error creating reminder:', error)

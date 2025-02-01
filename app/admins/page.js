@@ -48,15 +48,15 @@ export default function AdminsPage() {
     });
 
     const permissionLabels = {
-        canViewCustomers: "Müşterileri Görüntüleme",
-        canEditCustomers: "Müşterileri Düzenleme",
-        canViewServices: "Hizmetleri Görüntüleme",
-        canEditServices: "Hizmetleri Düzenleme",
-        canViewReminders: "Hatırlatıcıları Görüntüleme",
-        canEditReminders: "Hatırlatıcıları Düzenleme",
-        canViewAdmins: "Yöneticileri Görüntüleme",
-        canEditAdmins: "Yöneticileri Düzenleme",
-        canSeePasswords: "Şifreleri Görüntüleme",
+        canViewCustomers: "View Customers",
+        canEditCustomers: "Edit Customers",
+        canViewServices: "View Services",
+        canEditServices: "Edit Services",
+        canViewReminders: "View Reminders",
+        canEditReminders: "Edit Reminders",
+        canViewAdmins: "View Admins",
+        canEditAdmins: "Edit Admins",
+        canSeePasswords: "View Passwords",
     };
 
     const fetchAdmins = async () => {
@@ -64,7 +64,7 @@ export default function AdminsPage() {
             const response = await fetch("/api/admins");
             const data = await response.json();
             if (response.status === 403) {
-                toast.error("Yasak: Admin görüntüleme izniniz yok");
+                toast.error("Forbidden: You do not have permission to view admins");
             }
             else
                 setAdmins(data);
@@ -73,7 +73,7 @@ export default function AdminsPage() {
             console.log('Error fetching admins:', error);
 
             if (error.response.status === 403)
-                toast.error('Yasak: Admin görüntüleme izniniz yok')
+                toast.error('Forbidden: You do not have permission to view admins')
             else
                 console.log('Error fetching admins:', error)
         }
@@ -99,18 +99,18 @@ export default function AdminsPage() {
                 body: JSON.stringify(formData),
             });
 
-            if (!response.ok) throw new Error("Yönetici kaydedilemedi");
+            if (!response.ok) throw new Error("Failed to save admin");
 
             toast.success(editingAdmin
-                ? "Yönetici güncellendi"
-                : "Yeni yönetici oluşturuldu"
+                ? "Admin updated"
+                : "New admin created"
             );
 
             setIsDialogOpen(false);
             fetchAdmins();
         } catch (error) {
             if (error.response.status === 403)
-                toast.error('Yasak: Admin oluşturma ya da güncelleme izniniz yok')
+                toast.error('Forbidden: You do not have permission to create or update admins')
             else
                 console.log('Error creating or updating admin:', error)
         } finally {
@@ -119,7 +119,7 @@ export default function AdminsPage() {
     };
 
     const handleDelete = async (admin) => {
-        if (!confirm("Bu yöneticiyi silmek istediğinizden emin misiniz?")) return;
+        if (!confirm("Are you sure you want to delete this admin?")) return;
 
         try {
             const response = await fetch(`/api/admins`, {
@@ -128,10 +128,10 @@ export default function AdminsPage() {
                 body: JSON.stringify({ id: admin.id }),
             });
 
-            if (!response.ok) throw new Error("Yönetici silinemedi");
+            if (!response.ok) throw new Error("Failed to delete admin");
 
             toast({
-                description: "Yönetici silindi",
+                description: "Admin deleted",
             });
 
             fetchAdmins();
@@ -194,18 +194,18 @@ export default function AdminsPage() {
             <div className="flex items-center mb-6">
                 <Button onClick={handleAddNew} className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
-                    Yeni Yönetici Ekle
+                    Add New Admin
                 </Button>
-                <h1 className="text-2xl font-bold ml-4">Yönetici Paneli</h1>
+                <h1 className="text-2xl font-bold ml-4">Admin Panel</h1>
             </div>
 
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Kullanıcı Adı</TableHead>
-                        <TableHead>İsim</TableHead>
-                        <TableHead>Durum</TableHead>
-                        <TableHead>İşlemler</TableHead>
+                        <TableHead>Username</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -220,7 +220,7 @@ export default function AdminsPage() {
                                         : "bg-red-100 text-red-800"
                                         }`}
                                 >
-                                    {admin.active ? "Aktif" : "Pasif"}
+                                    {admin.active ? "Active" : "Inactive"}
                                 </span>
                             </TableCell>
                             <TableCell>
@@ -250,13 +250,13 @@ export default function AdminsPage() {
                 <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingAdmin ? "Yönetici Düzenle" : "Yeni Yönetici Oluştur"}
+                            {editingAdmin ? "Edit Admin" : "Create New Admin"}
                         </DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmit}>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <label className="text-right">Kullanıcı Adı</label>
+                                <label className="text-right">Username</label>
                                 <Input
                                     className="col-span-3"
                                     value={formData.username}
@@ -267,7 +267,7 @@ export default function AdminsPage() {
                                 />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <label className="text-right">İsim</label>
+                                <label className="text-right">Name</label>
                                 <Input
                                     className="col-span-3"
                                     value={formData.name}
@@ -278,7 +278,7 @@ export default function AdminsPage() {
                                 />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <label className="text-right">Şifre</label>
+                                <label className="text-right">Password</label>
                                 <div className="col-span-3 relative">
                                     <Input
                                         type={showPassword ? "text" : "password"}
@@ -304,7 +304,7 @@ export default function AdminsPage() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <label className="text-right">Aktif</label>
+                                <label className="text-right">Active</label>
                                 <Switch
                                     checked={formData.active}
                                     onCheckedChange={(checked) =>
@@ -314,7 +314,7 @@ export default function AdminsPage() {
                             </div>
 
                             <div className="mt-4">
-                                <h3 className="font-medium mb-2">Yetkiler</h3>
+                                <h3 className="font-medium mb-2">Permissions</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     {Object.entries(formData.permissions).map(([key, value]) => (
                                         <div key={key} className="flex items-center space-x-2">
@@ -338,7 +338,7 @@ export default function AdminsPage() {
                         </div>
                         <DialogFooter>
                             <Button type="submit" disabled={isLoading}>
-                                {isLoading ? "Kaydediliyor..." : "Kaydet"}
+                                {isLoading ? "Saving..." : "Save"}
                             </Button>
                         </DialogFooter>
                     </form>

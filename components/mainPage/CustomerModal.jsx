@@ -102,22 +102,22 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "İsim gereklidir";
+      newErrors.name = "Name is required";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email gereklidir";
+      newErrors.email = "Email is required";
     } else if (customers.some(c => c.email === formData.email && c.id !== selectedCustomer?.id)) {
-      newErrors.email = "Bu email adresi zaten kullanımda";
+      newErrors.email = "This email address is already in use";
     }
 
     // Password validation for new customers or when updating password
     if (!selectedCustomer && !formData.password.trim()) {
-      newErrors.password = "Şifre gereklidir";
+      newErrors.password = "Password is required";
     } else if (formData.password.trim()) {
       const passwordValid = validatePassword(formData.password);
       if (!passwordValid.allValid) {
-        newErrors.password = "Şifre en az 8 karakterden oluşmalı ve en az bir büyük harf, bir küçük harf, bir sayı ve bir özel karakter içermelidir";
+        newErrors.password = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character";
       }
     }
 
@@ -132,8 +132,8 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     } else {
       toast({
         variant: "destructive",
-        title: "Hata",
-        description: "Lütfen formu doğru şekilde doldurun",
+        title: "Error",
+        description: "Please fill out the form correctly",
       });
     }
   };
@@ -153,13 +153,13 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
       >
         <DialogHeader>
           <DialogTitle>
-            {selectedCustomer ? "Müşteri Güncelle" : "Müşteri Ekle"}
+            {selectedCustomer ? "Update Customer" : "Add Customer"}
           </DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
           <FormField
-            label="İsim"
+            label="Name"
             id="name"
             name="name"
             value={formData.name}
@@ -182,7 +182,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
           {errors.email && <p className="text-destructive text-sm ml-24">{errors.email}</p>}
 
           <FormField
-            label="Telefon"
+            label="Phone"
             id="phone"
             name="phone"
             type="tel"
@@ -191,7 +191,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
             onKeyDown={handleKeyDown} // Add keydown handler to input
           />
 
-          <FormField label="Şifre" id="password">
+          <FormField label="Password" id="password">
             <div className="relative">
               <Input
                 id="password"
@@ -220,19 +220,19 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
             {formData.password && (
               <div className="text-sm mt-2 space-y-1">
                 <div className={passwordValidation.minLength ? 'text-green-600' : 'text-destructive'}>
-                  • En az 8 karakter
+                  • At least 8 characters
                 </div>
                 <div className={passwordValidation.hasUpper ? 'text-green-600' : 'text-destructive'}>
-                  • En az bir büyük harf
+                  • At least one uppercase letter
                 </div>
                 <div className={passwordValidation.hasLower ? 'text-green-600' : 'text-destructive'}>
-                  • En az bir küçük harf
+                  • At least one lowercase letter
                 </div>
                 <div className={passwordValidation.hasNumber ? 'text-green-600' : 'text-destructive'}>
-                  • En az bir sayı
+                  • At least one number
                 </div>
                 <div className={passwordValidation.hasSpecial ? 'text-green-600' : 'text-destructive'}>
-                  • En az bir özel karakter
+                  • At least one special character
                 </div>
               </div>
             )}

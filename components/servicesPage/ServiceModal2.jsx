@@ -30,11 +30,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { tr } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 
 const PAYMENT_TYPES = [
-    { value: "Monthly", label: "Aylık" },
-    { value: "Yearly", label: "Yıllık" },
+    { value: "Monthly", label: "Monthly" },
+    { value: "Yearly", label: "Yearly" },
 ];
 
 const CURRENCIES = [
@@ -44,18 +44,18 @@ const CURRENCIES = [
 ];
 
 const DURATIONS = [
-    { value: "1month", label: "1 Ay" },
-    { value: "6months", label: "6 Ay" },
-    { value: "1year", label: "1 Yıl" },
-    { value: "2years", label: "2 Yıl" },
-    { value: "3years", label: "3 Yıl" },
-    { value: "custom", label: "Özel" },
+    { value: "1month", label: "1 Month" },
+    { value: "6months", label: "6 Months" },
+    { value: "1year", label: "1 Year" },
+    { value: "2years", label: "2 Years" },
+    { value: "3years", label: "3 Years" },
+    { value: "custom", label: "Custom" },
 ];
 
 const EXTENSION_PERIODS = [
-    { value: "1month", label: "1 Ay Ekle" },
-    { value: "6months", label: "6 Ay Ekle" },
-    { value: "1year", label: "1 Yıl Ekle" },
+    { value: "1month", label: "Add 1 Month" },
+    { value: "6months", label: "Add 6 Months" },
+    { value: "1year", label: "Add 1 Year" },
 ];
 
 const INITIAL_FORM_STATE = {
@@ -200,12 +200,12 @@ export function ServiceModal2({
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.startingDate || !formData.endingDate || !formData.customerID) {
-            alert("Lütfen tüm zorunlu alanları doldurun");
+            alert("Please fill in all required fields");
             return;
         }
 
         if (formData.startingDate > formData.endingDate) {
-            alert("Bitiş tarihi başlangıç tarihinden sonra olmalıdır");
+            alert("End date must be after start date");
             return;
         }
 
@@ -217,7 +217,7 @@ export function ServiceModal2({
             onClose();
             setFormData(INITIAL_FORM_STATE);
         } catch (error) {
-            console.error("Gönderim hatası:", error);
+            console.error("Submission error:", error);
         }
     };
 
@@ -239,14 +239,14 @@ export function ServiceModal2({
             >
                 <DialogHeader>
                     <DialogTitle className="text-lg sm:text-xl">
-                        {selectedService ? "Hizmeti Düzenle" : "Yeni Hizmet Oluştur"}
+                        {selectedService ? "Edit Service" : "Create New Service"}
                     </DialogTitle>
                 </DialogHeader>
 
                 <div className="grid gap-4 sm:gap-6 py-2 sm:py-4">
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
                         <Label className="text-left sm:text-right">
-                            Müşteri <span className="text-red-500">*</span>
+                            Customer <span className="text-red-500">*</span>
                         </Label>
                         <Popover open={openCustomerCombobox} onOpenChange={setOpenCustomerCombobox}>
                             <PopoverTrigger asChild>
@@ -255,14 +255,14 @@ export function ServiceModal2({
                                     role="combobox"
                                     className="w-full sm:col-span-3 justify-between"
                                 >
-                                    {selectedCustomer ? selectedCustomer.name : "Müşteri seçin..."}
+                                    {selectedCustomer ? selectedCustomer.name : "Select a customer..."}
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-full p-0 pointer-events-auto">
                                 <Command shouldFilter={false}>
                                     <CommandInput
-                                        placeholder="Müşteri ara..."
+                                        placeholder="Search customer..."
                                         value={searchQuery}
                                         onValueChange={setSearchQuery}
                                     />
@@ -297,7 +297,7 @@ export function ServiceModal2({
                                                     ))}
                                             </CommandGroup>
                                         )}
-                                        <CommandEmpty>Müşteri bulunamadı</CommandEmpty>
+                                        <CommandEmpty>No customer found</CommandEmpty>
                                     </CommandList>
                                 </Command>
                             </PopoverContent>
@@ -306,7 +306,7 @@ export function ServiceModal2({
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
                         <Label htmlFor="name" className="text-left sm:text-right">
-                            Hizmet Adı <span className="text-red-500">*</span>
+                            Service Name <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="name"
@@ -314,14 +314,14 @@ export function ServiceModal2({
                             onChange={(e) => handleChange("name", e.target.value)}
                             onKeyDown={handleKeyDown}
                             className="w-full sm:col-span-3"
-                            placeholder="Hizmet adını girin"
+                            placeholder="Enter service name"
                             required
                         />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
                         <Label htmlFor="description" className="text-left sm:text-right">
-                            Açıklama
+                            Description
                         </Label>
                         <Input
                             id="description"
@@ -329,12 +329,12 @@ export function ServiceModal2({
                             onChange={(e) => handleChange("description", e.target.value)}
                             onKeyDown={handleKeyDown}
                             className="w-full sm:col-span-3"
-                            placeholder="Hizmet açıklaması girin"
+                            placeholder="Enter service description"
                         />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                        <Label className="text-left sm:text-right">Fiyat</Label>
+                        <Label className="text-left sm:text-right">Price</Label>
                         <div className="w-full sm:col-span-3 flex flex-col sm:flex-row gap-2">
                             <Input
                                 type="number"
@@ -366,11 +366,11 @@ export function ServiceModal2({
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-2 sm:gap-4">
                         <Label className="text-left sm:text-right sm:pt-2">
-                            Tarihler <span className="text-red-500">*</span>
+                            Dates <span className="text-red-500">*</span>
                         </Label>
                         <div className="w-full sm:col-span-3 space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                                <Label className="text-left sm:text-right">Ödeme Tipi</Label>
+                                <Label className="text-left sm:text-right">Payment Type</Label>
                                 <Select
                                     value={formData.paymentType}
                                     onValueChange={(value) => {
@@ -379,7 +379,7 @@ export function ServiceModal2({
                                     }}
                                 >
                                     <SelectTrigger className="w-full sm:col-span-3">
-                                        <SelectValue placeholder="Süre seçin" />
+                                        <SelectValue placeholder="Select duration" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {DURATIONS.map((duration) => (
@@ -393,12 +393,12 @@ export function ServiceModal2({
 
                             {selectedService && (
                                 <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                                    <Label className="text-left sm:text-right">Süre Uzatma</Label>
+                                    <Label className="text-left sm:text-right">Extend Duration</Label>
                                     <Select
                                         onValueChange={handleExtendService}
                                     >
                                         <SelectTrigger className="w-full sm:col-span-3">
-                                            <SelectValue placeholder="Süre uzatmak için seçin" />
+                                            <SelectValue placeholder="Select to extend duration" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {EXTENSION_PERIODS.map((period) => (
@@ -414,7 +414,7 @@ export function ServiceModal2({
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex flex-col gap-2 w-full">
                                     <Label>
-                                        Başlangıç Tarihi <span className="text-red-500">*</span>
+                                        Start Date <span className="text-red-500">*</span>
                                     </Label>
                                     <Calendar
                                         mode="single"
@@ -428,13 +428,13 @@ export function ServiceModal2({
                                         onMonthChange={setStartDateMonth}
                                         className="rounded-md border w-full"
                                         disabled={(date) => date < formData.startingDate}
-                                        locale={tr}
+                                        locale={enUS}
                                         formatters={{
                                             formatCaption: (date, options) => {
-                                                return format(date, "MMMM yyyy", { locale: tr });
+                                                return format(date, "MMMM yyyy", { locale: enUS });
                                             },
                                             formatDay: (date) => {
-                                                return format(date, "dd", { locale: tr });
+                                                return format(date, "dd", { locale: enUS });
                                             }
                                         }}
                                         required
@@ -445,7 +445,7 @@ export function ServiceModal2({
                                 </div>
                                 <div className="flex flex-col gap-2 w-full">
                                     <Label>
-                                        Bitiş Tarihi <span className="text-red-500">*</span>
+                                        End Date <span className="text-red-500">*</span>
                                     </Label>
                                     <Calendar
                                         mode="single"
@@ -459,13 +459,13 @@ export function ServiceModal2({
                                         onMonthChange={setEndDateMonth}
                                         className="rounded-md border w-full"
                                         disabled={(date) => date < formData.startingDate}
-                                        locale={tr}
+                                        locale={enUS}
                                         formatters={{
                                             formatCaption: (date, options) => {
-                                                return format(date, "MMMM yyyy", { locale: tr });
+                                                return format(date, "MMMM yyyy", { locale: enUS });
                                             },
                                             formatDay: (date) => {
-                                                return format(date, "dd", { locale: tr });
+                                                return format(date, "dd", { locale: enUS });
                                             }
                                         }}
                                         required
@@ -481,7 +481,7 @@ export function ServiceModal2({
 
                 <DialogFooter className="border-t pt-4 mt-4">
                     <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
-                        İptal
+                        Cancel
                     </Button>
                     <Button
                         onClick={handleSubmit}
@@ -491,7 +491,7 @@ export function ServiceModal2({
                         {isLoading ? (
                             <BeatLoader size={8} color="white" />
                         ) : (
-                            selectedService ? "Değişiklikleri Kaydet" : "Hizmet Oluştur"
+                            selectedService ? "Save Changes" : "Create Service"
                         )}
                     </Button>
                 </DialogFooter>

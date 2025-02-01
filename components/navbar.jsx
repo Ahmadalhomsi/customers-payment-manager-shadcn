@@ -65,7 +65,7 @@ export function Navbar() {
               }`}
           >
             <Home className="mr-2 h-4 w-4" />
-            Ana Sayfa
+            Home
           </Link>
 
           {permissions?.canViewServices && (
@@ -75,7 +75,7 @@ export function Navbar() {
                 }`}
             >
               <Briefcase className="mr-2 h-4 w-4" />
-              Hizmetler
+              Services
             </Link>
           )}
 
@@ -115,7 +115,7 @@ export function Navbar() {
               <DropdownMenuItem asChild className={pathname === "/" ? "text-primary" : ""}>
                 <Link href="/">
                   <Home className="mr-2 h-4 w-4" />
-                  Ana Sayfa
+                  Home
                 </Link>
               </DropdownMenuItem>
 
@@ -123,7 +123,7 @@ export function Navbar() {
                 <DropdownMenuItem asChild className={pathname.startsWith("/services") ? "text-primary" : ""}>
                   <Link href="/services">
                     <Briefcase className="mr-2 h-4 w-4" />
-                    Hizmetler
+                    Services
                   </Link>
                 </DropdownMenuItem>
               )}

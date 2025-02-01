@@ -10,7 +10,7 @@ export async function GET(req, { params }) {
         let includeReminder = true;
         // Check if the user has permission to view customers
         if (!decoded.permissions.canViewServices) {
-            return NextResponse.json({ error: 'Yasak: Hizmet görüntüleme izniniz yok' }, { status: 403 });
+            return NextResponse.json({ error: 'Forbidden: You do not have permission to view services' }, { status: 403 });
         }
         else if (!decoded.permissions.canViewReminders) {
             includeReminder = false;
@@ -35,7 +35,7 @@ export async function PUT(req, { params }) {
 
         // Check if the user has permission to edit services
         if (!decoded.permissions.canEditServices) {
-            return NextResponse.json({ error: 'Yasak: Hizmet güncelleme izniniz yok' }, { status: 403 });
+            return NextResponse.json({ error: 'Forbidden: You do not have permission to update services' }, { status: 403 });
         }
 
         const { id } = await params;
@@ -74,7 +74,7 @@ export async function PUT(req, { params }) {
                 }
 
                 renewHistoryData = {
-                    name: `${existingService.name} için Yenileme`,
+                    name: `Renewal for ${existingService.name}`,
                     type: renewalType,
                     previousEndDate: currentEndingDate,
                     newEndDate: newEndingDate,
@@ -125,7 +125,7 @@ export async function PUT(req, { params }) {
                     data: {
                         scheduledAt: reminderDate,
                         status: "SCHEDULED",
-                        message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",
+                        message: "Your service will expire in one week! Please renew to avoid interruption.",
                         serviceID: id,
                     },
                 })
@@ -149,7 +149,7 @@ export async function DELETE(req, { params }) {
         await prisma.service.delete({
             where: { id: id },
         });
-        return NextResponse.json({ message: 'service deleted' }, { status: 200 });
+        return NextResponse.json({ message: 'Service deleted' }, { status: 200 });
     } catch (error) {
         console.log(error);
         return NextResponse.json({ error: 'Failed to delete service' }, { status: 500 });
