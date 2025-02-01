@@ -84,16 +84,16 @@ The project is organized as follows:
     *   `mainPage/`: Components related to the main customer page.
      *    `servicesPage/`: Components related to the services page.
     *   `ui/`: Base UI components.
-*   `lib/`: Utility functions and configurations .
-    *   `jwt.js`: JWT verification .
-    *   `prisma.js`: Prisma client setup .
-    *    `utils.js`: Utility functions .
-*   `hooks/`: Custom React hooks .
+*   `lib/`: Utility functions and configurations.
+    *   `jwt.js`: JWT verification.
+    *   `prisma.js`: Prisma client setup.
+    *    `utils.js`: Utility functions.
+*   `hooks/`: Custom React hooks.
     *  `use-toast.js`: Custom hook for toast notifications.
 *   `middleware.js`: Middleware for authentication.
-*   `prisma/`: Prisma schema .
+*   `prisma/`: Prisma schema.
 *   `public/`: Public assets.
-*   `server.js`: Express server for cron jobs and Next.js handling .
+*   `server.js`: Express server for cron jobs and Next.js handling.
 
 ## Getting Started
 
@@ -104,4 +104,20 @@ The project is organized as follows:
 *  Start the development server with `npm run dev`.  
 
 ## Screenshots
+![2](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/2.png)
+![3](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/3.png)
+
+| ![1](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/1.png) | ![4](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/4.png) |
+|:---------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------:|
+| ![5:](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/5.png) | ![6](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/6.png) |
+| ![7](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/7.png) | ![8](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/8.png) |
+| ![9](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/9.png) | ![10](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/10.png) |
+| ![11](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/11.png) | ![12](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/12.png) |
+| ![13](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/13.png) | ![14](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/14.png) |
+| ![15](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/15.png) | ![16](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/16.png) |
+| ![17](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/17.png) | ![18](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/18.png) |
+| ![19](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/19.png) | ![20](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/20.png) |
+| ![21](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/21.png) | ![22](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/22.png) |
+| ![23](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/23.png) | ![24](https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/24.png) |
+| <td colspan="2" align="center"><img src="https://github.com/Ahmadalhomsi/customers-payment-manager-shadcn/raw/master/Pic/25-prisma-uml.png" width="600"></td> |
 
