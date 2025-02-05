@@ -35,7 +35,7 @@ This is a **customer services management application** designed for MAPOS compan
     *   Password validation for new users via external API.
 *   **User Interface**:
     *   Modern and responsive UI built with React and Next.js.
-    *   Reusable UI components built with Radix UI.
+    *   Reusable UI components built with Shadcn.
     *   Customizable theme using `next-themes`.
     *   Uses `sonner` for toast notifications.
 
@@ -44,7 +44,7 @@ This is a **customer services management application** designed for MAPOS compan
 *   **Frontend**:
     *   Next.js.
     *   React .
-    *   Radix UI for accessible components.
+    *   Shadcn for accessible components.
     *   `date-fns` for date manipulation.
     *   `axios` for HTTP requests.
     *   `clsx` and `tailwind-merge` for conditional styling with Tailwind CSS.
