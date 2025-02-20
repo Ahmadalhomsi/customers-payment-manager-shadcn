@@ -84,6 +84,12 @@ export function CustomerTable({
       let aValue = a[sortConfig.key];
       let bValue = b[sortConfig.key];
 
+      // Handle null or undefined tableName values for sorting
+      if (sortConfig.key === 'tableName') {
+        aValue = a.tableName || '';
+        bValue = b.tableName || '';
+      }
+
       if (sortConfig.key === 'status') {
         aValue = getCustomerStatus(a);
         bValue = getCustomerStatus(b);
@@ -254,8 +260,17 @@ export function CustomerTable({
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-1">
-                  İsim
+                  Müşteri adı
                   <SortIcon column="name" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort('tableName')}
+              >
+                <div className="flex items-center gap-1">
+                  Tabela Adı
+                  <SortIcon column="tableName" />
                 </div>
               </TableHead>
               <TableHead
@@ -312,6 +327,7 @@ export function CustomerTable({
                   className="hover:bg-muted/50 transition-colors"
                 >
                   <TableCell className="font-medium">{customer.name}</TableCell>
+                  <TableCell className="text-foreground/80">{customer.tableName || '-'}</TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
