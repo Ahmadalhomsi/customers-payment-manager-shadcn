@@ -14,11 +14,11 @@ export async function POST(req) {
         }
 
         // Extract request body
-        const { name, email, phone, password } = await req.json();
+        const { name, tableName, email, phone, password } = await req.json();
 
         // Create the customer
         const customer = await prisma.customer.create({
-            data: { name, email, phone, password },
+            data: { name, tableName, email, phone, password },
         });
 
         // Calculate service dates

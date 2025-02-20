@@ -4,7 +4,7 @@ import { verifyJWT } from '@/lib/jwt';
 
 export async function PUT(req, { params }) {
     const { id } = await params;
-    const { name, email, password } = await req.json();
+    const { name, tableName, email, password } = await req.json();
 
     const token = req.cookies.get("token")?.value;
     const decoded = await verifyJWT(token);
@@ -16,7 +16,7 @@ export async function PUT(req, { params }) {
     try {
         const customer = await prisma.customer.update({
             where: { id: id },
-            data: { name, email, password },
+            data: { name, tableName, email, password },
         });
         return NextResponse.json(customer, { status: 200 });
     } catch (error) {
