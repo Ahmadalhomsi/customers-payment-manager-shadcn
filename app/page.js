@@ -166,6 +166,8 @@ export default function CustomersPage() {
       }
       setCustomerModalVisible(false);
       setSelectedCustomer(null); // Reset selected customer after submission
+      // add the customer to the list
+      fetchCustomers();
     } catch (error) {
       console.log('Error submitting customer:', error);
     }
