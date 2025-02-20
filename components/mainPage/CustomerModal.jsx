@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Shuffle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const FormField = ({ label, id, ...props }) => (
@@ -40,6 +40,30 @@ const validatePassword = (password) => {
   };
 };
 
+// Function to generate a strong random password
+const generateRandomPassword = () => {
+  const upperChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lowerChars = 'abcdefghijkmnopqrstuvwxyz';
+  const numbers = '23456789';
+  const specialChars = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+
+  // Ensure at least one of each character type
+  let password = '';
+  password += upperChars.charAt(Math.floor(Math.random() * upperChars.length));
+  password += lowerChars.charAt(Math.floor(Math.random() * lowerChars.length));
+  password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  password += specialChars.charAt(Math.floor(Math.random() * specialChars.length));
+
+  // Fill the rest of the password (total 12 characters)
+  const allChars = upperChars + lowerChars + numbers + specialChars;
+  for (let i = 0; i < 8; i++) {
+    password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+  }
+
+  // Shuffle the password
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+};
+
 export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, customers }) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -47,6 +71,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     email: "",
     phone: "",
     password: "",
+    tableName: "",
   });
   const [passwordValidation, setPasswordValidation] = useState({
     minLength: false,
@@ -63,8 +88,8 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
       // Pre-fill the form with the selected customer's data, including the actual password
       setFormData(
         selectedCustomer
-          ? { ...selectedCustomer } // Include the actual password
-          : { name: "", email: "", phone: "", password: "" }
+          ? { ...selectedCustomer, tableName: selectedCustomer.tableName || "" } // Include the actual password and tableName
+          : { name: "", email: "", phone: "", password: "", tableName: "" }
       );
       setPasswordValidation({
         minLength: false,
@@ -96,6 +121,30 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
         return newErrors;
       });
     }
+  };
+
+  const handleGeneratePassword = () => {
+    const newPassword = generateRandomPassword();
+    setFormData(prev => ({
+      ...prev,
+      password: newPassword
+    }));
+    setPasswordValidation(validatePassword(newPassword));
+    setShowPassword(true); // Show the generated password
+
+    // Remove any password errors since we've generated a valid one
+    if (errors.password) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.password;
+        return newErrors;
+      });
+    }
+
+    toast({
+      title: "Şifre Oluşturuldu",
+      description: "Güçlü bir şifre oluşturuldu.",
+    });
   };
 
   const validateForm = () => {
@@ -159,7 +208,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
 
         <div className="grid gap-4 py-4">
           <FormField
-            label="İsim"
+            label="Müşteri Adı"
             id="name"
             name="name"
             value={formData.name}
@@ -168,6 +217,16 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
             required
           />
           {errors.name && <p className="text-destructive text-sm ml-24">{errors.name}</p>}
+
+          <FormField
+            label="Tabela Adı"
+            id="tableName"
+            name="tableName"
+            value={formData.tableName}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Opsiyonel"
+          />
 
           <FormField
             label="Email"
@@ -192,7 +251,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
           />
 
           <FormField label="Şifre" id="password">
-            <div className="relative">
+            <div className="relative flex">
               <Input
                 id="password"
                 name="password"
@@ -203,19 +262,31 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
                 className="pr-10"
                 required={!selectedCustomer} // Only required for new customers
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                ) : (
-                  <Eye className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                )}
-              </Button>
+              <div className="absolute right-0 top-0 h-full flex">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleGeneratePassword}
+                  className="h-full px-2 hover:bg-transparent"
+                  title="Rastgele şifre oluştur"
+                >
+                  <Shuffle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="h-full px-2 hover:bg-transparent"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                  )}
+                </Button>
+              </div>
             </div>
             {formData.password && (
               <div className="text-sm mt-2 space-y-1">
