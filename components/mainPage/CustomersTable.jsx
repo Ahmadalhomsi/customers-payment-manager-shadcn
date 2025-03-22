@@ -170,9 +170,10 @@ export function CustomerTable({
 
   const filteredCustomers = sortCustomers(
     customers.filter(customer => {
-      const matchesSearch = Object.values(customer).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const matchesSearch =
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (customer.tableName && customer.tableName.toLowerCase().includes(searchTerm.toLowerCase()));
+
       const status = getCustomerStatus(customer);
       const matchesDateRange = isDateInRange(
         customer.createdAt,
@@ -184,6 +185,7 @@ export function CustomerTable({
         matchesDateRange;
     })
   );
+
 
   return (
     <div className="space-y-4 relative">
