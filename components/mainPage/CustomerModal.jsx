@@ -9,15 +9,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Shuffle } from "lucide-react";
+import { Eye, EyeOff, Shuffle, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-const FormField = ({ label, id, ...props }) => (
-  <div className="grid grid-cols-4 items-center gap-4">
-    <Label htmlFor={id} className="text-right">
-      {label}
-    </Label>
-    <div className="col-span-3">
+const FormField = ({ label, id, required, optional, ...props }) => (
+  <div className="grid gap-2">
+    <div className="flex items-center">
+      <Label htmlFor={id} className="text-sm font-medium">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+        {optional && <span className="text-gray-400 text-xs ml-1">(Opsiyonel)</span>}
+      </Label>
+    </div>
+    <div>
       {props.children ? props.children : <Input id={id} {...props} />}
     </div>
   </div>
@@ -194,132 +198,143 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     }
   };
 
-  return (
-    <Dialog open={visible} onOpenChange={onClose}>
-      <DialogContent
-        className="sm:max-w-[425px]"
-        onKeyDown={handleKeyDown} // Add keydown handler to the dialog
-      >
-        <DialogHeader>
-          <DialogTitle>
-            {selectedCustomer ? "Müşteri Güncelle" : "Müşteri Ekle"}
-          </DialogTitle>
-        </DialogHeader>
+  return (<Dialog open={visible} onOpenChange={onClose}>
+    <DialogContent
+      className="sm:max-w-[420px] max-h-[600px] overflow-y-auto" // Set max height and enable vertical scrolling
+      onKeyDown={handleKeyDown}
+    >
+      <DialogHeader>
+        <DialogTitle>
+          {selectedCustomer ? "Müşteri Güncelle" : "Müşteri Ekle"}
+        </DialogTitle>
+        <div className="text-sm text-muted-foreground flex items-center mt-2">
+          <AlertCircle className="h-4 w-4 mr-1" />
+          <span className="text-red-500 mr-1">*</span> işaretli alanlar zorunludur.
+        </div>
+      </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <FormField
-            label="Müşteri Adı"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown} // Add keydown handler to input
-            required
-          />
-          {errors.name && <p className="text-destructive text-sm ml-24">{errors.name}</p>}
+      <div className="grid gap-6 py-4">
+        <FormField
+          label="Müşteri Adı"
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          required
+          className={errors.name ? "border-red-500" : ""}
+        />
+        {errors.name && <p className="text-destructive text-sm -mt-4">{errors.name}</p>}
 
-          <FormField
-            label="Tabela Adı"
-            id="tableName"
-            name="tableName"
-            value={formData.tableName}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Opsiyonel"
-          />
+        <FormField
+          label="Tabela Adı"
+          id="tableName"
+          name="tableName"
+          value={formData.tableName}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          optional
+        />
 
-          <FormField
-            label="Email"
-            id="email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown} // Add keydown handler to input
-            required
-          />
-          {errors.email && <p className="text-destructive text-sm ml-24">{errors.email}</p>}
+        <FormField
+          label="Email"
+          id="email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          required
+          className={errors.email ? "border-red-500" : ""}
+        />
+        {errors.email && <p className="text-destructive text-sm -mt-4">{errors.email}</p>}
 
-          <FormField
-            label="Telefon"
-            id="phone"
-            name="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown} // Add keydown handler to input
-          />
+        <FormField
+          label="Telefon"
+          id="phone"
+          name="phone"
+          type="tel"
+          value={formData.phone}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          optional
+        />
 
-          <FormField label="Şifre" id="password">
-            <div className="relative flex">
-              <Input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown} // Add keydown handler to input
-                className="pr-10"
-                required={!selectedCustomer} // Only required for new customers
-              />
-              <div className="absolute right-0 top-0 h-full flex">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleGeneratePassword}
-                  className="h-full px-2 hover:bg-transparent"
-                  title="Rastgele şifre oluştur"
-                >
-                  <Shuffle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="h-full px-2 hover:bg-transparent"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                  )}
-                </Button>
+        <FormField
+          label="Şifre"
+          id="password"
+          required={!selectedCustomer}
+          optional={!!selectedCustomer}
+        >
+          <div className="relative flex">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              value={formData.password}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              className={`pr-20 ${errors.password ? "border-red-500" : ""}`}
+            />
+            <div className="absolute right-0 top-0 h-full flex">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleGeneratePassword}
+                className="h-full px-2 hover:bg-transparent"
+                title="Rastgele şifre oluştur"
+              >
+                <Shuffle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPassword(!showPassword)}
+                className="h-full px-2 hover:bg-transparent"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                )}
+              </Button>
+            </div>
+          </div>
+          {formData.password && (
+            <div className="text-sm mt-2 space-y-1">
+              <div className={passwordValidation.minLength ? 'text-green-600' : 'text-destructive'}>
+                • En az 8 karakter
+              </div>
+              <div className={passwordValidation.hasUpper ? 'text-green-600' : 'text-destructive'}>
+                • En az bir büyük harf
+              </div>
+              <div className={passwordValidation.hasLower ? 'text-green-600' : 'text-destructive'}>
+                • En az bir küçük harf
+              </div>
+              <div className={passwordValidation.hasNumber ? 'text-green-600' : 'text-destructive'}>
+                • En az bir sayı
+              </div>
+              <div className={passwordValidation.hasSpecial ? 'text-green-600' : 'text-destructive'}>
+                • En az bir özel karakter
               </div>
             </div>
-            {formData.password && (
-              <div className="text-sm mt-2 space-y-1">
-                <div className={passwordValidation.minLength ? 'text-green-600' : 'text-destructive'}>
-                  • En az 8 karakter
-                </div>
-                <div className={passwordValidation.hasUpper ? 'text-green-600' : 'text-destructive'}>
-                  • En az bir büyük harf
-                </div>
-                <div className={passwordValidation.hasLower ? 'text-green-600' : 'text-destructive'}>
-                  • En az bir küçük harf
-                </div>
-                <div className={passwordValidation.hasNumber ? 'text-green-600' : 'text-destructive'}>
-                  • En az bir sayı
-                </div>
-                <div className={passwordValidation.hasSpecial ? 'text-green-600' : 'text-destructive'}>
-                  • En az bir özel karakter
-                </div>
-              </div>
-            )}
-            {errors.password && <p className="text-destructive text-sm">{errors.password}</p>}
-          </FormField>
-        </div>
+          )}
+          {errors.password && <p className="text-destructive text-sm">{errors.password}</p>}
+        </FormField>
+      </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" onClick={handleSubmit}>
-            {selectedCustomer ? "Save Changes" : "Create"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <DialogFooter className="gap-2">
+        <Button variant="outline" onClick={onClose}>
+          İptal
+        </Button>
+        <Button type="submit" onClick={handleSubmit}>
+          {selectedCustomer ? "Kaydet" : "Oluştur"}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
   );
 }
