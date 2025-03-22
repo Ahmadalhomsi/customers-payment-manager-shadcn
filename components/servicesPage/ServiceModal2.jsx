@@ -427,7 +427,7 @@ export function ServiceModal2({
                                         month={startDateMonth}
                                         onMonthChange={setStartDateMonth}
                                         className="rounded-md border w-full"
-                                        disabled={(date) => date < formData.startingDate}
+                                        // disabled={(date) => date < formData.startingDate}
                                         locale={tr}
                                         formatters={{
                                             formatCaption: (date, options) => {
