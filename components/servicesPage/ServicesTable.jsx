@@ -116,42 +116,45 @@ export function ServiceTable({
     })
 
     const filteredServices = sortedServices.filter(service => {
-        const matchesSearch = Object.values(service).some(value =>
-            String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        const status = getServiceStatus(service)
-        const matchesStatus = statusFilter === 'all' || status === statusFilter
+        const customer = customers.find(c => c.id === service.customerID);
+        const matchesSearch =
+            service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (customer?.name && customer.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-        let matchesStartDate = true
+        const status = getServiceStatus(service);
+        const matchesStatus = statusFilter === 'all' || status === statusFilter;
+
+        let matchesStartDate = true;
         if (dateRangeFilter) {
-            const { from, to } = dateRangeFilter
-            const serviceStart = new Date(service.startingDate)
+            const { from, to } = dateRangeFilter;
+            const serviceStart = new Date(service.startingDate);
 
             if (from && to) {
-                matchesStartDate = serviceStart >= from && serviceStart <= to
+                matchesStartDate = serviceStart >= from && serviceStart <= to;
             } else if (from) {
-                matchesStartDate = serviceStart >= from
+                matchesStartDate = serviceStart >= from;
             } else if (to) {
-                matchesStartDate = serviceStart <= to
+                matchesStartDate = serviceStart <= to;
             }
         }
 
-        let matchesEndDate = true
+        let matchesEndDate = true;
         if (endDateRangeFilter) {
-            const { from, to } = endDateRangeFilter
-            const serviceEnd = new Date(service.endingDate)
+            const { from, to } = endDateRangeFilter;
+            const serviceEnd = new Date(service.endingDate);
 
             if (from && to) {
-                matchesEndDate = serviceEnd >= from && serviceEnd <= to
+                matchesEndDate = serviceEnd >= from && serviceEnd <= to;
             } else if (from) {
-                matchesEndDate = serviceEnd >= from
+                matchesEndDate = serviceEnd >= from;
             } else if (to) {
-                matchesEndDate = serviceEnd <= to
+                matchesEndDate = serviceEnd <= to;
             }
         }
 
-        return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate
-    })
+        return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
+    });
+
 
     return (
         <TooltipProvider>
