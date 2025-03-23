@@ -158,9 +158,8 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
       newErrors.name = "İsim gereklidir";
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = "Email gereklidir";
-    } else if (customers.some(c => c.email === formData.email && c.id !== selectedCustomer?.id)) {
+    // Email is now optional
+    if (formData.email.trim() && customers.some(c => c.email === formData.email && c.id !== selectedCustomer?.id)) {
       newErrors.email = "Bu email adresi zaten kullanımda";
     }
 
@@ -244,7 +243,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
           value={formData.email}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          required
+          optional // Email is now optional
           className={errors.email ? "border-red-500" : ""}
         />
         {errors.email && <p className="text-destructive text-sm -mt-4">{errors.email}</p>}

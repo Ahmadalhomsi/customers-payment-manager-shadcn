@@ -39,7 +39,7 @@ model Customer {
   id        String  @id @default(cuid())
   name      String
   tableName String?
-  email     String  @unique // or username
+  email     String?
   phone     String?
   password  String
 
