@@ -118,8 +118,8 @@ export function ServiceTable({
     const filteredServices = sortedServices.filter(service => {
         const customer = customers.find(c => c.id === service.customerID);
         const matchesSearch =
-            service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (customer?.name && customer.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            service.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
+            (customer?.name && customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')));
 
         const status = getServiceStatus(service);
         const matchesStatus = statusFilter === 'all' || status === statusFilter;

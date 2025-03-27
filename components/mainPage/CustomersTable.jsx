@@ -101,8 +101,8 @@ export function CustomerTable({
       }
 
       if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
+        aValue = aValue.toLocaleLowerCase('tr-TR');
+        bValue = bValue.toLocaleLowerCase('tr-TR');
       }
 
       if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
@@ -171,8 +171,8 @@ export function CustomerTable({
   const filteredCustomers = sortCustomers(
     customers.filter(customer => {
       const matchesSearch =
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (customer.tableName && customer.tableName.toLowerCase().includes(searchTerm.toLowerCase()));
+        customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
+        (customer.tableName && customer.tableName.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')));
 
       const status = getCustomerStatus(customer);
       const matchesDateRange = isDateInRange(

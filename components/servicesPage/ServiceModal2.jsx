@@ -275,7 +275,7 @@ export function ServiceModal2({
                                             <CommandGroup>
                                                 {customers
                                                     .filter((customer) =>
-                                                        customer.name.toLowerCase().includes(searchQuery.toLowerCase())
+                                                        customer.name.toLocaleLowerCase('tr-TR').includes(searchQuery.toLocaleLowerCase('tr-TR'))
                                                     )
                                                     .map((customer) => (
                                                         <CommandItem
