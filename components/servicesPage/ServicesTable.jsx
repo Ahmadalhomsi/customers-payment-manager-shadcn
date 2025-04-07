@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info } from 'lucide-react'
+import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key } from 'lucide-react'
 import { format } from "date-fns"
 import { useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -63,6 +63,9 @@ export function ServiceTable({
     const [dateRangeFilter, setDateRangeFilter] = useState()
     const [endDateRangeFilter, setEndDateRangeFilter] = useState()
 
+    // Check if any service has a deviceToken
+    const hasDeviceTokens = services.some(service => service.deviceToken);
+
     const getServiceStatus = (service) => {
         const today = new Date()
         const startDate = new Date(service.startingDate)
@@ -107,6 +110,21 @@ export function ServiceTable({
                 : bOrder - aOrder
         }
 
+        if (key === 'deviceToken') {
+            const aHasToken = !!aValue;
+            const bHasToken = !!bValue;
+            
+            if (aHasToken === bHasToken) {
+                return sortConfig.direction === 'asc'
+                    ? (aValue || '').localeCompare(bValue || '')
+                    : (bValue || '').localeCompare(aValue || '');
+            }
+            
+            return sortConfig.direction === 'asc'
+                ? (aHasToken ? 1 : -1)
+                : (aHasToken ? -1 : 1);
+        }
+
         if (typeof aValue === 'string') {
             return sortConfig.direction === 'asc'
                 ? aValue.localeCompare(bValue)
@@ -119,7 +137,8 @@ export function ServiceTable({
         const customer = customers.find(c => c.id === service.customerID);
         const matchesSearch =
             service.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
-            (customer?.name && customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')));
+            (customer?.name && customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
+            (service.deviceToken && service.deviceToken.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')));
 
         const status = getServiceStatus(service);
         const matchesStatus = statusFilter === 'all' || status === statusFilter;
@@ -329,6 +348,17 @@ export function ServiceTable({
                                         <SortIcon column="status" />
                                     </div>
                                 </TableHead>
+                                {hasDeviceTokens && (
+                                    <TableHead
+                                        className="cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleSort('deviceToken')}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Cihaz Token
+                                            <SortIcon column="deviceToken" />
+                                        </div>
+                                    </TableHead>
+                                )}
                                 <TableHead className="text-right">İşlemler</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -386,6 +416,25 @@ export function ServiceTable({
                                                 {status === 'active' ? 'Aktif' : status === 'upcoming' ? 'Yaklaşan' : 'Süresi Dolmuş'}
                                             </Badge>
                                         </TableCell>
+                                        {hasDeviceTokens && (
+                                            <TableCell>
+                                                {service.deviceToken ? (
+                                                    <Tooltip>
+                                                        <TooltipTrigger>
+                                                            <div className="flex items-center gap-1">
+                                                                <Key className="h-4 w-4 text-emerald-500" />
+                                                                <span className="font-mono text-xs truncate max-w-[120px]">
+                                                                    {service.deviceToken.substring(0, 8)}...
+                                                                </span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p className="font-mono text-xs break-all max-w-[300px]">{service.deviceToken}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                ) : '-'}
+                                            </TableCell>
+                                        )}
                                         <TableCell className="flex justify-end gap-2">
                                             <Button
                                                 variant="ghost"
