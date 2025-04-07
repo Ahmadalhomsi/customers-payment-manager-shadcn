@@ -47,16 +47,16 @@ export async function POST(request) {
         }, { status: 400 });
     }
 
-    // Check for existing email
-    const existingCustomer = await prisma.customer.findUnique({
-        where: { email }
-    });
+    // // Check for existing email
+    // const existingCustomer = await prisma.customer.findUnique({
+    //     where: { email }
+    // });
 
-    if (existingCustomer) {
-        return NextResponse.json({
-            error: 'Bu e-posta adresi zaten kullanımda'
-        }, { status: 409 });
-    }
+    // if (existingCustomer) {
+    //     return NextResponse.json({
+    //         error: 'Bu e-posta adresi zaten kullanımda'
+    //     }, { status: 409 });
+    // }
 
     try {
         const customer = await prisma.customer.create({
