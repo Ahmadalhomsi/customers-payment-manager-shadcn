@@ -12,7 +12,7 @@ export async function POST(request) {
 
         if (!service) {
             console.log("Service not found");
-            return NextResponse.json({ valid: false, message: "Service not found" }, { status: 404 });
+            return NextResponse.json({ valid: false, message: "Service not found" });
         }
 
         const today = new Date();
