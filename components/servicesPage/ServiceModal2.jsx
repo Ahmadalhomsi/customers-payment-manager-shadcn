@@ -49,6 +49,7 @@ const DURATIONS = [
     { value: "1year", label: "1 Yıl" },
     { value: "2years", label: "2 Yıl" },
     { value: "3years", label: "3 Yıl" },
+    { value: "unlimited", label: "Sınırsız" },
     { value: "custom", label: "Özel" },
 ];
 
@@ -150,6 +151,9 @@ export function ServiceModal2({
                     break;
                 case "3years":
                     end.setFullYear(end.getFullYear() + 3);
+                    break;
+                case "unlimited":
+                    end.setFullYear(end.getFullYear() + 100); // Set 100 years in the future for "unlimited"
                     break;
             }
 

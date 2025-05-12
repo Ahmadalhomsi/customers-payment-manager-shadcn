@@ -41,6 +41,9 @@ export async function POST(req) {
             );
         }
 
+        // Handle unlimited service type (100 years into the future)
+        let serviceEndDate = new Date(endingDate);
+        
         // Create the service with direct date strings
         const service = await prisma.service.create({
             data: {
@@ -50,7 +53,7 @@ export async function POST(req) {
                 periodPrice: parseFloat(periodPrice), // Ensure periodPrice is a float
                 currency,
                 startingDate: new Date(startingDate),
-                endingDate: new Date(endingDate),
+                endingDate: serviceEndDate,
                 // customerID,
                 customer: {
                     connect: { id: customerID }
@@ -58,18 +61,21 @@ export async function POST(req) {
             }
         });
 
-        // Calculate the reminder date (one week before the service ends)
-        const reminderDate = subWeeks(endingDate, 1);
+        // Only create a reminder if the service is not unlimited
+        if (paymentType !== "unlimited") {
+            // Calculate the reminder date (one week before the service ends)
+            const reminderDate = subWeeks(serviceEndDate, 1);
 
-        // Create a reminder for one week before the service ends
-        await prisma.reminder.create({
-            data: {
-                scheduledAt: reminderDate,
-                status: "SCHEDULED",
-                message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",  // Özel mesaj
-                serviceID: service.id,
-            },
-        });
+            // Create a reminder for one week before the service ends
+            await prisma.reminder.create({
+                data: {
+                    scheduledAt: reminderDate,
+                    status: "SCHEDULED",
+                    message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",  // Özel mesaj
+                    serviceID: service.id,
+                },
+            });
+        }
 
         return NextResponse.json(service, { status: 201 });
     } catch (error) {

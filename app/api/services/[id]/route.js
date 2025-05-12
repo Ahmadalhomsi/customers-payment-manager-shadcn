@@ -57,7 +57,11 @@ export async function PUT(req, { params }) {
             const newEndingDate = new Date(data.endingDate);
             const currentEndingDate = new Date(existingService.endingDate);
 
-            if (newEndingDate > currentEndingDate) {
+            // Don't create renewals when transitioning to or from unlimited type
+            if (newEndingDate > currentEndingDate && 
+                data.paymentType !== "unlimited" && 
+                existingService.paymentType !== "unlimited") {
+                
                 // Calculate the difference in days
                 const diffInDays = Math.floor((newEndingDate - currentEndingDate) / (1000 * 60 * 60 * 24));
 
@@ -81,6 +85,9 @@ export async function PUT(req, { params }) {
                     serviceId: id,
                 };
 
+                shouldUpdateReminders = true;
+            } else if (data.paymentType !== existingService.paymentType) {
+                // If changing payment type (especially to/from unlimited), update reminders
                 shouldUpdateReminders = true;
             }
         }
@@ -114,22 +121,25 @@ export async function PUT(req, { params }) {
                 })
             );
 
-            // Calculate new reminder date (1 week before new end date)
-            const newEndDate = new Date(data.endingDate);
-            const reminderDate = new Date(newEndDate);
-            reminderDate.setDate(reminderDate.getDate() - 7);
+            // Only create a new reminder if the service is not unlimited
+            if (data.paymentType !== "unlimited") {
+                // Calculate new reminder date (1 week before new end date)
+                const newEndDate = new Date(data.endingDate);
+                const reminderDate = new Date(newEndDate);
+                reminderDate.setDate(reminderDate.getDate() - 7);
 
-            // Create new reminder
-            operations.push(
-                prisma.reminder.create({
-                    data: {
-                        scheduledAt: reminderDate,
-                        status: "SCHEDULED",
-                        message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",
-                        serviceID: id,
-                    },
-                })
-            );
+                // Create new reminder
+                operations.push(
+                    prisma.reminder.create({
+                        data: {
+                            scheduledAt: reminderDate,
+                            status: "SCHEDULED",
+                            message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",
+                            serviceID: id,
+                        },
+                    })
+                );
+            }
         }
 
         // Execute all operations in a transaction

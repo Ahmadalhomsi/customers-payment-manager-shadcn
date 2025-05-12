@@ -27,6 +27,7 @@ const PAYMENT_TYPES = [
   { value: "1year", label: "1 Yıl" },
   { value: "2years", label: "2 Yıl" },
   { value: "3years", label: "3 Yıl" },
+  { value: "unlimited", label: "Sınırsız" },
   { value: "custom", label: "Özel" },
 ];
 
@@ -216,6 +217,9 @@ export function ServiceModal({
           break;
         case "3years":
           end.setUTCFullYear(end.getUTCFullYear() + 3);
+          break;
+        case "unlimited":
+          end.setUTCFullYear(end.getUTCFullYear() + 100); // Set 100 years in the future for "unlimited"
           break;
       }
 
