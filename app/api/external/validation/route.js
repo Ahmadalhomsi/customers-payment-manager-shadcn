@@ -15,6 +15,14 @@ export async function POST(request) {
             return NextResponse.json({ valid: false, message: "Service not found" });
         }
 
+        // Check if service is active first
+        if (!service.active) {
+            return NextResponse.json({
+                valid: false,
+                message: "Service is inactive",
+            }, { status: 403 });
+        }
+
         const today = new Date();
         const endDate = new Date(service.endingDate);
 
