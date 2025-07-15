@@ -30,6 +30,7 @@ const statusColors = {
     upcoming: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
     expired: 'bg-red-500/20 text-red-600 dark:text-red-400',
     inactive: 'bg-gray-500/20 text-gray-600 dark:text-gray-400',
+    notStarted: 'bg-orange-500/20 text-orange-600 dark:text-orange-400',
 }
 
 const paymentTypeColors = {
@@ -77,8 +78,23 @@ export function ServiceTable({
         const startDate = new Date(service.startingDate)
         const endDate = new Date(service.endingDate)
 
-        if (today < startDate) return 'upcoming'
-        if (today > endDate) return 'expired'
+        // If service hasn't started yet, it's not started
+        if (today < startDate) {
+            return 'notStarted'
+        }
+        
+        // If service has already expired, it's expired
+        if (today > endDate) {
+            return 'expired'
+        }
+        
+        // Check if service is expiring within 1 month (30 days)
+        const oneMonthFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000))
+        
+        if (endDate <= oneMonthFromNow) {
+            return 'upcoming'
+        }
+        
         return 'active'
     }
 
@@ -200,6 +216,7 @@ export function ServiceTable({
                             <SelectItem value="all">Tüm Durumlar</SelectItem>
                             <SelectItem value="active">Aktif</SelectItem>
                             <SelectItem value="upcoming">Yaklaşan</SelectItem>
+                            <SelectItem value="notStarted">Başlamadı</SelectItem>
                             <SelectItem value="expired">Süresi Dolmuş</SelectItem>
                             <SelectItem value="inactive">Pasif</SelectItem>
                         </SelectContent>
@@ -423,7 +440,8 @@ export function ServiceTable({
                                                 {status === 'active' ? 'Aktif' : 
                                                  status === 'upcoming' ? 'Yaklaşan' : 
                                                  status === 'expired' ? 'Süresi Dolmuş' :
-                                                 status === 'inactive' ? 'Pasif' : status}
+                                                 status === 'inactive' ? 'Pasif' : 
+                                                 status === 'notStarted' ? 'Başlamadı' : status}
                                             </Badge>
                                         </TableCell>
                                         {hasDeviceTokens && (

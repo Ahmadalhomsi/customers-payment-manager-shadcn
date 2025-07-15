@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { ServiceTable } from '@/components/servicesPage/ServicesTable'
 import { ServiceModal2 } from '@/components/servicesPage/ServiceModal2'
 import { DeleteConfirmModal } from '@/components/mainPage/DeleteConfirmModal'
-import { Plus, Mail } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { RenewHistoryModal } from '@/components/RenewHistoryModal'
 import { toast } from 'sonner'
 
