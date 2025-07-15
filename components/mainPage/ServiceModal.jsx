@@ -33,14 +33,14 @@ const PAYMENT_TYPES = [
 ];
 
 const SERVICE_CATEGORIES = [
-  { value: "Adisyon Programı", label: "Adisyon Programı" },
-  { value: "QR Menu", label: "QR Menu" },
-  { value: "Kurye Uygulaması", label: "Kurye Uygulaması" },
-  { value: "Patron Uygulaması", label: "Patron Uygulaması" },
-  { value: "Yemek Sepeti", label: "Yemek Sepeti" },
-  { value: "Migros Yemek", label: "Migros Yemek" },
-  { value: "Trendyol Yemek", label: "Trendyol Yemek" },
-  { value: "Getir Yemek", label: "Getir Yemek" },
+  { value: "Adisyon Programı", label: "Adisyon Programı", color: "text-blue-600" },
+  { value: "QR Menu", label: "QR Menu", color: "text-green-600" },
+  { value: "Kurye Uygulaması", label: "Kurye Uygulaması", color: "text-orange-600" },
+  { value: "Patron Uygulaması", label: "Patron Uygulaması", color: "text-purple-600" },
+  { value: "Yemek Sepeti", label: "Yemek Sepeti", color: "text-red-600" },
+  { value: "Migros Yemek", label: "Migros Yemek", color: "text-indigo-600" },
+  { value: "Trendyol Yemek", label: "Trendyol Yemek", color: "text-pink-600" },
+  { value: "Getir Yemek", label: "Getir Yemek", color: "text-yellow-600" },
 ];
 
 const CURRENCIES = [
@@ -370,7 +370,9 @@ export function ServiceModal({
               <SelectContent>
                 {SERVICE_CATEGORIES.map((category) => (
                   <SelectItem key={category.value} value={category.value}>
-                    {category.label}
+                    <span className={category.color}>
+                      {category.label}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
