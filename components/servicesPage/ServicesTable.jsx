@@ -56,11 +56,11 @@ const paymentTypeLabels = {
 const categoryColors = {
     'Adisyon Programı': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
     'QR Menu': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-    'Kurye Uygulaması': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+    'Kurye Uygulaması': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
     'Patron Uygulaması': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
     'Yemek Sepeti': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-    'Migros Yemek': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
-    'Trendyol Yemek': 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300',
+    'Migros Yemek': 'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400',
+    'Trendyol Yemek': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
     'Getir Yemek': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
 }
 
@@ -74,12 +74,31 @@ export function ServiceTable({
 }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+    const [categoryFilter, setCategoryFilter] = useState('all')
     const [sortConfig, setSortConfig] = useState(null)
     const [dateRangeFilter, setDateRangeFilter] = useState()
     const [endDateRangeFilter, setEndDateRangeFilter] = useState()
 
     // Check if any service has a deviceToken
     const hasDeviceTokens = services.some(service => service.deviceToken);
+
+    // Get unique categories from services
+    const availableCategories = [...new Set(services.map(service => service.category || 'Adisyon Programı'))];
+
+    // Helper function to get text color for categories
+    const getCategoryTextColor = (category) => {
+        const colorMap = {
+            'Adisyon Programı': 'text-blue-600',
+            'QR Menu': 'text-green-600',
+            'Kurye Uygulaması': 'text-cyan-600',
+            'Patron Uygulaması': 'text-purple-600',
+            'Yemek Sepeti': 'text-red-600',
+            'Migros Yemek': 'text-orange-600',
+            'Trendyol Yemek': 'text-orange-600',
+            'Getir Yemek': 'text-yellow-600'
+        };
+        return colorMap[category] || 'text-gray-600';
+    };
 
     const getServiceStatus = (service) => {
         // First check if the service is explicitly set as inactive
@@ -178,6 +197,8 @@ export function ServiceTable({
         const status = getServiceStatus(service);
         const matchesStatus = statusFilter === 'all' || status === statusFilter;
 
+        const matchesCategory = categoryFilter === 'all' || service.category === categoryFilter;
+
         let matchesStartDate = true;
         if (dateRangeFilter) {
             const { from, to } = dateRangeFilter;
@@ -206,7 +227,7 @@ export function ServiceTable({
             }
         }
 
-        return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
+        return matchesSearch && matchesStatus && matchesCategory && matchesStartDate && matchesEndDate;
     });
 
 
@@ -232,6 +253,22 @@ export function ServiceTable({
                             <SelectItem value="notStarted">Başlamadı</SelectItem>
                             <SelectItem value="expired">Süresi Dolmuş</SelectItem>
                             <SelectItem value="inactive">Pasif</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Kategoriye göre filtrele" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tüm Kategoriler</SelectItem>
+                            {availableCategories.map((category) => (
+                                <SelectItem key={category} value={category}>
+                                    <span className={getCategoryTextColor(category)}>
+                                        {category}
+                                    </span>
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
 

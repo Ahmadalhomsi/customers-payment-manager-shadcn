@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -35,11 +35,11 @@ const PAYMENT_TYPES = [
 const SERVICE_CATEGORIES = [
   { value: "Adisyon Programı", label: "Adisyon Programı", color: "text-blue-600" },
   { value: "QR Menu", label: "QR Menu", color: "text-green-600" },
-  { value: "Kurye Uygulaması", label: "Kurye Uygulaması", color: "text-orange-600" },
+  { value: "Kurye Uygulaması", label: "Kurye Uygulaması", color: "text-cyan-600" },
   { value: "Patron Uygulaması", label: "Patron Uygulaması", color: "text-purple-600" },
   { value: "Yemek Sepeti", label: "Yemek Sepeti", color: "text-red-600" },
-  { value: "Migros Yemek", label: "Migros Yemek", color: "text-indigo-600" },
-  { value: "Trendyol Yemek", label: "Trendyol Yemek", color: "text-pink-600" },
+  { value: "Migros Yemek", label: "Migros Yemek", color: "text-orange-600" },
+  { value: "Trendyol Yemek", label: "Trendyol Yemek", color: "text-orange-600" },
   { value: "Getir Yemek", label: "Getir Yemek", color: "text-yellow-600" },
 ];
 
