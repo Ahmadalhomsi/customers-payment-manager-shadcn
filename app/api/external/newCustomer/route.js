@@ -8,6 +8,7 @@ import prisma from '@/lib/prisma';
  * @description Creates a 15-day trial service for external applications
  * @param {string} deviceToken - The device token for the service
  * @param {string} serviceName - The name of the service to create
+ * @param {string} companyName - Optional company name for the service
  * 
  * @returns {Object} Response object containing:
  * - success: boolean indicating if the operation was successful
@@ -17,7 +18,8 @@ import prisma from '@/lib/prisma';
  * POST /api/external/new
  * Body: {
  *   "deviceToken": "abc123xyz",
- *   "serviceName": "My Mobile App"
+ *   "serviceName": "My Mobile App",
+ *   "companyName": "My Company Inc."
  * }
  * 
  * Response: {
@@ -35,7 +37,7 @@ import prisma from '@/lib/prisma';
 export async function POST(req) {
     try {
         const data = await req.json();
-        const { deviceToken, serviceName } = data;
+        const { deviceToken, serviceName, companyName } = data;
 
         // Validate required fields
         if (!deviceToken || !serviceName) {
@@ -56,6 +58,14 @@ export async function POST(req) {
         if (serviceName.length > 100) {
             return NextResponse.json(
                 { error: 'Service name is too long (maximum 100 characters)' },
+                { status: 400 }
+            );
+        }
+
+        // Validate company name length if provided
+        if (companyName && companyName.length > 100) {
+            return NextResponse.json(
+                { error: 'Company name is too long (maximum 100 characters)' },
                 { status: 400 }
             );
         }
@@ -117,6 +127,7 @@ export async function POST(req) {
             data: {
                 name: serviceName,
                 description: `Trial service - 15 days from ${startingDate.toDateString()}`,
+                companyName: companyName || null,
                 paymentType: 'custom',
                 periodPrice: 0.0, // Free trial
                 currency: 'TL',
@@ -146,6 +157,7 @@ export async function POST(req) {
             service: {
                 id: service.id,
                 name: service.name,
+                companyName: service.companyName,
                 startingDate: service.startingDate,
                 endingDate: service.endingDate,
                 deviceToken: service.deviceToken,
@@ -226,6 +238,7 @@ export async function GET(req) {
                 id: service.id,
                 name: service.name,
                 description: service.description,
+                companyName: service.companyName,
                 startingDate: service.startingDate,
                 endingDate: service.endingDate,
                 deviceToken: service.deviceToken,
