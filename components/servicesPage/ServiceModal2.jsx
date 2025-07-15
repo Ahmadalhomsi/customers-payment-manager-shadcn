@@ -63,6 +63,7 @@ const EXTENSION_PERIODS = [
 const INITIAL_FORM_STATE = {
     name: "",
     description: "",
+    companyName: "",
     customerID: "",
     paymentType: "1year",
     periodPrice: "",
@@ -336,6 +337,20 @@ export function ServiceModal2({
                             onKeyDown={handleKeyDown}
                             className="w-full sm:col-span-3"
                             placeholder="Hizmet açıklaması girin"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                        <Label htmlFor="companyName" className="text-left sm:text-right">
+                            İşletme Adı
+                        </Label>
+                        <Input
+                            id="companyName"
+                            value={formData.companyName || ''}
+                            onChange={(e) => handleChange("companyName", e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            className="w-full sm:col-span-3"
+                            placeholder="İşletme adını girin"
                         />
                     </div>
 

@@ -107,6 +107,7 @@ export function ServicesViewModal({
               <TableHead>ID/Token</TableHead>
               <TableHead>İsim</TableHead>
               <TableHead>Açıklama</TableHead>
+              <TableHead>İşletme Adı</TableHead>
               <TableHead>Ödeme Türü</TableHead>
               <TableHead>Fiyat</TableHead>
               <TableHead>Durum</TableHead>
@@ -118,7 +119,7 @@ export function ServicesViewModal({
           <TableBody>
             {loadingOnModal ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8">
+                <TableCell colSpan={10} className="text-center py-8">
                   <div className="flex justify-center">
                     <BeatLoader color="#f26000" />
                   </div>
@@ -126,7 +127,7 @@ export function ServicesViewModal({
               </TableRow>
             ) : services.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center">
+                <TableCell colSpan={10} className="text-center">
                   Hizmet bulunamadı.
                 </TableCell>
               </TableRow>
@@ -138,6 +139,7 @@ export function ServicesViewModal({
                     <TableCell>{service.id}</TableCell>
                     <TableCell>{service.name}</TableCell>
                     <TableCell>{service.description}</TableCell>
+                    <TableCell>{service.companyName || '-'}</TableCell>
                     <TableCell>{getPaymentTypeLabel(service.paymentType)}</TableCell>
                     <TableCell>
                       {service.periodPrice} {service.currency}

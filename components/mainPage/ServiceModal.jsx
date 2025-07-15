@@ -41,6 +41,7 @@ const CURRENCIES = [
 const INITIAL_FORM_STATE = {
   name: "",
   description: "",
+  companyName: "",
   paymentType: "1year", // Will mirror duration selection
   periodPrice: "",
   currency: "TL",
@@ -324,6 +325,21 @@ export function ServiceModal({
               onKeyDown={handleKeyDown}
               className="w-full sm:col-span-3"
               placeholder="Enter service description"
+            />
+          </div>
+
+          {/* Company Name */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+            <Label htmlFor="companyName" className="text-left sm:text-right">
+              İşletme Adı
+            </Label>
+            <Input
+              id="companyName"
+              value={formData.companyName || ""}
+              onChange={(e) => handleChange("companyName", e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="w-full sm:col-span-3"
+              placeholder="İşletme adını giriniz"
             />
           </div>
 

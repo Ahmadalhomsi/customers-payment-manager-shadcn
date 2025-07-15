@@ -160,6 +160,7 @@ export function ServiceTable({
         const matchesSearch =
             service.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
             (customer?.name && customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
+            (service.companyName && service.companyName.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
             (service.deviceToken && service.deviceToken.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')));
 
         const status = getServiceStatus(service);
@@ -329,6 +330,15 @@ export function ServiceTable({
                                 <TableHead>Açıklama</TableHead>
                                 <TableHead
                                     className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('companyName')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        İşletme Adı
+                                        <SortIcon column="companyName" />
+                                    </div>
+                                </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
                                     onClick={() => handleSort('customerID')}
                                 >
                                     <div className="flex items-center gap-1">
@@ -408,6 +418,9 @@ export function ServiceTable({
                                                     </TooltipContent>
                                                 </Tooltip>
                                             ) : '-'}
+                                        </TableCell>
+                                        <TableCell>
+                                            {service.companyName || '-'}
                                         </TableCell>
                                         <TableCell>{customer?.name || 'Bilinmeyen Müşteri'}</TableCell>
                                         <TableCell>

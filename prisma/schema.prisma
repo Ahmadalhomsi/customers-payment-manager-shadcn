@@ -54,6 +54,7 @@ model Service {
   id          String  @id @default(cuid())
   name        String
   description String?
+  companyName String?
   paymentType String  @default("custom") // Monthly, Yearly
   periodPrice Float?
   currency    String  @default("TL")
