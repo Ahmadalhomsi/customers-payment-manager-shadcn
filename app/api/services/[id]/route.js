@@ -101,6 +101,7 @@ export async function PUT(req, { params }) {
                 paymentType: data.paymentType,
                 periodPrice: data.periodPrice,
                 currency: data.currency,
+                active: data.active !== undefined ? data.active : undefined,
                 startingDate: data.startingDate,
                 endingDate: data.endingDate,
                 customerID: data.customerID

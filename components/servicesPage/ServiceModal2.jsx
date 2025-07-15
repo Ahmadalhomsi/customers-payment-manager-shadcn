@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
     Select,
     SelectContent,
@@ -66,6 +67,7 @@ const INITIAL_FORM_STATE = {
     paymentType: "1year",
     periodPrice: "",
     currency: "TL",
+    active: true,
     startingDate: new Date(),
     endingDate: (() => {
         const defaultEnd = new Date();
@@ -335,6 +337,23 @@ export function ServiceModal2({
                             className="w-full sm:col-span-3"
                             placeholder="Hizmet açıklaması girin"
                         />
+                    </div>
+
+                    {/* Active Status */}
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                        <Label htmlFor="active" className="text-left sm:text-right">
+                            Durum
+                        </Label>
+                        <div className="w-full sm:col-span-3 flex items-center gap-3">
+                            <Switch
+                                id="active"
+                                checked={formData.active}
+                                onCheckedChange={(checked) => handleChange("active", checked)}
+                            />
+                            <Label htmlFor="active" className="text-sm">
+                                {formData.active ? "Aktif" : "Pasif"}
+                            </Label>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">

@@ -57,6 +57,7 @@ model Service {
   paymentType String  @default("custom") // Monthly, Yearly
   periodPrice Float?
   currency    String  @default("TL")
+  active      Boolean @default(true)
 
   startingDate DateTime @default(now())
   endingDate   DateTime @default(dbgenerated("(CURRENT_TIMESTAMP + INTERVAL '1 year')"))

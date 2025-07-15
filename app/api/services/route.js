@@ -30,7 +30,8 @@ export async function POST(req) {
             currency,
             customerID,
             startingDate,
-            endingDate
+            endingDate,
+            active = true
         } = data;
 
         // Validate required fields
@@ -52,6 +53,7 @@ export async function POST(req) {
                 paymentType,
                 periodPrice: parseFloat(periodPrice), // Ensure periodPrice is a float
                 currency,
+                active,
                 startingDate: new Date(startingDate),
                 endingDate: serviceEndDate,
                 // customerID,

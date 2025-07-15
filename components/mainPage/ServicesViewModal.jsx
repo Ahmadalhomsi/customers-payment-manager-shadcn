@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, CalendarCheck2, Plus } from "lucide-react";
 import { BeatLoader } from 'react-spinners';
 
@@ -45,6 +46,42 @@ export function ServicesViewModal({
     return paymentType ? paymentType.label : value;
   };
 
+  const getServiceStatus = (service) => {
+    // Check if service is inactive first
+    if (!service.active) {
+      return {
+        status: "inactive",
+        variant: "secondary",
+        text: "Pasif"
+      };
+    }
+
+    const now = new Date();
+    const endDate = new Date(service.endingDate);
+    const oneWeekFromNow = new Date();
+    oneWeekFromNow.setDate(now.getDate() + 7);
+
+    if (now > endDate) {
+      return {
+        status: "expired",
+        variant: "destructive",
+        text: "Süresi Dolmuş"
+      };
+    } else if (endDate <= oneWeekFromNow) {
+      return {
+        status: "expiring",
+        variant: "outline",
+        text: "Yakında Dolacak"
+      };
+    } else {
+      return {
+        status: "active",
+        variant: "default",
+        text: "Aktif"
+      };
+    }
+  };
+
   return (
     <Dialog open={visible} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl">
@@ -72,6 +109,7 @@ export function ServicesViewModal({
               <TableHead>Açıklama</TableHead>
               <TableHead>Ödeme Türü</TableHead>
               <TableHead>Fiyat</TableHead>
+              <TableHead>Durum</TableHead>
               <TableHead>Başlangıç Tarihi</TableHead>
               <TableHead>Bitiş Tarihi</TableHead>
               <TableHead>İşlemler</TableHead>
@@ -80,7 +118,7 @@ export function ServicesViewModal({
           <TableBody>
             {loadingOnModal ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={9} className="text-center py-8">
                   <div className="flex justify-center">
                     <BeatLoader color="#f26000" />
                   </div>
@@ -88,53 +126,61 @@ export function ServicesViewModal({
               </TableRow>
             ) : services.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center">
+                <TableCell colSpan={9} className="text-center">
                   Hizmet bulunamadı.
                 </TableCell>
               </TableRow>
             ) : (
-              services.map((service) => (
-                <TableRow key={service.id}>
-                  <TableCell>{service.id}</TableCell>
-                  <TableCell>{service.name}</TableCell>
-                  <TableCell>{service.description}</TableCell>
-                  <TableCell>{getPaymentTypeLabel(service.paymentType)}</TableCell>
-                  <TableCell>
-                    {service.periodPrice} {service.currency}
-                  </TableCell>
-                  <TableCell>
-                    {formatDate(service.startingDate)}
-                  </TableCell>
-                  <TableCell>
-                    {formatDate(service.endingDate)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEditService(service)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDeleteService(service)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onViewReminders(service)}
-                      >
-                        <CalendarCheck2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              services.map((service) => {
+                const statusInfo = getServiceStatus(service);
+                return (
+                  <TableRow key={service.id}>
+                    <TableCell>{service.id}</TableCell>
+                    <TableCell>{service.name}</TableCell>
+                    <TableCell>{service.description}</TableCell>
+                    <TableCell>{getPaymentTypeLabel(service.paymentType)}</TableCell>
+                    <TableCell>
+                      {service.periodPrice} {service.currency}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={statusInfo.variant}>
+                        {statusInfo.text}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {formatDate(service.startingDate)}
+                    </TableCell>
+                    <TableCell>
+                      {formatDate(service.endingDate)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onEditService(service)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onDeleteService(service)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onViewReminders(service)}
+                        >
+                          <CalendarCheck2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

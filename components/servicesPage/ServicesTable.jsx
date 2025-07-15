@@ -29,6 +29,7 @@ const statusColors = {
     active: 'bg-green-500/20 text-green-600 dark:text-green-400',
     upcoming: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
     expired: 'bg-red-500/20 text-red-600 dark:text-red-400',
+    inactive: 'bg-gray-500/20 text-gray-600 dark:text-gray-400',
 }
 
 const paymentTypeColors = {
@@ -69,6 +70,9 @@ export function ServiceTable({
     const hasDeviceTokens = services.some(service => service.deviceToken);
 
     const getServiceStatus = (service) => {
+        // First check if the service is explicitly set as inactive
+        if (service.active === false) return 'inactive'
+        
         const today = new Date()
         const startDate = new Date(service.startingDate)
         const endDate = new Date(service.endingDate)
@@ -197,6 +201,7 @@ export function ServiceTable({
                             <SelectItem value="active">Aktif</SelectItem>
                             <SelectItem value="upcoming">Yaklaşan</SelectItem>
                             <SelectItem value="expired">Süresi Dolmuş</SelectItem>
+                            <SelectItem value="inactive">Pasif</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -415,7 +420,10 @@ export function ServiceTable({
                                         </TableCell>
                                         <TableCell>
                                             <Badge className={`${statusColors[status]} rounded-md px-2 py-1 text-xs font-medium`}>
-                                                {status === 'active' ? 'Aktif' : status === 'upcoming' ? 'Yaklaşan' : 'Süresi Dolmuş'}
+                                                {status === 'active' ? 'Aktif' : 
+                                                 status === 'upcoming' ? 'Yaklaşan' : 
+                                                 status === 'expired' ? 'Süresi Dolmuş' :
+                                                 status === 'inactive' ? 'Pasif' : status}
                                             </Badge>
                                         </TableCell>
                                         {hasDeviceTokens && (
