@@ -98,6 +98,8 @@ export async function PUT(req, { params }) {
             data: {
                 name: data.name,
                 description: data.description,
+                companyName: data.companyName,
+                category: data.category,
                 paymentType: data.paymentType,
                 periodPrice: data.periodPrice,
                 currency: data.currency,

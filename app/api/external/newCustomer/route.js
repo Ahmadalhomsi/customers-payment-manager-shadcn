@@ -9,6 +9,7 @@ import prisma from '@/lib/prisma';
  * @param {string} deviceToken - The device token for the service
  * @param {string} serviceName - The name of the service to create
  * @param {string} companyName - Optional company name for the service
+ * @param {string} category - Optional service category (defaults to "Adisyon Programı")
  * 
  * @returns {Object} Response object containing:
  * - success: boolean indicating if the operation was successful
@@ -19,7 +20,8 @@ import prisma from '@/lib/prisma';
  * Body: {
  *   "deviceToken": "abc123xyz",
  *   "serviceName": "My Mobile App",
- *   "companyName": "My Company Inc."
+ *   "companyName": "My Company Inc.",
+ *   "category": "Adisyon Programı"
  * }
  * 
  * Response: {
@@ -37,7 +39,7 @@ import prisma from '@/lib/prisma';
 export async function POST(req) {
     try {
         const data = await req.json();
-        const { deviceToken, serviceName, companyName } = data;
+        const { deviceToken, serviceName, companyName, category } = data;
 
         // Validate required fields
         if (!deviceToken || !serviceName) {
@@ -66,6 +68,25 @@ export async function POST(req) {
         if (companyName && companyName.length > 100) {
             return NextResponse.json(
                 { error: 'Company name is too long (maximum 100 characters)' },
+                { status: 400 }
+            );
+        }
+
+        // Validate category if provided
+        const validCategories = [
+            "Adisyon Programı",
+            "QR Menu", 
+            "Kurye Uygulaması",
+            "Patron Uygulaması",
+            "Yemek Sepeti",
+            "Migros Yemek",
+            "Trendyol Yemek",
+            "Getir Yemek"
+        ];
+        
+        if (category && !validCategories.includes(category)) {
+            return NextResponse.json(
+                { error: 'Invalid category. Must be one of: ' + validCategories.join(', ') },
                 { status: 400 }
             );
         }
@@ -128,6 +149,7 @@ export async function POST(req) {
                 name: serviceName,
                 description: `Trial service - 15 days from ${startingDate.toDateString()}`,
                 companyName: companyName || null,
+                category: category || "Adisyon Programı",
                 paymentType: 'custom',
                 periodPrice: 0.0, // Free trial
                 currency: 'TL',
@@ -158,6 +180,7 @@ export async function POST(req) {
                 id: service.id,
                 name: service.name,
                 companyName: service.companyName,
+                category: service.category,
                 startingDate: service.startingDate,
                 endingDate: service.endingDate,
                 deviceToken: service.deviceToken,
@@ -239,6 +262,7 @@ export async function GET(req) {
                 name: service.name,
                 description: service.description,
                 companyName: service.companyName,
+                category: service.category,
                 startingDate: service.startingDate,
                 endingDate: service.endingDate,
                 deviceToken: service.deviceToken,

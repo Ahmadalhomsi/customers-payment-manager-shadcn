@@ -161,6 +161,7 @@ export function ServiceTable({
             service.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
             (customer?.name && customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
             (service.companyName && service.companyName.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
+            (service.category && service.category.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
             (service.deviceToken && service.deviceToken.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')));
 
         const status = getServiceStatus(service);
@@ -334,7 +335,15 @@ export function ServiceTable({
                                 >
                                     <div className="flex items-center gap-1">
                                         İşletme Adı
-                                        <SortIcon column="companyName" />
+                                        <SortIcon column="companyName" />                                        </div>
+                                    </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('category')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Kategori
+                                        <SortIcon column="category" />
                                     </div>
                                 </TableHead>
                                 <TableHead
@@ -421,6 +430,11 @@ export function ServiceTable({
                                         </TableCell>
                                         <TableCell>
                                             {service.companyName || '-'}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline" className="text-xs">
+                                                {service.category || 'Adisyon Programı'}
+                                            </Badge>
                                         </TableCell>
                                         <TableCell>{customer?.name || 'Bilinmeyen Müşteri'}</TableCell>
                                         <TableCell>

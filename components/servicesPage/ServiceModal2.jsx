@@ -54,6 +54,17 @@ const DURATIONS = [
     { value: "custom", label: "Özel" },
 ];
 
+const SERVICE_CATEGORIES = [
+    { value: "Adisyon Programı", label: "Adisyon Programı" },
+    { value: "QR Menu", label: "QR Menu" },
+    { value: "Kurye Uygulaması", label: "Kurye Uygulaması" },
+    { value: "Patron Uygulaması", label: "Patron Uygulaması" },
+    { value: "Yemek Sepeti", label: "Yemek Sepeti" },
+    { value: "Migros Yemek", label: "Migros Yemek" },
+    { value: "Trendyol Yemek", label: "Trendyol Yemek" },
+    { value: "Getir Yemek", label: "Getir Yemek" },
+];
+
 const EXTENSION_PERIODS = [
     { value: "1month", label: "1 Ay Ekle" },
     { value: "6months", label: "6 Ay Ekle" },
@@ -64,6 +75,7 @@ const INITIAL_FORM_STATE = {
     name: "",
     description: "",
     companyName: "",
+    category: "Adisyon Programı",
     customerID: "",
     paymentType: "1year",
     periodPrice: "",
@@ -352,6 +364,27 @@ export function ServiceModal2({
                             className="w-full sm:col-span-3"
                             placeholder="İşletme adını girin"
                         />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                        <Label htmlFor="category" className="text-left sm:text-right">
+                            Kategori
+                        </Label>
+                        <Select
+                            value={formData.category}
+                            onValueChange={(value) => handleChange("category", value)}
+                        >
+                            <SelectTrigger className="w-full sm:col-span-3">
+                                <SelectValue placeholder="Kategori seçin" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {SERVICE_CATEGORIES.map((category) => (
+                                    <SelectItem key={category.value} value={category.value}>
+                                        {category.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     {/* Active Status */}

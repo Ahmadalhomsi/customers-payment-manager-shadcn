@@ -25,6 +25,8 @@ export async function POST(req) {
         const {
             name,
             description,
+            companyName,
+            category,
             paymentType,
             periodPrice,
             currency,
@@ -50,6 +52,8 @@ export async function POST(req) {
             data: {
                 name,
                 description,
+                companyName,
+                category: category || "Adisyon Programı",
                 paymentType,
                 periodPrice: parseFloat(periodPrice), // Ensure periodPrice is a float
                 currency,

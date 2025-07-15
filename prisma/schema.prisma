@@ -55,6 +55,7 @@ model Service {
   name        String
   description String?
   companyName String?
+  category    String  @default("Adisyon Programı")
   paymentType String  @default("custom") // Monthly, Yearly
   periodPrice Float?
   currency    String  @default("TL")
