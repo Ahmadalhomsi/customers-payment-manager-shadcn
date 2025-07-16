@@ -134,3 +134,18 @@ model RenewHistory {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model ApiLog {
+  id        String   @id @default(cuid())
+  endpoint  String   // The API endpoint that was called
+  method    String   // HTTP method (GET, POST, etc.)
+  ipAddress String   // IP address of the request
+  userAgent String?  // User agent of the request
+  requestBody String? // JSON string of request body
+  responseStatus Int  // HTTP response status code
+  responseBody String? // JSON string of response body
+  serviceName String? // Service name if available
+  deviceToken String? // Device token if available
+  
+  createdAt DateTime @default(now())
+}
