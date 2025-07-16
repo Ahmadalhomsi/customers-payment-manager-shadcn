@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { Menu, Home, Briefcase, LogOut, User } from "lucide-react";
+import { Menu, Home, Briefcase, LogOut, User, FileText } from "lucide-react";
 import { BadgeNotification } from "@/components/BadgeNotification";
 
 export function Navbar() {
@@ -106,6 +106,14 @@ export function Navbar() {
             </Link>
           )}
 
+          <Link
+            href="/log"
+            className={`flex items-center text-sm font-medium ${pathname.startsWith("/log") ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Müşteri Geçmişi
+          </Link>
+
           {permissions?.canViewAdmins && (
             <Link
               href="/admins"
@@ -153,6 +161,13 @@ export function Navbar() {
                   </Link>
                 </DropdownMenuItem>
               )}
+
+              <DropdownMenuItem asChild className={pathname.startsWith("/log") ? "text-primary" : ""}>
+                <Link href="/log">
+                  <FileText className="mr-2 h-4 w-4" />
+                  Müşteri Geçmişi
+                </Link>
+              </DropdownMenuItem>
 
               {permissions?.canViewAdmins && (
                 <DropdownMenuItem asChild className={pathname.startsWith("/admins") ? "text-primary" : ""}>
