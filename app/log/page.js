@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,8 @@ import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight } from 'lucide-
 export default function LogsPage() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  const router = useRouter();
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 50,
@@ -27,6 +30,32 @@ export default function LogsPage() {
   });
   const [searchEndpoint, setSearchEndpoint] = useState('');
   const [selectedLog, setSelectedLog] = useState(null);
+
+  // Check authentication on component mount
+  useEffect(() => {
+    checkAuthentication();
+  }, []);
+
+  const checkAuthentication = async () => {
+    try {
+      const res = await fetch("/api/auth/me", {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (res.ok) {
+        setAuthenticated(true);
+        fetchLogs();
+      } else {
+        router.push('/login');
+      }
+    } catch (error) {
+      console.error("Authentication check failed:", error);
+      router.push('/login');
+    }
+  };
 
   const fetchLogs = async (page = 1, endpoint = '') => {
     setLoading(true);
@@ -37,7 +66,12 @@ export default function LogsPage() {
         ...(endpoint && { endpoint })
       });
 
-      const response = await fetch(`/api/logs?${params}`);
+      const response = await fetch(`/api/logs?${params}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       const data = await response.json();
 
       if (response.ok) {
@@ -54,7 +88,7 @@ export default function LogsPage() {
   };
 
   useEffect(() => {
-    fetchLogs();
+    // Fetch logs is now called from checkAuthentication after auth is verified
   }, []);
 
   const handleSearch = () => {
@@ -141,12 +175,18 @@ export default function LogsPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Server className="h-8 w-8" />
-          API Logları
-        </h1>
-      </div>
+      {!authenticated ? (
+        <div className="text-center py-8">
+          Kimlik doğrulanıyor...
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Server className="h-8 w-8" />
+              API Logları
+            </h1>
+          </div>
 
       <Card className="">
         <CardHeader className="">
@@ -262,6 +302,8 @@ export default function LogsPage() {
           )}
         </CardContent>
       </Card>
+        </>
+      )}
     </div>
   );
 }
