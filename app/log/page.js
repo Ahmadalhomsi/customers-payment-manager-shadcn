@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Table,
   TableBody,
@@ -29,6 +30,7 @@ export default function LogsPage() {
     totalPages: 0
   });
   const [searchEndpoint, setSearchEndpoint] = useState('');
+  const [validationTypeFilter, setValidationTypeFilter] = useState('all'); // Initialize with 'all' instead of empty string
   const [selectedLog, setSelectedLog] = useState(null);
 
   // Check authentication on component mount
@@ -57,13 +59,14 @@ export default function LogsPage() {
     }
   };
 
-  const fetchLogs = async (page = 1, endpoint = '') => {
+  const fetchLogs = async (page = 1, endpoint = '', validationType = '') => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: pagination.limit.toString(),
-        ...(endpoint && { endpoint })
+        ...(endpoint && { endpoint }),
+        ...(validationType && validationType !== 'all' && { validationType })
       });
 
       const response = await fetch(`/api/logs?${params}`, {
@@ -92,11 +95,11 @@ export default function LogsPage() {
   }, []);
 
   const handleSearch = () => {
-    fetchLogs(1, searchEndpoint);
+    fetchLogs(1, searchEndpoint, validationTypeFilter);
   };
 
   const handlePageChange = (newPage) => {
-    fetchLogs(newPage, searchEndpoint);
+    fetchLogs(newPage, searchEndpoint, validationTypeFilter);
   };
 
   const getStatusBadge = (status) => {
@@ -108,6 +111,17 @@ export default function LogsPage() {
       return <Badge variant="destructive" className="bg-red-600">Server Error</Badge>;
     }
     return <Badge variant="secondary" className="">{status}</Badge>;
+  };
+
+  const getValidationTypeBadge = (validationType) => {
+    if (validationType === 'Trial') {
+      return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Trial</Badge>;
+    } else if (validationType === 'Sisteme Giriş') {
+      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Sisteme Giriş</Badge>;
+    } else if (validationType === 'Existing Service') {
+      return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Existing Service</Badge>;
+    }
+    return <Badge variant="secondary" className="">Unknown</Badge>;
   };
 
   const formatDate = (dateString) => {
@@ -141,6 +155,7 @@ export default function LogsPage() {
                 <div><strong>Method:</strong> {log.method}</div>
                 <div><strong>IP Adresi:</strong> {log.ipAddress}</div>
                 <div><strong>Tarih:</strong> {formatDate(log.createdAt)}</div>
+                <div><strong>Doğrulama Tipi:</strong> {getValidationTypeBadge(log.validationType)}</div>
                 <div><strong>Durum:</strong> {getStatusBadge(log.responseStatus)}</div>
               </div>
             </div>
@@ -194,20 +209,32 @@ export default function LogsPage() {
             <Calendar className="h-5 w-5" />
             External Validation API Logları
           </CardTitle>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Input
               placeholder="Endpoint ara..."
               value={searchEndpoint}
               onChange={(e) => setSearchEndpoint(e.target.value)}
               className="max-w-sm"
             />
+            <Select value={validationTypeFilter} onValueChange={setValidationTypeFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Doğrulama Tipi" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tümü</SelectItem>
+                <SelectItem value="Sisteme Giriş">Sisteme Giriş</SelectItem>
+                <SelectItem value="Trial">Trial</SelectItem>
+                <SelectItem value="Existing Service">Existing Service</SelectItem>
+              </SelectContent>
+            </Select>
             <Button onClick={handleSearch}>Ara</Button>
-            {searchEndpoint && (
+            {(searchEndpoint || (validationTypeFilter && validationTypeFilter !== 'all')) && (
               <Button 
                 variant="outline" 
                 onClick={() => {
                   setSearchEndpoint('');
-                  fetchLogs(1, '');
+                  setValidationTypeFilter('all');
+                  fetchLogs(1, '', 'all');
                 }}
               >
                 Temizle
@@ -226,6 +253,7 @@ export default function LogsPage() {
                     <TableHead className="">Tarih</TableHead>
                     <TableHead className="">IP Adresi</TableHead>
                     <TableHead className="">Servis Adı</TableHead>
+                    <TableHead className="">Doğrulama Tipi</TableHead>
                     <TableHead className="">Endpoint</TableHead>
                     <TableHead className="">Durum</TableHead>
                     <TableHead className="">İşlemler</TableHead>
@@ -242,6 +270,7 @@ export default function LogsPage() {
                         {log.ipAddress}
                       </TableCell>
                       <TableCell className="">{log.serviceName || '-'}</TableCell>
+                      <TableCell className="">{getValidationTypeBadge(log.validationType)}</TableCell>
                       <TableCell className="font-mono text-sm">
                         <Badge variant="outline" className="">{log.method}</Badge> {log.endpoint}
                       </TableCell>

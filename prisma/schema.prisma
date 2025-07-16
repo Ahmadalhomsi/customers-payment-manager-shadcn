@@ -146,6 +146,7 @@ model ApiLog {
   responseBody String? // JSON string of response body
   serviceName String? // Service name if available
   deviceToken String? // Device token if available
+  validationType String? // Type of validation: 'Main' or 'Trial'
   
   createdAt DateTime @default(now())
 }

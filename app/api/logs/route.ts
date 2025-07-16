@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
     const endpoint = searchParams.get('endpoint');
+    const validationType = searchParams.get('validationType');
     
     const skip = (page - 1) * limit;
     
@@ -17,6 +18,9 @@ export async function GET(request: NextRequest) {
         contains: endpoint,
         mode: 'insensitive'
       };
+    }
+    if (validationType) {
+      where.validationType = validationType;
     }
     
     // Get logs with pagination

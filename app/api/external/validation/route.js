@@ -125,8 +125,9 @@ async function createTrialService(deviceToken, serviceName, companyName, categor
             };
             const response = NextResponse.json(responseBody, { status: 200 });
             
-            // Log asynchronously without blocking
+            // Update validation type for existing service
             if (logData) {
+                logData.validationType = 'Existing Service';
                 logApiRequest(logData, 200, responseBody);
             }
             
@@ -229,7 +230,8 @@ export async function POST(request) {
         userAgent,
         requestBody: JSON.stringify(data),
         serviceName: serviceName || null,
-        deviceToken: deviceToken || null
+        deviceToken: deviceToken || null,
+        validationType: token ? 'Sisteme Giriş' : 'Trial' // Will be updated based on response
     };
 
     try {
