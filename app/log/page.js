@@ -172,13 +172,13 @@ export default function LogsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h4 className="font-semibold mb-2">İstek İçeriği</h4>
-              <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto max-h-60">
+              <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-60 text-foreground">
                 {log.requestBody ? JSON.stringify(JSON.parse(log.requestBody), null, 2) : 'Boş'}
               </pre>
             </div>
             <div>
               <h4 className="font-semibold mb-2">Yanıt İçeriği</h4>
-              <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto max-h-60">
+              <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-60 text-foreground">
                 {log.responseBody ? JSON.stringify(JSON.parse(log.responseBody), null, 2) : 'Boş'}
               </pre>
             </div>
