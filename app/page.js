@@ -110,7 +110,11 @@ export default function CustomersPage() {
       if (response.status === 206) {
         toast.error('Yasak: Müşteri parolalarını görüntüleme izniniz yok')
       }
-      setCustomers(response.data)
+      // Sort customers by creation date (newest first) to show new customers at the top
+      const sortedCustomers = response.data.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt)
+      })
+      setCustomers(sortedCustomers)
     } catch (error) {
       if (error.status === 403) {
         toast.error('Yasak: Müşterileri görüntüleme izniniz yok')

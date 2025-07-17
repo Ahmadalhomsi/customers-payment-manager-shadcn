@@ -80,6 +80,9 @@ export async function GET(req) {
             include: {
                 services: includeService,
             },
+            orderBy: {
+                createdAt: 'desc', // Sort by creation date, newest first
+            },
         });
 
         // If user can't see passwords, remove them from the response

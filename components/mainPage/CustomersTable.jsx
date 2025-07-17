@@ -35,7 +35,7 @@ export function CustomerTable({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [visiblePasswords, setVisiblePasswords] = useState({});
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+  const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
   const [dateRangeFilter, setDateRangeFilter] = useState({
     from: undefined,
     to: undefined
@@ -78,7 +78,12 @@ export function CustomerTable({
   };
 
   const sortCustomers = (customers) => {
-    if (!sortConfig.key) return customers;
+    if (!sortConfig.key) {
+      // Default sort by creation date (newest first) when no sort is applied
+      return [...customers].sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+    }
 
     return [...customers].sort((a, b) => {
       let aValue = a[sortConfig.key];
