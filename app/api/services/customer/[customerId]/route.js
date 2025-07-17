@@ -24,6 +24,9 @@ export async function GET(req, { params }) {
             include: {
                 reminders: includeReminders,
             },
+            orderBy: {
+                createdAt: 'desc', // Sort by creation date, newest first
+            },
         });
         return NextResponse.json(services, { status: 200 });
     } catch (error) {

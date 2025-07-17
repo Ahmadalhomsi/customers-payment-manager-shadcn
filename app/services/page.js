@@ -50,7 +50,11 @@ export default function ServicesPage() {
     try {
       setLoading(true)
       const response = await axios.get('/api/services')
-      setServices(response.data)
+      // Sort services by creation date (newest first) to show new services at the top
+      const sortedServices = response.data.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt)
+      })
+      setServices(sortedServices)
     } catch (error) {
       if (error.response.status === 403)
         toast.error('Yasak: Hizmet görüntüleme izniniz yok')
