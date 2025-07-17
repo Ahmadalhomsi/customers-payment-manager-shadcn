@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState([]);
@@ -29,9 +29,11 @@ export default function LogsPage() {
     total: 0,
     totalPages: 0
   });
-  const [searchEndpoint, setSearchEndpoint] = useState('');
-  const [validationTypeFilter, setValidationTypeFilter] = useState('all'); // Initialize with 'all' instead of empty string
+  const [searchTerm, setSearchTerm] = useState(''); // Changed from searchEndpoint
+  const [validationTypeFilter, setValidationTypeFilter] = useState('all');
   const [selectedLog, setSelectedLog] = useState(null);
+  const [sortBy, setSortBy] = useState('createdAt'); // New sorting state
+  const [sortOrder, setSortOrder] = useState('desc'); // New sorting order state
 
   // Check authentication on component mount
   useEffect(() => {
@@ -59,14 +61,16 @@ export default function LogsPage() {
     }
   };
 
-  const fetchLogs = async (page = 1, endpoint = '', validationType = '') => {
+  const fetchLogs = async (page = 1, search = '', validationType = '', sortField = sortBy, order = sortOrder) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: pagination.limit.toString(),
-        ...(endpoint && { endpoint }),
-        ...(validationType && validationType !== 'all' && { validationType })
+        ...(search && { search }),
+        ...(validationType && validationType !== 'all' && { validationType }),
+        ...(sortField && { sortBy: sortField }),
+        ...(order && { sortOrder: order })
       });
 
       const response = await fetch(`/api/logs?${params}`, {
@@ -95,11 +99,32 @@ export default function LogsPage() {
   }, []);
 
   const handleSearch = () => {
-    fetchLogs(1, searchEndpoint, validationTypeFilter);
+    fetchLogs(1, searchTerm, validationTypeFilter);
   };
 
+  const handleSort = (field) => {
+    const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
+    setSortBy(field);
+    setSortOrder(newOrder);
+    fetchLogs(pagination.page, searchTerm, validationTypeFilter, field, newOrder);
+  };
+
+  const SortableHeader = ({ field, children }) => (
+    <TableHead 
+      className="cursor-pointer hover:bg-muted/50 select-none"
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortBy === field && (
+          sortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
+        )}
+      </div>
+    </TableHead>
+  );
+
   const handlePageChange = (newPage) => {
-    fetchLogs(newPage, searchEndpoint, validationTypeFilter);
+    fetchLogs(newPage, searchTerm, validationTypeFilter);
   };
 
   const getStatusBadge = (status) => {
@@ -227,9 +252,9 @@ export default function LogsPage() {
           </CardTitle>
           <div className="flex gap-2 flex-wrap">
             <Input
-              placeholder="Endpoint ara..."
-              value={searchEndpoint}
-              onChange={(e) => setSearchEndpoint(e.target.value)}
+              placeholder="IP, Servis veya İşletme adı ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
             <Select value={validationTypeFilter} onValueChange={setValidationTypeFilter}>
@@ -243,12 +268,23 @@ export default function LogsPage() {
                 <SelectItem value="Existing Service">Existing Service</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={sortBy} onValueChange={(value) => handleSort(value)}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Sıralama" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="createdAt">Tarih</SelectItem>
+                <SelectItem value="ipAddress">IP Adresi</SelectItem>
+                <SelectItem value="serviceName">Servis Adı</SelectItem>
+                <SelectItem value="responseStatus">Durum</SelectItem>
+              </SelectContent>
+            </Select>
             <Button onClick={handleSearch}>Ara</Button>
-            {(searchEndpoint || (validationTypeFilter && validationTypeFilter !== 'all')) && (
+            {(searchTerm || (validationTypeFilter && validationTypeFilter !== 'all')) && (
               <Button 
                 variant="outline" 
                 onClick={() => {
-                  setSearchEndpoint('');
+                  setSearchTerm('');
                   setValidationTypeFilter('all');
                   fetchLogs(1, '', 'all');
                 }}
@@ -266,14 +302,14 @@ export default function LogsPage() {
               <Table className="">
                 <TableHeader className="">
                   <TableRow className="">
-                    <TableHead className="">Tarih</TableHead>
-                    <TableHead className="">IP Adresi</TableHead>
-                    <TableHead className="">Servis Adı</TableHead>
+                    <SortableHeader field="createdAt">Tarih</SortableHeader>
+                    <SortableHeader field="ipAddress">IP Adresi</SortableHeader>
+                    <SortableHeader field="serviceName">Servis Adı</SortableHeader>
                     <TableHead className="">İşletme Adı</TableHead>
                     <TableHead className="">Terminal</TableHead>
                     <TableHead className="">Doğrulama Tipi</TableHead>
                     <TableHead className="">Endpoint</TableHead>
-                    <TableHead className="">Durum</TableHead>
+                    <SortableHeader field="responseStatus">Durum</SortableHeader>
                     <TableHead className="">İşlemler</TableHead>
                   </TableRow>
                 </TableHeader>

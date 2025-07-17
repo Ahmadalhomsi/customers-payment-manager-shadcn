@@ -6,30 +6,53 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
-    const endpoint = searchParams.get('endpoint');
+    const search = searchParams.get('search');
     const validationType = searchParams.get('validationType');
+    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
     
     const skip = (page - 1) * limit;
     
     // Build where clause
     const where: any = {};
-    if (endpoint) {
-      where.endpoint = {
-        contains: endpoint,
-        mode: 'insensitive'
-      };
+    
+    // Search across IP address, service name, and company name
+    if (search) {
+      where.OR = [
+        {
+          ipAddress: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        },
+        {
+          serviceName: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        },
+        {
+          requestBody: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        }
+      ];
     }
+    
     if (validationType) {
       where.validationType = validationType;
     }
+    
+    // Build orderBy clause
+    const orderBy: any = {};
+    orderBy[sortBy] = sortOrder;
     
     // Get logs with pagination
     const [logs, total] = await Promise.all([
       prisma.apiLog.findMany({
         where,
-        orderBy: {
-          createdAt: 'desc'
-        },
+        orderBy,
         skip,
         take: limit,
       }),
