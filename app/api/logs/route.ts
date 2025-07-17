@@ -4,8 +4,9 @@ import prisma from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const requestedLimit = parseInt(searchParams.get('limit') || '20');
+    const limit = Math.min(100, Math.max(1, requestedLimit)); // Limit max to 100 for performance
     const search = searchParams.get('search');
     const validationType = searchParams.get('validationType');
     const sortBy = searchParams.get('sortBy') || 'createdAt';

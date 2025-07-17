@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState([]);
@@ -25,7 +25,7 @@ export default function LogsPage() {
   const router = useRouter();
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 50,
+    limit: 20, // Reduced from 50 for better performance
     total: 0,
     totalPages: 0
   });
@@ -34,6 +34,7 @@ export default function LogsPage() {
   const [selectedLog, setSelectedLog] = useState(null);
   const [sortBy, setSortBy] = useState('createdAt'); // New sorting state
   const [sortOrder, setSortOrder] = useState('desc'); // New sorting order state
+  const [pageSize, setPageSize] = useState(20); // New page size state
 
   // Check authentication on component mount
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function LogsPage() {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: pagination.limit.toString(),
+        limit: pageSize.toString(),
         ...(search && { search }),
         ...(validationType && validationType !== 'all' && { validationType }),
         ...(sortField && { sortBy: sortField }),
@@ -125,6 +126,12 @@ export default function LogsPage() {
 
   const handlePageChange = (newPage) => {
     fetchLogs(newPage, searchTerm, validationTypeFilter);
+  };
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setPagination(prev => ({ ...prev, page: 1, limit: newPageSize })); // Reset to first page and update limit
+    fetchLogs(1, searchTerm, validationTypeFilter);
   };
 
   const getStatusBadge = (status) => {
@@ -370,12 +377,37 @@ export default function LogsPage() {
                 </div>
               )}
 
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-gray-500">
-                    Toplam {pagination.total} kayıt, sayfa {pagination.page} / {pagination.totalPages}
+              {pagination.totalPages > 0 && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
+                  <div className="flex items-center gap-4">
+                    <div className="text-sm text-muted-foreground">
+                      Toplam {pagination.total} kayıt, sayfa {pagination.page} / {pagination.totalPages}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Sayfa başına:</span>
+                      <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
+                        <SelectTrigger className="w-20">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
+                  
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(1)}
+                      disabled={pagination.page <= 1}
+                    >
+                      <ChevronsLeft className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -383,16 +415,64 @@ export default function LogsPage() {
                       disabled={pagination.page <= 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      Önceki
                     </Button>
+                    
+                    {/* Page numbers */}
+                    {(() => {
+                      const showPages = [];
+                      const current = pagination.page;
+                      const total = pagination.totalPages;
+                      
+                      // Always show first page
+                      if (current > 3) {
+                        showPages.push(1);
+                        if (current > 4) showPages.push('...');
+                      }
+                      
+                      // Show pages around current
+                      for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
+                        showPages.push(i);
+                      }
+                      
+                      // Always show last page
+                      if (current < total - 2) {
+                        if (current < total - 3) showPages.push('...');
+                        showPages.push(total);
+                      }
+                      
+                      return showPages.map((page, index) => {
+                        if (page === '...') {
+                          return <span key={index} className="px-2 text-muted-foreground">...</span>;
+                        }
+                        return (
+                          <Button
+                            key={page}
+                            variant={page === current ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handlePageChange(page)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {page}
+                          </Button>
+                        );
+                      });
+                    })()}
+                    
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={pagination.page >= pagination.totalPages}
                     >
-                      Sonraki
                       <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.totalPages)}
+                      disabled={pagination.page >= pagination.totalPages}
+                    >
+                      <ChevronsRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

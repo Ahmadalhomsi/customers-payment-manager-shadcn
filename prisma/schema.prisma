@@ -150,4 +150,11 @@ model ApiLog {
   validationType String? // Type of validation: 'Main' or 'Trial'
   
   createdAt DateTime @default(now())
+  
+  // Indexes for better performance on large datasets
+  @@index([createdAt])
+  @@index([ipAddress])
+  @@index([serviceName])
+  @@index([validationType])
+  @@index([responseStatus])
 }
