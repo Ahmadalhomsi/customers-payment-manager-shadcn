@@ -104,7 +104,7 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
             
             // Update validation type for existing service
             if (logData) {
-                logData.validationType = 'Existing Service';
+                logData.validationType = 'Sisteme Giriş';
                 logApiRequest(logData, 200, responseBody);
             }
             
@@ -225,12 +225,12 @@ export async function POST(request) {
 
         if (!service) {
             // No service found with this device token, create a trial service
-            logData.validationType = 'Trial Creation';
+            logData.validationType = 'Trial';
             return await createTrialService(deviceToken, serviceName, companyName, terminal, logData);
         }
 
-        // Service found, validate it
-        logData.validationType = 'Existing Service';
+        // Service found, perform system login validation (Sisteme Giriş)
+        logData.validationType = 'Sisteme Giriş';
 
         // Check if service is active first
         if (!service.active) {
