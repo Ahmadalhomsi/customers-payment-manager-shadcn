@@ -19,24 +19,24 @@ export function RemindersViewModal({
     <Dialog open={visible} onOpenChange={onClose}>
       <DialogContent className="max-w-[90vw] sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle className="text-lg">Service Reminders</DialogTitle>
+          <DialogTitle className="text-lg">Servis Hatırlatıcıları</DialogTitle>
         </DialogHeader>
 
         <div className="max-h-[60vh] overflow-y-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[150px]">Scheduled Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Message</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[150px]">Planlanan Tarih</TableHead>
+                <TableHead>Durum</TableHead>
+                <TableHead>Mesaj</TableHead>
+                <TableHead className="text-right">İşlemler</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center h-24">
-                    Loading...
+                    Yükleniyor...
                   </TableCell>
                 </TableRow>
               ) : (
@@ -55,7 +55,7 @@ export function RemindersViewModal({
                           onClick={() => onEditReminder(reminder)}
                         >
                           <Edit className="h-4 w-4 mr-1" />
-                          Edit
+                          Düzenle
                         </Button>
                         <Button
                           variant="destructive"
@@ -63,7 +63,7 @@ export function RemindersViewModal({
                           onClick={() => onDeleteReminder(reminder)}
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
+                          Sil
                         </Button>
                       </div>
                     </TableCell>
@@ -76,11 +76,11 @@ export function RemindersViewModal({
 
         <div className="flex justify-between mt-4">
           <Button variant="outline" onClick={onClose}>
-            Close
+            Kapat
           </Button>
           <Button onClick={onCreateNewReminder}>
             <Plus className="h-4 w-4 mr-2" />
-            New Reminder
+            Yeni Hatırlatıcı
           </Button>
         </div>
       </DialogContent>

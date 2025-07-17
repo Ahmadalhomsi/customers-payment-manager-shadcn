@@ -46,7 +46,7 @@ export default function CustomersPage() {
         setDeleteCustomerConfirmVisible(false);
       } catch (error) {
         if (error.status === 403) {
-          toast.error('Forbidden: You do not have permission to delete customers')
+          toast.error('Yasak: Müşteri silme izniniz yok')
         }
         else
           console.log('Error deleting customer:', error)
@@ -108,15 +108,15 @@ export default function CustomersPage() {
       setLoading(true);
       const response = await axios.get('/api/customers')
       if (response.status === 206) {
-        toast.error('Forbidden: You do not have permission to view customer passwords')
+        toast.error('Yasak: Müşteri parolalarını görüntüleme izniniz yok')
       }
       setCustomers(response.data)
     } catch (error) {
       if (error.status === 403) {
-        toast.error('Forbidden: You do not have permission to view customers')
+        toast.error('Yasak: Müşterileri görüntüleme izniniz yok')
       }
       else
-        console.log('Error fetching customers:', error)
+        console.log('Müşterileri getirirken hata oluştu:', error)
 
     }
     setLoading(false)
@@ -129,7 +129,7 @@ export default function CustomersPage() {
       setServices(response.data);
     } catch (error) {
       if (error.status === 403) {
-        toast.error('Forbidden: You do not have permission to view services')
+        toast.error('Yasak: Hizmetleri görüntüleme izniniz yok')
       }
       else
         console.log('Error fetching services:', error)
@@ -148,7 +148,7 @@ export default function CustomersPage() {
           fetchCustomers();
         } catch (error) {
           if (error.status === 403) {
-            toast.error('Forbidden: You do not have permission to update customers')
+            toast.error('Yasak: Müşteri güncelleme izniniz yok')
           }
           else
             console.log('Error updating customer:', error)
@@ -158,7 +158,7 @@ export default function CustomersPage() {
           await axios.post('/api/customers', formData);
         } catch (error) {
           if (error.status === 403) {
-            toast.error('Forbidden: You do not have permission to add customers')
+            toast.error('Yasak: Müşteri ekleme izniniz yok')
           }
           else
             console.log('Error adding customer:', error)
@@ -166,6 +166,8 @@ export default function CustomersPage() {
       }
       setCustomerModalVisible(false);
       setSelectedCustomer(null); // Reset selected customer after submission
+      // add the customer to the list
+      fetchCustomers();
     } catch (error) {
       console.log('Error submitting customer:', error);
     }
@@ -179,7 +181,7 @@ export default function CustomersPage() {
             setSelectedCustomer(null); // Ensure selectedCustomer is reset
             setCustomerModalVisible(true);
           }}>
-            <Plus className="mr-2 h-4 w-4" /> Add Customer
+            <Plus className="mr-2 h-4 w-4" /> Müşteri Ekle
           </Button>
         )}
       </div>
@@ -303,7 +305,7 @@ export default function CustomersPage() {
             setSelectedService(serviceRes.data)
           } catch (error) {
             if (error.status === 403) {
-              toast.error('Forbidden: You do not have permission to delete reminders')
+              toast.error('Yasak: Hatırlatıcı silme izniniz yok')
             }
             else
               console.log('Error deleting reminder:', error)
@@ -322,7 +324,7 @@ export default function CustomersPage() {
                 await axios.put(`/api/reminders/${selectedReminder.id}`, reminderData)
               } catch (error) {
                 if (error.status === 403) {
-                  toast.error('Forbidden: You do not have permission to update reminders')
+                  toast.error('Yasak: Hatırlatıcı güncelleme izniniz yok')
                 }
                 else
                   console.log('Error updating reminder:', error)
@@ -335,7 +337,7 @@ export default function CustomersPage() {
                 })
               } catch (error) {
                 if (error.status === 403) {
-                  toast.error('Forbidden: You do not have permission to create reminders')
+                  toast.error('Yasak: Hatırlatıcı oluşturma izniniz yok')
                 }
                 else
                   console.log('Error creating reminder:', error)

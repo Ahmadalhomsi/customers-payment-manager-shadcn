@@ -11,7 +11,7 @@ export async function GET(req) {
         const decoded = await verifyJWT(token);
 
         if (!decoded.permissions.canViewAdmins) {
-            return NextResponse.json({ error: 'Forbidden: You do not have permission to view admins' }, { status: 403 });
+            return NextResponse.json({ error: 'Yasak: Admin görüntüleme izniniz yok' }, { status: 403 });
         }
 
         const admins = await prisma.admin.findMany();
@@ -21,6 +21,8 @@ export async function GET(req) {
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 }
+
+
 
 // Update Admin (PUT)
 export async function PUT(req) {
@@ -38,6 +40,9 @@ export async function PUT(req) {
         if (password) {
             updatedData.password = await bcrypt.hash(password, 10);
         }
+        console.log("AAAAA");
+
+        console.log(updatedData);
 
         // Update admin
         const updatedAdmin = await prisma.admin.update({

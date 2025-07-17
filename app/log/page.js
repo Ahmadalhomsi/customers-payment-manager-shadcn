@@ -1,0 +1,488 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight } from 'lucide-react';
+
+export default function LogsPage() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  const router = useRouter();
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20, // Reduced from 50 for better performance
+    total: 0,
+    totalPages: 0
+  });
+  const [searchTerm, setSearchTerm] = useState(''); // Changed from searchEndpoint
+  const [validationTypeFilter, setValidationTypeFilter] = useState('all');
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [sortBy, setSortBy] = useState('createdAt'); // New sorting state
+  const [sortOrder, setSortOrder] = useState('desc'); // New sorting order state
+  const [pageSize, setPageSize] = useState(20); // New page size state
+
+  // Check authentication on component mount
+  useEffect(() => {
+    checkAuthentication();
+  }, []);
+
+  const checkAuthentication = async () => {
+    try {
+      const res = await fetch("/api/auth/me", {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (res.ok) {
+        setAuthenticated(true);
+        fetchLogs();
+      } else {
+        router.push('/login');
+      }
+    } catch (error) {
+      console.error("Authentication check failed:", error);
+      router.push('/login');
+    }
+  };
+
+  const fetchLogs = async (page = 1, search = '', validationType = '', sortField = sortBy, order = sortOrder) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: pageSize.toString(),
+        ...(search && { search }),
+        ...(validationType && validationType !== 'all' && { validationType }),
+        ...(sortField && { sortBy: sortField }),
+        ...(order && { sortOrder: order })
+      });
+
+      const response = await fetch(`/api/logs?${params}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setLogs(data.logs);
+        setPagination(data.pagination);
+      } else {
+        console.error('Failed to fetch logs:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch logs is now called from checkAuthentication after auth is verified
+  }, []);
+
+  const handleSearch = () => {
+    fetchLogs(1, searchTerm, validationTypeFilter);
+  };
+
+  const handleSort = (field) => {
+    const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
+    setSortBy(field);
+    setSortOrder(newOrder);
+    fetchLogs(pagination.page, searchTerm, validationTypeFilter, field, newOrder);
+  };
+
+  const SortableHeader = ({ field, children }) => (
+    <TableHead 
+      className="cursor-pointer hover:bg-muted/50 select-none"
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortBy === field && (
+          sortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
+        )}
+      </div>
+    </TableHead>
+  );
+
+  const handlePageChange = (newPage) => {
+    fetchLogs(newPage, searchTerm, validationTypeFilter);
+  };
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setPagination(prev => ({ ...prev, page: 1, limit: newPageSize })); // Reset to first page and update limit
+    fetchLogs(1, searchTerm, validationTypeFilter);
+  };
+
+  const getStatusBadge = (status) => {
+    if (status >= 200 && status < 300) {
+      return <Badge variant="default" className="bg-green-500">Success</Badge>;
+    } else if (status >= 400 && status < 500) {
+      return <Badge variant="destructive" className="">Client Error</Badge>;
+    } else if (status >= 500) {
+      return <Badge variant="destructive" className="bg-red-600">Server Error</Badge>;
+    }
+    return <Badge variant="secondary" className="">{status}</Badge>;
+  };
+
+  const getValidationTypeBadge = (validationType) => {
+    if (validationType === 'Trial') {
+      return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Trial</Badge>;
+    } else if (validationType === 'Sisteme Giriş') {
+      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Sisteme Giriş</Badge>;
+    } else if (validationType === 'Existing Service') {
+      return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Existing Service</Badge>;
+    }
+    return <Badge variant="secondary" className="">Unknown</Badge>;
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString('tr-TR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  const LogDetailModal = ({ log }) => {
+    if (!log) return null;
+
+    return (
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader className="">
+          <DialogTitle className="flex items-center gap-2">
+            <Server className="h-5 w-5" />
+            Log Detayları
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h4 className="font-semibold mb-2">İstek Bilgileri</h4>
+              <div className="space-y-2 text-sm">
+                <div><strong>Endpoint:</strong> {log.endpoint}</div>
+                <div><strong>Method:</strong> {log.method}</div>
+                <div><strong>IP Adresi:</strong> {log.ipAddress}</div>
+                <div><strong>Tarih:</strong> {formatDate(log.createdAt)}</div>
+                <div><strong>Doğrulama Tipi:</strong> {getValidationTypeBadge(log.validationType)}</div>
+                <div><strong>Durum:</strong> {getStatusBadge(log.responseStatus)}</div>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Servis Bilgileri</h4>
+              <div className="space-y-2 text-sm">
+                <div><strong>Servis Adı:</strong> {log.serviceName || 'N/A'}</div>
+                <div><strong>İşletme Adı:</strong> {(() => {
+                  try {
+                    const requestData = JSON.parse(log.requestBody || '{}');
+                    return requestData.companyName || 'N/A';
+                  } catch {
+                    return 'N/A';
+                  }
+                })()}</div>
+                <div><strong>Terminal:</strong> {(() => {
+                  try {
+                    const requestData = JSON.parse(log.requestBody || '{}');
+                    return requestData.terminal || 'N/A';
+                  } catch {
+                    return 'N/A';
+                  }
+                })()}</div>
+                <div><strong>Device Token:</strong> {log.deviceToken ? `${log.deviceToken.substring(0, 20)}...` : 'N/A'}</div>
+                <div><strong>User Agent:</strong> {log.userAgent || 'N/A'}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h4 className="font-semibold mb-2">İstek İçeriği</h4>
+              <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-60 text-foreground">
+                {log.requestBody ? JSON.stringify(JSON.parse(log.requestBody), null, 2) : 'Boş'}
+              </pre>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Yanıt İçeriği</h4>
+              <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-60 text-foreground">
+                {log.responseBody ? JSON.stringify(JSON.parse(log.responseBody), null, 2) : 'Boş'}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    );
+  };
+
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      {!authenticated ? (
+        <div className="text-center py-8">
+          Kimlik doğrulanıyor...
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Server className="h-8 w-8" />
+              API Logları
+            </h1>
+          </div>
+
+      <Card className="">
+        <CardHeader className="">
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            External Validation API Logları
+          </CardTitle>
+          <div className="flex gap-2 flex-wrap">
+            <Input
+              placeholder="IP, Servis veya İşletme adı ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+            <Select value={validationTypeFilter} onValueChange={setValidationTypeFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Doğrulama Tipi" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tümü</SelectItem>
+                <SelectItem value="Sisteme Giriş">Sisteme Giriş</SelectItem>
+                <SelectItem value="Trial">Trial</SelectItem>
+                <SelectItem value="Existing Service">Existing Service</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={(value) => handleSort(value)}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Sıralama" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="createdAt">Tarih</SelectItem>
+                <SelectItem value="ipAddress">IP Adresi</SelectItem>
+                <SelectItem value="serviceName">Servis Adı</SelectItem>
+                <SelectItem value="responseStatus">Durum</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleSearch}>Ara</Button>
+            {(searchTerm || (validationTypeFilter && validationTypeFilter !== 'all')) && (
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchTerm('');
+                  setValidationTypeFilter('all');
+                  fetchLogs(1, '', 'all');
+                }}
+              >
+                Temizle
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="">
+          {loading ? (
+            <div className="text-center py-8">Yükleniyor...</div>
+          ) : (
+            <>
+              <Table className="">
+                <TableHeader className="">
+                  <TableRow className="">
+                    <SortableHeader field="createdAt">Tarih</SortableHeader>
+                    <SortableHeader field="ipAddress">IP Adresi</SortableHeader>
+                    <SortableHeader field="serviceName">Servis Adı</SortableHeader>
+                    <TableHead className="">İşletme Adı</TableHead>
+                    <TableHead className="">Terminal</TableHead>
+                    <TableHead className="">Doğrulama Tipi</TableHead>
+                    <TableHead className="">Endpoint</TableHead>
+                    <SortableHeader field="responseStatus">Durum</SortableHeader>
+                    <TableHead className="">İşlemler</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="">
+                  {logs.map((log) => (
+                    <TableRow key={log.id} className="">
+                      <TableCell className="font-mono text-sm">
+                        {formatDate(log.createdAt)}
+                      </TableCell>
+                      <TableCell className="flex items-center gap-2">
+                        <Globe className="h-4 w-4" />
+                        {log.ipAddress}
+                      </TableCell>
+                      <TableCell className="">{log.serviceName || '-'}</TableCell>
+                      <TableCell className="">{(() => {
+                        try {
+                          const requestData = JSON.parse(log.requestBody || '{}');
+                          return requestData.companyName || '-';
+                        } catch {
+                          return '-';
+                        }
+                      })()}</TableCell>
+                      <TableCell className="">{(() => {
+                        try {
+                          const requestData = JSON.parse(log.requestBody || '{}');
+                          return requestData.terminal || '-';
+                        } catch {
+                          return '-';
+                        }
+                      })()}</TableCell>
+                      <TableCell className="">{getValidationTypeBadge(log.validationType)}</TableCell>
+                      <TableCell className="font-mono text-sm">
+                        <Badge variant="outline" className="">{log.method}</Badge> {log.endpoint}
+                      </TableCell>
+                      <TableCell className="">{getStatusBadge(log.responseStatus)}</TableCell>
+                      <TableCell className="">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setSelectedLog(log)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <LogDetailModal log={selectedLog} />
+                        </Dialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {logs.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  Henüz log kaydı bulunmuyor.
+                </div>
+              )}
+
+              {pagination.totalPages > 0 && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
+                  <div className="flex items-center gap-4">
+                    <div className="text-sm text-muted-foreground">
+                      Toplam {pagination.total} kayıt, sayfa {pagination.page} / {pagination.totalPages}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Sayfa başına:</span>
+                      <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
+                        <SelectTrigger className="w-20">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(1)}
+                      disabled={pagination.page <= 1}
+                    >
+                      <ChevronsLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.page - 1)}
+                      disabled={pagination.page <= 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    
+                    {/* Page numbers */}
+                    {(() => {
+                      const showPages = [];
+                      const current = pagination.page;
+                      const total = pagination.totalPages;
+                      
+                      // Always show first page
+                      if (current > 3) {
+                        showPages.push(1);
+                        if (current > 4) showPages.push('...');
+                      }
+                      
+                      // Show pages around current
+                      for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
+                        showPages.push(i);
+                      }
+                      
+                      // Always show last page
+                      if (current < total - 2) {
+                        if (current < total - 3) showPages.push('...');
+                        showPages.push(total);
+                      }
+                      
+                      return showPages.map((page, index) => {
+                        if (page === '...') {
+                          return <span key={index} className="px-2 text-muted-foreground">...</span>;
+                        }
+                        return (
+                          <Button
+                            key={page}
+                            variant={page === current ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handlePageChange(page)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {page}
+                          </Button>
+                        );
+                      });
+                    })()}
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.page + 1)}
+                      disabled={pagination.page >= pagination.totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.totalPages)}
+                      disabled={pagination.page >= pagination.totalPages}
+                    >
+                      <ChevronsRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+        </>
+      )}
+    </div>
+  );
+}

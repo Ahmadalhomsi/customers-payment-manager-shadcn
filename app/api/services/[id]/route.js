@@ -10,7 +10,7 @@ export async function GET(req, { params }) {
         let includeReminder = true;
         // Check if the user has permission to view customers
         if (!decoded.permissions.canViewServices) {
-            return NextResponse.json({ error: 'Forbidden: You do not have permission to view services' }, { status: 403 });
+            return NextResponse.json({ error: 'Yasak: Hizmet görüntüleme izniniz yok' }, { status: 403 });
         }
         else if (!decoded.permissions.canViewReminders) {
             includeReminder = false;
@@ -35,7 +35,7 @@ export async function PUT(req, { params }) {
 
         // Check if the user has permission to edit services
         if (!decoded.permissions.canEditServices) {
-            return NextResponse.json({ error: 'Forbidden: You do not have permission to update services' }, { status: 403 });
+            return NextResponse.json({ error: 'Yasak: Hizmet güncelleme izniniz yok' }, { status: 403 });
         }
 
         const { id } = await params;
@@ -57,7 +57,11 @@ export async function PUT(req, { params }) {
             const newEndingDate = new Date(data.endingDate);
             const currentEndingDate = new Date(existingService.endingDate);
 
-            if (newEndingDate > currentEndingDate) {
+            // Don't create renewals when transitioning to or from unlimited type
+            if (newEndingDate > currentEndingDate && 
+                data.paymentType !== "unlimited" && 
+                existingService.paymentType !== "unlimited") {
+                
                 // Calculate the difference in days
                 const diffInDays = Math.floor((newEndingDate - currentEndingDate) / (1000 * 60 * 60 * 24));
 
@@ -74,13 +78,16 @@ export async function PUT(req, { params }) {
                 }
 
                 renewHistoryData = {
-                    name: `Renewal for ${existingService.name}`,
+                    name: `${existingService.name} için Yenileme`,
                     type: renewalType,
                     previousEndDate: currentEndingDate,
                     newEndDate: newEndingDate,
                     serviceId: id,
                 };
 
+                shouldUpdateReminders = true;
+            } else if (data.paymentType !== existingService.paymentType) {
+                // If changing payment type (especially to/from unlimited), update reminders
                 shouldUpdateReminders = true;
             }
         }
@@ -91,9 +98,12 @@ export async function PUT(req, { params }) {
             data: {
                 name: data.name,
                 description: data.description,
+                companyName: data.companyName,
+                category: data.category,
                 paymentType: data.paymentType,
                 periodPrice: data.periodPrice,
                 currency: data.currency,
+                active: data.active !== undefined ? data.active : undefined,
                 startingDate: data.startingDate,
                 endingDate: data.endingDate,
                 customerID: data.customerID
@@ -114,22 +124,25 @@ export async function PUT(req, { params }) {
                 })
             );
 
-            // Calculate new reminder date (1 week before new end date)
-            const newEndDate = new Date(data.endingDate);
-            const reminderDate = new Date(newEndDate);
-            reminderDate.setDate(reminderDate.getDate() - 7);
+            // Only create a new reminder if the service is not unlimited
+            if (data.paymentType !== "unlimited") {
+                // Calculate new reminder date (1 week before new end date)
+                const newEndDate = new Date(data.endingDate);
+                const reminderDate = new Date(newEndDate);
+                reminderDate.setDate(reminderDate.getDate() - 7);
 
-            // Create new reminder
-            operations.push(
-                prisma.reminder.create({
-                    data: {
-                        scheduledAt: reminderDate,
-                        status: "SCHEDULED",
-                        message: "Your service will expire in one week! Please renew to avoid interruption.",
-                        serviceID: id,
-                    },
-                })
-            );
+                // Create new reminder
+                operations.push(
+                    prisma.reminder.create({
+                        data: {
+                            scheduledAt: reminderDate,
+                            status: "SCHEDULED",
+                            message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",
+                            serviceID: id,
+                        },
+                    })
+                );
+            }
         }
 
         // Execute all operations in a transaction
@@ -149,7 +162,7 @@ export async function DELETE(req, { params }) {
         await prisma.service.delete({
             where: { id: id },
         });
-        return NextResponse.json({ message: 'Service deleted' }, { status: 200 });
+        return NextResponse.json({ message: 'service deleted' }, { status: 200 });
     } catch (error) {
         console.log(error);
         return NextResponse.json({ error: 'Failed to delete service' }, { status: 500 });

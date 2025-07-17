@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { ServiceTable } from '@/components/servicesPage/ServicesTable'
 import { ServiceModal2 } from '@/components/servicesPage/ServiceModal2'
 import { DeleteConfirmModal } from '@/components/mainPage/DeleteConfirmModal'
-import { Plus, Mail } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { RenewHistoryModal } from '@/components/RenewHistoryModal'
 import { toast } from 'sonner'
 
@@ -54,7 +53,7 @@ export default function ServicesPage() {
       setServices(response.data)
     } catch (error) {
       if (error.response.status === 403)
-        toast.error('Forbidden: You do not have permission to view services')
+        toast.error('Yasak: Hizmet görüntüleme izniniz yok')
     }
     setLoading(false)
   }
@@ -65,7 +64,7 @@ export default function ServicesPage() {
       setCustomers(response.data)
     } catch (error) {
       if (error.response.status === 403)
-        toast.error('Forbidden: You do not have permission to view customers')
+        toast.error('Yasak: Müşterileri görüntüleme izniniz yok')
       else
         console.log('Error fetching customers:', error)
     }
@@ -78,7 +77,7 @@ export default function ServicesPage() {
       setRenewHistory(response.data)
     } catch (error) {
       if (error.response.status === 403)
-        toast.error('Forbidden: You do not have permission to view renewal history')
+        toast.error('Yasak: Yenileme geçmişini görüntüleme izniniz yok')
       else
         console.log('Error fetching renew history:', error)
     } finally {
@@ -122,7 +121,7 @@ export default function ServicesPage() {
           setSelectedService(null)
           setServiceModalVisible(true)
         }}>
-          <Plus className="mr-2 h-4 w-4" /> Add Service
+          <Plus className="mr-2 h-4 w-4" /> Hizmet Ekle
         </Button>
         )}
       </div>

@@ -10,15 +10,15 @@ export async function POST(req) {
 
         // Check if the user has permission to create customers
         if (!decoded.permissions.canEditCustomers) {
-            return NextResponse.json({ error: 'Forbidden: You do not have permission to create customers' }, { status: 403 });
+            return NextResponse.json({ error: 'Yasak: Müşteri oluşturma izniniz yok' }, { status: 403 });
         }
 
         // Extract request body
-        const { name, email, phone, password } = await req.json();
+        const { name, tableName, email, phone, password } = await req.json();
 
         // Create the customer
         const customer = await prisma.customer.create({
-            data: { name, email, phone, password },
+            data: { name, tableName, email, phone, password },
         });
 
         // Calculate service dates
@@ -29,8 +29,8 @@ export async function POST(req) {
         // Create a default service
         const service = await prisma.service.create({
             data: {
-                name: "Default Service",
-                description: "Automatically created service",
+                name: "Default Hizmet",
+                description: "Otomatik oluşturulan hizmet",
                 paymentType: "1year",
                 periodPrice: 0.0,
                 currency: "TL",
@@ -45,7 +45,7 @@ export async function POST(req) {
             data: {
                 scheduledAt: reminderDate,
                 status: "SCHEDULED",
-                message: "Your service will expire in one week! Please renew to avoid interruption.",
+                message: "Hizmetinizin bitmesine bir hafta kaldı! Kesinti yaşamamak için lütfen yenileyin.",
                 serviceID: service.id,
             },
         });
@@ -67,10 +67,10 @@ export async function GET(req) {
         let includeService = true;
         // Check if the user has permission to view customers
         if (!decoded.permissions.canViewCustomers) {
-            return NextResponse.json({ error: 'Forbidden: You do not have permission to view customers' }, { status: 403 });
+            return NextResponse.json({ error: 'Yasak: Müşterileri görüntüleme izniniz yok' }, { status: 403 });
         }
 
-        // Check if the user has permission to view services
+        // Check if the user has permission to view customers
         if (!decoded.permissions.canViewServices) {
             includeService = false;
         }
@@ -102,3 +102,4 @@ export async function GET(req) {
         return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
     }
 }
+

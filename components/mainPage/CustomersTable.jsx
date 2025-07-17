@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import { tr } from 'date-fns/locale'
 
 export function CustomerTable({
   customers,
@@ -41,10 +42,10 @@ export function CustomerTable({
   });
 
   const statusTranslations = {
-    active: 'Active',
-    inactive: 'Inactive',
-    overdue: 'Overdue',
-    all: 'All statuses'
+    active: 'Aktif',
+    inactive: 'Pasif',
+    overdue: 'Süresi Dolmuş',
+    all: 'Tüm durumlar'
   };
 
   const getStatusText = (status) => {
@@ -83,6 +84,12 @@ export function CustomerTable({
       let aValue = a[sortConfig.key];
       let bValue = b[sortConfig.key];
 
+      // Handle null or undefined tableName values for sorting
+      if (sortConfig.key === 'tableName') {
+        aValue = a.tableName || '';
+        bValue = b.tableName || '';
+      }
+
       if (sortConfig.key === 'status') {
         aValue = getCustomerStatus(a);
         bValue = getCustomerStatus(b);
@@ -94,8 +101,8 @@ export function CustomerTable({
       }
 
       if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
+        aValue = aValue.toLocaleLowerCase('tr-TR');
+        bValue = bValue.toLocaleLowerCase('tr-TR');
       }
 
       if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
@@ -139,7 +146,7 @@ export function CustomerTable({
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return format(new Date(dateString), 'dd MMMM yyyy');
+    return format(new Date(dateString), 'dd MMMM yyyy', { locale: tr });
   };
 
   const isDateInRange = (date, dateRange) => {
@@ -163,9 +170,10 @@ export function CustomerTable({
 
   const filteredCustomers = sortCustomers(
     customers.filter(customer => {
-      const matchesSearch = Object.values(customer).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const matchesSearch =
+        customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
+        (customer.tableName && customer.tableName.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')));
+
       const status = getCustomerStatus(customer);
       const matchesDateRange = isDateInRange(
         customer.createdAt,
@@ -178,11 +186,12 @@ export function CustomerTable({
     })
   );
 
+
   return (
     <div className="space-y-4 relative">
       <div className="flex gap-2 flex-wrap items-center">
         <Input
-          placeholder="Search customer..."
+          placeholder="Müşteri ara..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-xs focus-visible:ring-2"
@@ -190,7 +199,7 @@ export function CustomerTable({
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder="Durum filtrele" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{statusTranslations.all}</SelectItem>
@@ -213,14 +222,14 @@ export function CustomerTable({
               {dateRangeFilter?.from ? (
                 dateRangeFilter.to ? (
                   <>
-                    {format(dateRangeFilter.from, "dd MMMM yyyy")} -{" "}
-                    {format(dateRangeFilter.to, "dd MMMM yyyy")}
+                    {format(dateRangeFilter.from, "dd MMMM yyyy", { locale: tr })} -{" "}
+                    {format(dateRangeFilter.to, "dd MMMM yyyy", { locale: tr })}
                   </>
                 ) : (
-                  format(dateRangeFilter.from, "dd MMMM yyyy")
+                  format(dateRangeFilter.from, "dd MMMM yyyy", { locale: tr })
                 )
               ) : (
-                <span>Select a date range</span>
+                <span>Bir tarih aralığı seç</span>
               )}
             </Button>
           </PopoverTrigger>
@@ -232,6 +241,7 @@ export function CustomerTable({
               selected={dateRangeFilter}
               onSelect={setDateRangeFilter}
               numberOfMonths={2}
+              locale={tr}
             />
           </PopoverContent>
         </Popover>
@@ -252,8 +262,17 @@ export function CustomerTable({
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-1">
-                  Name
+                  Müşteri adı
                   <SortIcon column="name" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort('tableName')}
+              >
+                <div className="flex items-center gap-1">
+                  Tabela Adı
+                  <SortIcon column="tableName" />
                 </div>
               </TableHead>
               <TableHead
@@ -261,7 +280,7 @@ export function CustomerTable({
                 onClick={() => handleSort('status')}
               >
                 <div className="flex items-center gap-1">
-                  Status
+                  Durum
                   <SortIcon column="status" />
                 </div>
               </TableHead>
@@ -279,7 +298,7 @@ export function CustomerTable({
                 onClick={() => handleSort('phone')}
               >
                 <div className="flex items-center gap-1">
-                  Phone
+                  Telefon
                   <SortIcon column="phone" />
                 </div>
               </TableHead>
@@ -288,15 +307,15 @@ export function CustomerTable({
                 onClick={() => handleSort('createdAt')}
               >
                 <div className="flex items-center gap-1">
-                  Created At
+                  Oluşturulma Tarihi
                   <SortIcon column="createdAt" />
                 </div>
               </TableHead>
               <TableHead className="w-[200px]">
-                Password
+                Şifre
               </TableHead>
               <TableHead className="text-right">
-                Actions
+                İşlemler
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -310,6 +329,7 @@ export function CustomerTable({
                   className="hover:bg-muted/50 transition-colors"
                 >
                   <TableCell className="font-medium">{customer.name}</TableCell>
+                  <TableCell className="text-foreground/80">{customer.tableName || '-'}</TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"

@@ -9,7 +9,7 @@ export async function PUT(req, { params }) {
         const decoded = await verifyJWT(token);
 
         if (!decoded.permissions.canEditAdmins) {
-            return NextResponse.json({ error: 'Forbidden: You do not have permission to update admins' }, { status: 403 });
+            return NextResponse.json({ error: 'Yasak: Yöneticileri güncelleme izniniz yok' }, { status: 403 });
         }
 
         const { id } = await params;

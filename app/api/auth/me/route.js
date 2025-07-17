@@ -1,20 +1,36 @@
-import { verifyJWT } from "@/lib/jwt";
-import { permission } from "process";
+// In /app/api/auth/me/route.js
+import { NextResponse } from "next/server";
+import { jwtVerify } from "jose";
 
-export async function GET(req) {
-    try {
-        const token = req.cookies.get("token")?.value;
-        if (!token) {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-        }
+const JWT_SECRET = process.env.JWT_SECRET;
 
-        const decoded = await verifyJWT(token);
-
-        return new Response(JSON.stringify({
-            name: decoded.name,
-            permissions: decoded.permissions
-        }), { status: 200 });
-    } catch (error) {
-        return new Response(JSON.stringify({ error: "Invalid Token" }), { status: 403 });
+export async function GET(request) {
+  try {
+    // Get the token directly from cookies
+    const cookies = request.cookies;
+    const token = cookies.get("token")?.value;
+    
+    if (!token) {
+      console.log("No token found in cookies");
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
+    
+    // Verify and decode the token directly
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    
+    // Log the payload to see its structure
+    console.log("JWT payload:", payload);
+    
+    // Return the user data - adapt these fields to match your actual JWT structure
+    return NextResponse.json({
+      // Try to find user information in common places in JWT structure
+      name: payload.name || payload.username || payload.sub || "User",
+      permissions: payload.permissions || payload.roles || {},
+      // Add the full payload for debugging
+      _debug_payload: payload
+    });
+  } catch (error) {
+    console.error("Error in /api/auth/me:", error);
+    return NextResponse.json({ error: "Server error", message: error.message }, { status: 500 });
+  }
 }

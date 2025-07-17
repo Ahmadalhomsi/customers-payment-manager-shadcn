@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info } from 'lucide-react'
+import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key } from 'lucide-react'
 import { format } from "date-fns"
 import { useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -23,11 +23,14 @@ import {
 } from "@/components/ui/popover"
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import { tr } from 'date-fns/locale'
 
 const statusColors = {
     active: 'bg-green-500/20 text-green-600 dark:text-green-400',
     upcoming: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
     expired: 'bg-red-500/20 text-red-600 dark:text-red-400',
+    inactive: 'bg-gray-500/20 text-gray-600 dark:text-gray-400',
+    notStarted: 'bg-orange-500/20 text-orange-600 dark:text-orange-400',
 }
 
 const paymentTypeColors = {
@@ -36,16 +39,29 @@ const paymentTypeColors = {
     '1year': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
     '2years': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
     '3years': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+    'unlimited': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
     'custom': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
 }
 
 const paymentTypeLabels = {
-    '1month': '1 Month',
-    '6months': '6 Months',
-    '1year': '1 Year',
-    '2years': '2 Years',
-    '3years': '3 Years',
-    'custom': 'Custom'
+    '1month': '1 Ay',
+    '6months': '6 Ay',
+    '1year': '1 Yıl',
+    '2years': '2 Yıl',
+    '3years': '3 Yıl',
+    'unlimited': 'Sınırsız',
+    'custom': 'Özel'
+}
+
+const categoryColors = {
+    'Adisyon Programı': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    'QR Menu': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    'Kurye Uygulaması': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
+    'Patron Uygulaması': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+    'Yemek Sepeti': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+    'Migros Yemek': 'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400',
+    'Trendyol Yemek': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+    'Getir Yemek': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
 }
 
 export function ServiceTable({
@@ -58,17 +74,57 @@ export function ServiceTable({
 }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+    const [categoryFilter, setCategoryFilter] = useState('all')
     const [sortConfig, setSortConfig] = useState(null)
     const [dateRangeFilter, setDateRangeFilter] = useState()
     const [endDateRangeFilter, setEndDateRangeFilter] = useState()
 
+    // Check if any service has a deviceToken
+    const hasDeviceTokens = services.some(service => service.deviceToken);
+
+    // Get unique categories from services
+    const availableCategories = [...new Set(services.map(service => service.category || 'Adisyon Programı'))];
+
+    // Helper function to get text color for categories
+    const getCategoryTextColor = (category) => {
+        const colorMap = {
+            'Adisyon Programı': 'text-blue-600',
+            'QR Menu': 'text-green-600',
+            'Kurye Uygulaması': 'text-cyan-600',
+            'Patron Uygulaması': 'text-purple-600',
+            'Yemek Sepeti': 'text-red-600',
+            'Migros Yemek': 'text-orange-600',
+            'Trendyol Yemek': 'text-orange-600',
+            'Getir Yemek': 'text-yellow-600'
+        };
+        return colorMap[category] || 'text-gray-600';
+    };
+
     const getServiceStatus = (service) => {
+        // First check if the service is explicitly set as inactive
+        if (service.active === false) return 'inactive'
+        
         const today = new Date()
         const startDate = new Date(service.startingDate)
         const endDate = new Date(service.endingDate)
 
-        if (today < startDate) return 'upcoming'
-        if (today > endDate) return 'expired'
+        // If service hasn't started yet, it's not started
+        if (today < startDate) {
+            return 'notStarted'
+        }
+        
+        // If service has already expired, it's expired
+        if (today > endDate) {
+            return 'expired'
+        }
+        
+        // Check if service is expiring within 1 month (30 days)
+        const oneMonthFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000))
+        
+        if (endDate <= oneMonthFromNow) {
+            return 'upcoming'
+        }
+        
         return 'active'
     }
 
@@ -106,6 +162,21 @@ export function ServiceTable({
                 : bOrder - aOrder
         }
 
+        if (key === 'deviceToken') {
+            const aHasToken = !!aValue;
+            const bHasToken = !!bValue;
+            
+            if (aHasToken === bHasToken) {
+                return sortConfig.direction === 'asc'
+                    ? (aValue || '').localeCompare(bValue || '')
+                    : (bValue || '').localeCompare(aValue || '');
+            }
+            
+            return sortConfig.direction === 'asc'
+                ? (aHasToken ? 1 : -1)
+                : (aHasToken ? -1 : 1);
+        }
+
         if (typeof aValue === 'string') {
             return sortConfig.direction === 'asc'
                 ? aValue.localeCompare(bValue)
@@ -115,49 +186,57 @@ export function ServiceTable({
     })
 
     const filteredServices = sortedServices.filter(service => {
-        const matchesSearch = Object.values(service).some(value =>
-            String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        const status = getServiceStatus(service)
-        const matchesStatus = statusFilter === 'all' || status === statusFilter
+        const customer = customers.find(c => c.id === service.customerID);
+        const matchesSearch =
+            service.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
+            (customer?.name && customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
+            (service.companyName && service.companyName.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
+            (service.category && service.category.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
+            (service.deviceToken && service.deviceToken.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')));
 
-        let matchesStartDate = true
+        const status = getServiceStatus(service);
+        const matchesStatus = statusFilter === 'all' || status === statusFilter;
+
+        const matchesCategory = categoryFilter === 'all' || service.category === categoryFilter;
+
+        let matchesStartDate = true;
         if (dateRangeFilter) {
-            const { from, to } = dateRangeFilter
-            const serviceStart = new Date(service.startingDate)
+            const { from, to } = dateRangeFilter;
+            const serviceStart = new Date(service.startingDate);
 
             if (from && to) {
-                matchesStartDate = serviceStart >= from && serviceStart <= to
+                matchesStartDate = serviceStart >= from && serviceStart <= to;
             } else if (from) {
-                matchesStartDate = serviceStart >= from
+                matchesStartDate = serviceStart >= from;
             } else if (to) {
-                matchesStartDate = serviceStart <= to
+                matchesStartDate = serviceStart <= to;
             }
         }
 
-        let matchesEndDate = true
+        let matchesEndDate = true;
         if (endDateRangeFilter) {
-            const { from, to } = endDateRangeFilter
-            const serviceEnd = new Date(service.endingDate)
+            const { from, to } = endDateRangeFilter;
+            const serviceEnd = new Date(service.endingDate);
 
             if (from && to) {
-                matchesEndDate = serviceEnd >= from && serviceEnd <= to
+                matchesEndDate = serviceEnd >= from && serviceEnd <= to;
             } else if (from) {
-                matchesEndDate = serviceEnd >= from
+                matchesEndDate = serviceEnd >= from;
             } else if (to) {
-                matchesEndDate = serviceEnd <= to
+                matchesEndDate = serviceEnd <= to;
             }
         }
 
-        return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate
-    })
+        return matchesSearch && matchesStatus && matchesCategory && matchesStartDate && matchesEndDate;
+    });
+
 
     return (
         <TooltipProvider>
             <div className="space-y-4 relative">
                 <div className="flex gap-2 flex-wrap items-center">
                     <Input
-                        placeholder="Search services..."
+                        placeholder="Hizmetleri ara..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="max-w-xs focus-visible:ring-2"
@@ -165,13 +244,31 @@ export function ServiceTable({
 
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Filter by status" />
+                            <SelectValue placeholder="Duruma göre filtrele" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="upcoming">Upcoming</SelectItem>
-                            <SelectItem value="expired">Expired</SelectItem>
+                            <SelectItem value="all">Tüm Durumlar</SelectItem>
+                            <SelectItem value="active">Aktif</SelectItem>
+                            <SelectItem value="upcoming">Yaklaşan</SelectItem>
+                            <SelectItem value="notStarted">Başlamadı</SelectItem>
+                            <SelectItem value="expired">Süresi Dolmuş</SelectItem>
+                            <SelectItem value="inactive">Pasif</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Kategoriye göre filtrele" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tüm Kategoriler</SelectItem>
+                            {availableCategories.map((category) => (
+                                <SelectItem key={category} value={category}>
+                                    <span className={getCategoryTextColor(category)}>
+                                        {category}
+                                    </span>
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
 
@@ -188,14 +285,14 @@ export function ServiceTable({
                                 {dateRangeFilter?.from ? (
                                     dateRangeFilter.to ? (
                                         <>
-                                            {format(dateRangeFilter.from, "dd MMMM yyyy")} -{" "}
-                                            {format(dateRangeFilter.to, "dd MMMM yyyy")}
+                                            {format(dateRangeFilter.from, "dd MMMM yyyy", { locale: tr })} -{" "}
+                                            {format(dateRangeFilter.to, "dd MMMM yyyy", { locale: tr })}
                                         </>
                                     ) : (
-                                        format(dateRangeFilter.from, "dd MMMM yyyy")
+                                        format(dateRangeFilter.from, "dd MMMM yyyy", { locale: tr })
                                     )
                                 ) : (
-                                    <span>Filter by start date</span>
+                                    <span>Başlangıç tarihine göre filtrele</span>
                                 )}
                             </Button>
                         </PopoverTrigger>
@@ -207,6 +304,7 @@ export function ServiceTable({
                                 selected={dateRangeFilter}
                                 onSelect={setDateRangeFilter}
                                 numberOfMonths={2}
+                                locale={tr}
                             />
                         </PopoverContent>
                     </Popover>
@@ -225,14 +323,14 @@ export function ServiceTable({
                                 {endDateRangeFilter?.from ? (
                                     endDateRangeFilter.to ? (
                                         <>
-                                            {format(endDateRangeFilter.from, "dd MMMM yyyy")} -{" "}
-                                            {format(endDateRangeFilter.to, "dd MMMM yyyy")}
+                                            {format(endDateRangeFilter.from, "dd MMMM yyyy", { locale: tr })} -{" "}
+                                            {format(endDateRangeFilter.to, "dd MMMM yyyy", { locale: tr })}
                                         </>
                                     ) : (
-                                        format(endDateRangeFilter.from, "dd MMMM yyyy")
+                                        format(endDateRangeFilter.from, "dd MMMM yyyy", { locale: tr })
                                     )
                                 ) : (
-                                    <span>Filter by end date</span>
+                                    <span>Bitiş tarihine göre filtrele</span>
                                 )}
                             </Button>
                         </PopoverTrigger>
@@ -244,6 +342,7 @@ export function ServiceTable({
                                 selected={endDateRangeFilter}
                                 onSelect={setEndDateRangeFilter}
                                 numberOfMonths={2}
+                                locale={tr}
                             />
                         </PopoverContent>
                     </Popover>
@@ -273,17 +372,34 @@ export function ServiceTable({
                                     onClick={() => handleSort('name')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Service Name
+                                        Hizmet Adı
                                         <SortIcon column="name" />
                                     </div>
                                 </TableHead>
-                                <TableHead>Description</TableHead>
+                                <TableHead>Açıklama</TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('companyName')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        İşletme Adı
+                                        <SortIcon column="companyName" />                                        </div>
+                                    </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('category')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Kategori
+                                        <SortIcon column="category" />
+                                    </div>
+                                </TableHead>
                                 <TableHead
                                     className="cursor-pointer hover:bg-muted/50"
                                     onClick={() => handleSort('customerID')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Customer
+                                        Müşteri
                                         <SortIcon column="customerID" />
                                     </div>
                                 </TableHead>
@@ -292,7 +408,7 @@ export function ServiceTable({
                                     onClick={() => handleSort('paymentType')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Payment
+                                        Ödeme
                                         <SortIcon column="paymentType" />
                                     </div>
                                 </TableHead>
@@ -301,7 +417,7 @@ export function ServiceTable({
                                     onClick={() => handleSort('createdAt')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Created At
+                                        Oluşturulma Tarihi
                                         <SortIcon column="createdAt" />
                                     </div>
                                 </TableHead>
@@ -310,7 +426,7 @@ export function ServiceTable({
                                     onClick={() => handleSort('startingDate')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Dates
+                                        Tarihler
                                         <SortIcon column="startingDate" />
                                     </div>
                                 </TableHead>
@@ -319,11 +435,22 @@ export function ServiceTable({
                                     onClick={() => handleSort('status')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Status
+                                        Durum
                                         <SortIcon column="status" />
                                     </div>
                                 </TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                {hasDeviceTokens && (
+                                    <TableHead
+                                        className="cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleSort('deviceToken')}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Cihaz Token
+                                            <SortIcon column="deviceToken" />
+                                        </div>
+                                    </TableHead>
+                                )}
+                                <TableHead className="text-right">İşlemler</TableHead>
                             </TableRow>
                         </TableHeader>
 
@@ -349,7 +476,17 @@ export function ServiceTable({
                                                 </Tooltip>
                                             ) : '-'}
                                         </TableCell>
-                                        <TableCell>{customer?.name || 'Unknown Customer'}</TableCell>
+                                        <TableCell>
+                                            {service.companyName || '-'}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge 
+                                                className={`text-xs font-medium ${categoryColors[service.category] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'}`}
+                                            >
+                                                {service.category || 'Adisyon Programı'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>{customer?.name || 'Bilinmeyen Müşteri'}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <Badge className={paymentTypeColors[service.paymentType]}>
@@ -377,9 +514,32 @@ export function ServiceTable({
                                         </TableCell>
                                         <TableCell>
                                             <Badge className={`${statusColors[status]} rounded-md px-2 py-1 text-xs font-medium`}>
-                                                {status === 'active' ? 'Active' : status === 'upcoming' ? 'Upcoming' : 'Expired'}
+                                                {status === 'active' ? 'Aktif' : 
+                                                 status === 'upcoming' ? 'Yaklaşan' : 
+                                                 status === 'expired' ? 'Süresi Dolmuş' :
+                                                 status === 'inactive' ? 'Pasif' : 
+                                                 status === 'notStarted' ? 'Başlamadı' : status}
                                             </Badge>
                                         </TableCell>
+                                        {hasDeviceTokens && (
+                                            <TableCell>
+                                                {service.deviceToken ? (
+                                                    <Tooltip>
+                                                        <TooltipTrigger>
+                                                            <div className="flex items-center gap-1">
+                                                                <Key className="h-4 w-4 text-emerald-500" />
+                                                                <span className="font-mono text-xs truncate max-w-[120px]">
+                                                                    {service.deviceToken.substring(0, 8)}...
+                                                                </span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p className="font-mono text-xs break-all max-w-[300px]">{service.deviceToken}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                ) : '-'}
+                                            </TableCell>
+                                        )}
                                         <TableCell className="flex justify-end gap-2">
                                             <Button
                                                 variant="ghost"

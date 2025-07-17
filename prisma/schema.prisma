@@ -36,11 +36,12 @@ model Admin {
 }
 
 model Customer {
-  id       String  @id @default(cuid())
-  name     String
-  email    String  @unique // or username
-  phone    String?
-  password String
+  id        String  @id @default(cuid())
+  name      String
+  tableName String?
+  email     String?
+  phone     String?
+  password  String
 
   // Relations
   services Service[] @relation("CustomerToService")
@@ -53,13 +54,18 @@ model Service {
   id          String  @id @default(cuid())
   name        String
   description String?
+  companyName String?
+  category    String  @default("Adisyon Programı")
   paymentType String  @default("custom") // Monthly, Yearly
   periodPrice Float?
   currency    String  @default("TL")
+  active      Boolean @default(true)
 
   startingDate DateTime @default(now())
   endingDate   DateTime @default(dbgenerated("(CURRENT_TIMESTAMP + INTERVAL '1 year')"))
   // paid         Boolean  @default(false)
+  deviceToken String?
+  terminal    String? // Device name
 
   // Relations
   customerID     String
@@ -128,4 +134,27 @@ model RenewHistory {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ApiLog {
+  id        String   @id @default(cuid())
+  endpoint  String   // The API endpoint that was called
+  method    String   // HTTP method (GET, POST, etc.)
+  ipAddress String   // IP address of the request
+  userAgent String?  // User agent of the request
+  requestBody String? // JSON string of request body
+  responseStatus Int  // HTTP response status code
+  responseBody String? // JSON string of response body
+  serviceName String? // Service name if available
+  deviceToken String? // Device token if available
+  validationType String? // Type of validation: 'Main' or 'Trial'
+  
+  createdAt DateTime @default(now())
+  
+  // Indexes for better performance on large datasets
+  @@index([createdAt])
+  @@index([ipAddress])
+  @@index([serviceName])
+  @@index([validationType])
+  @@index([responseStatus])
 }

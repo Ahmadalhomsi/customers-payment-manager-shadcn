@@ -20,7 +20,7 @@ export async function POST(req) {
   // If the IP is blocked
   if (failedAttempt && failedAttempt.blockedUntil && new Date() < failedAttempt.blockedUntil) {
     return NextResponse.json(
-      { message: "Too many failed login attempts. Please try again later." },
+      { message: "Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyin." },
       { status: 429 }
     );
   }
@@ -70,7 +70,7 @@ export async function POST(req) {
     );
 
     return NextResponse.json({
-      message: "Login successful",
+      message: "Başarılı giriş",
       token,
     });
   }

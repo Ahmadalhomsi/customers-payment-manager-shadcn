@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
     Select,
     SelectContent,
@@ -30,11 +31,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { enUS } from 'date-fns/locale';
+import { tr } from 'date-fns/locale';
 
 const PAYMENT_TYPES = [
-    { value: "Monthly", label: "Monthly" },
-    { value: "Yearly", label: "Yearly" },
+    { value: "Monthly", label: "Aylık" },
+    { value: "Yearly", label: "Yıllık" },
 ];
 
 const CURRENCIES = [
@@ -44,27 +45,42 @@ const CURRENCIES = [
 ];
 
 const DURATIONS = [
-    { value: "1month", label: "1 Month" },
-    { value: "6months", label: "6 Months" },
-    { value: "1year", label: "1 Year" },
-    { value: "2years", label: "2 Years" },
-    { value: "3years", label: "3 Years" },
-    { value: "custom", label: "Custom" },
+    { value: "1month", label: "1 Ay" },
+    { value: "6months", label: "6 Ay" },
+    { value: "1year", label: "1 Yıl" },
+    { value: "2years", label: "2 Yıl" },
+    { value: "3years", label: "3 Yıl" },
+    { value: "unlimited", label: "Sınırsız" },
+    { value: "custom", label: "Özel" },
+];
+
+const SERVICE_CATEGORIES = [
+    { value: "Adisyon Programı", label: "Adisyon Programı", color: "text-blue-600" },
+    { value: "QR Menu", label: "QR Menu", color: "text-green-600" },
+    { value: "Kurye Uygulaması", label: "Kurye Uygulaması", color: "text-cyan-600" },
+    { value: "Patron Uygulaması", label: "Patron Uygulaması", color: "text-purple-600" },
+    { value: "Yemek Sepeti", label: "Yemek Sepeti", color: "text-red-600" },
+    { value: "Migros Yemek", label: "Migros Yemek", color: "text-orange-600" },
+    { value: "Trendyol Yemek", label: "Trendyol Yemek", color: "text-orange-600" },
+    { value: "Getir Yemek", label: "Getir Yemek", color: "text-yellow-600" },
 ];
 
 const EXTENSION_PERIODS = [
-    { value: "1month", label: "Add 1 Month" },
-    { value: "6months", label: "Add 6 Months" },
-    { value: "1year", label: "Add 1 Year" },
+    { value: "1month", label: "1 Ay Ekle" },
+    { value: "6months", label: "6 Ay Ekle" },
+    { value: "1year", label: "1 Yıl Ekle" },
 ];
 
 const INITIAL_FORM_STATE = {
     name: "",
     description: "",
+    companyName: "",
+    category: "Adisyon Programı",
     customerID: "",
     paymentType: "1year",
     periodPrice: "",
     currency: "TL",
+    active: true,
     startingDate: new Date(),
     endingDate: (() => {
         const defaultEnd = new Date();
@@ -151,6 +167,9 @@ export function ServiceModal2({
                 case "3years":
                     end.setFullYear(end.getFullYear() + 3);
                     break;
+                case "unlimited":
+                    end.setFullYear(end.getFullYear() + 100); // Set 100 years in the future for "unlimited"
+                    break;
             }
 
             setFormData((prev) => {
@@ -200,12 +219,12 @@ export function ServiceModal2({
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.startingDate || !formData.endingDate || !formData.customerID) {
-            alert("Please fill in all required fields");
+            alert("Lütfen tüm zorunlu alanları doldurun");
             return;
         }
 
         if (formData.startingDate > formData.endingDate) {
-            alert("End date must be after start date");
+            alert("Bitiş tarihi başlangıç tarihinden sonra olmalıdır");
             return;
         }
 
@@ -217,7 +236,7 @@ export function ServiceModal2({
             onClose();
             setFormData(INITIAL_FORM_STATE);
         } catch (error) {
-            console.error("Submission error:", error);
+            console.error("Gönderim hatası:", error);
         }
     };
 
@@ -239,14 +258,14 @@ export function ServiceModal2({
             >
                 <DialogHeader>
                     <DialogTitle className="text-lg sm:text-xl">
-                        {selectedService ? "Edit Service" : "Create New Service"}
+                        {selectedService ? "Hizmeti Düzenle" : "Yeni Hizmet Oluştur"}
                     </DialogTitle>
                 </DialogHeader>
 
                 <div className="grid gap-4 sm:gap-6 py-2 sm:py-4">
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
                         <Label className="text-left sm:text-right">
-                            Customer <span className="text-red-500">*</span>
+                            Müşteri <span className="text-red-500">*</span>
                         </Label>
                         <Popover open={openCustomerCombobox} onOpenChange={setOpenCustomerCombobox}>
                             <PopoverTrigger asChild>
@@ -255,14 +274,14 @@ export function ServiceModal2({
                                     role="combobox"
                                     className="w-full sm:col-span-3 justify-between"
                                 >
-                                    {selectedCustomer ? selectedCustomer.name : "Select a customer..."}
+                                    {selectedCustomer ? selectedCustomer.name : "Müşteri seçin..."}
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-full p-0 pointer-events-auto">
                                 <Command shouldFilter={false}>
                                     <CommandInput
-                                        placeholder="Search customer..."
+                                        placeholder="Müşteri ara..."
                                         value={searchQuery}
                                         onValueChange={setSearchQuery}
                                     />
@@ -275,7 +294,7 @@ export function ServiceModal2({
                                             <CommandGroup>
                                                 {customers
                                                     .filter((customer) =>
-                                                        customer.name.toLowerCase().includes(searchQuery.toLowerCase())
+                                                        customer.name.toLocaleLowerCase('tr-TR').includes(searchQuery.toLocaleLowerCase('tr-TR'))
                                                     )
                                                     .map((customer) => (
                                                         <CommandItem
@@ -297,7 +316,7 @@ export function ServiceModal2({
                                                     ))}
                                             </CommandGroup>
                                         )}
-                                        <CommandEmpty>No customer found</CommandEmpty>
+                                        <CommandEmpty>Müşteri bulunamadı</CommandEmpty>
                                     </CommandList>
                                 </Command>
                             </PopoverContent>
@@ -306,7 +325,7 @@ export function ServiceModal2({
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
                         <Label htmlFor="name" className="text-left sm:text-right">
-                            Service Name <span className="text-red-500">*</span>
+                            Hizmet Adı <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="name"
@@ -314,14 +333,14 @@ export function ServiceModal2({
                             onChange={(e) => handleChange("name", e.target.value)}
                             onKeyDown={handleKeyDown}
                             className="w-full sm:col-span-3"
-                            placeholder="Enter service name"
+                            placeholder="Hizmet adını girin"
                             required
                         />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
                         <Label htmlFor="description" className="text-left sm:text-right">
-                            Description
+                            Açıklama
                         </Label>
                         <Input
                             id="description"
@@ -329,12 +348,66 @@ export function ServiceModal2({
                             onChange={(e) => handleChange("description", e.target.value)}
                             onKeyDown={handleKeyDown}
                             className="w-full sm:col-span-3"
-                            placeholder="Enter service description"
+                            placeholder="Hizmet açıklaması girin"
                         />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                        <Label className="text-left sm:text-right">Price</Label>
+                        <Label htmlFor="companyName" className="text-left sm:text-right">
+                            İşletme Adı
+                        </Label>
+                        <Input
+                            id="companyName"
+                            value={formData.companyName || ''}
+                            onChange={(e) => handleChange("companyName", e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            className="w-full sm:col-span-3"
+                            placeholder="İşletme adını girin"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                        <Label htmlFor="category" className="text-left sm:text-right">
+                            Kategori
+                        </Label>
+                        <Select
+                            value={formData.category}
+                            onValueChange={(value) => handleChange("category", value)}
+                        >
+                            <SelectTrigger className="w-full sm:col-span-3">
+                                <SelectValue placeholder="Kategori seçin" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {SERVICE_CATEGORIES.map((category) => (
+                                    <SelectItem key={category.value} value={category.value}>
+                                        <span className={category.color}>
+                                            {category.label}
+                                        </span>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Active Status */}
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                        <Label htmlFor="active" className="text-left sm:text-right">
+                            Durum
+                        </Label>
+                        <div className="w-full sm:col-span-3 flex items-center gap-3">
+                            <Switch
+                                id="active"
+                                checked={formData.active}
+                                onCheckedChange={(checked) => handleChange("active", checked)}
+                            />
+                            <Label htmlFor="active" className="text-sm">
+                                {formData.active ? "Aktif" : "Pasif"}
+                            </Label>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                        <Label className="text-left sm:text-right">Fiyat</Label>
                         <div className="w-full sm:col-span-3 flex flex-col sm:flex-row gap-2">
                             <Input
                                 type="number"
@@ -366,11 +439,11 @@ export function ServiceModal2({
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-2 sm:gap-4">
                         <Label className="text-left sm:text-right sm:pt-2">
-                            Dates <span className="text-red-500">*</span>
+                            Tarihler <span className="text-red-500">*</span>
                         </Label>
                         <div className="w-full sm:col-span-3 space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                                <Label className="text-left sm:text-right">Payment Type</Label>
+                                <Label className="text-left sm:text-right">Ödeme Tipi</Label>
                                 <Select
                                     value={formData.paymentType}
                                     onValueChange={(value) => {
@@ -379,7 +452,7 @@ export function ServiceModal2({
                                     }}
                                 >
                                     <SelectTrigger className="w-full sm:col-span-3">
-                                        <SelectValue placeholder="Select duration" />
+                                        <SelectValue placeholder="Süre seçin" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {DURATIONS.map((duration) => (
@@ -393,12 +466,12 @@ export function ServiceModal2({
 
                             {selectedService && (
                                 <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                                    <Label className="text-left sm:text-right">Extend Duration</Label>
+                                    <Label className="text-left sm:text-right">Süre Uzatma</Label>
                                     <Select
                                         onValueChange={handleExtendService}
                                     >
                                         <SelectTrigger className="w-full sm:col-span-3">
-                                            <SelectValue placeholder="Select to extend duration" />
+                                            <SelectValue placeholder="Süre uzatmak için seçin" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {EXTENSION_PERIODS.map((period) => (
@@ -414,7 +487,7 @@ export function ServiceModal2({
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex flex-col gap-2 w-full">
                                     <Label>
-                                        Start Date <span className="text-red-500">*</span>
+                                        Başlangıç Tarihi <span className="text-red-500">*</span>
                                     </Label>
                                     <Calendar
                                         mode="single"
@@ -427,14 +500,14 @@ export function ServiceModal2({
                                         month={startDateMonth}
                                         onMonthChange={setStartDateMonth}
                                         className="rounded-md border w-full"
-                                        disabled={(date) => date < formData.startingDate}
-                                        locale={enUS}
+                                        // disabled={(date) => date < formData.startingDate}
+                                        locale={tr}
                                         formatters={{
                                             formatCaption: (date, options) => {
-                                                return format(date, "MMMM yyyy", { locale: enUS });
+                                                return format(date, "MMMM yyyy", { locale: tr });
                                             },
                                             formatDay: (date) => {
-                                                return format(date, "dd", { locale: enUS });
+                                                return format(date, "dd", { locale: tr });
                                             }
                                         }}
                                         required
@@ -445,7 +518,7 @@ export function ServiceModal2({
                                 </div>
                                 <div className="flex flex-col gap-2 w-full">
                                     <Label>
-                                        End Date <span className="text-red-500">*</span>
+                                        Bitiş Tarihi <span className="text-red-500">*</span>
                                     </Label>
                                     <Calendar
                                         mode="single"
@@ -459,13 +532,13 @@ export function ServiceModal2({
                                         onMonthChange={setEndDateMonth}
                                         className="rounded-md border w-full"
                                         disabled={(date) => date < formData.startingDate}
-                                        locale={enUS}
+                                        locale={tr}
                                         formatters={{
                                             formatCaption: (date, options) => {
-                                                return format(date, "MMMM yyyy", { locale: enUS });
+                                                return format(date, "MMMM yyyy", { locale: tr });
                                             },
                                             formatDay: (date) => {
-                                                return format(date, "dd", { locale: enUS });
+                                                return format(date, "dd", { locale: tr });
                                             }
                                         }}
                                         required
@@ -481,7 +554,7 @@ export function ServiceModal2({
 
                 <DialogFooter className="border-t pt-4 mt-4">
                     <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
-                        Cancel
+                        İptal
                     </Button>
                     <Button
                         onClick={handleSubmit}
@@ -491,7 +564,7 @@ export function ServiceModal2({
                         {isLoading ? (
                             <BeatLoader size={8} color="white" />
                         ) : (
-                            selectedService ? "Save Changes" : "Create Service"
+                            selectedService ? "Değişiklikleri Kaydet" : "Hizmet Oluştur"
                         )}
                     </Button>
                 </DialogFooter>
