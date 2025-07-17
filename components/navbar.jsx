@@ -111,7 +111,7 @@ export function Navbar() {
             className={`flex items-center text-sm font-medium ${pathname.startsWith("/log") ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
           >
             <FileText className="mr-2 h-4 w-4" />
-            Müşteri Geçmişi
+            Müşteri Hareketleri
           </Link>
 
           {permissions?.canViewAdmins && (
@@ -165,7 +165,7 @@ export function Navbar() {
               <DropdownMenuItem asChild className={pathname.startsWith("/log") ? "text-primary" : ""}>
                 <Link href="/log">
                   <FileText className="mr-2 h-4 w-4" />
-                  Müşteri Geçmişi
+                  Müşteri Hareketleri
                 </Link>
               </DropdownMenuItem>
 
