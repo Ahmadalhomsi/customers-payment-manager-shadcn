@@ -65,6 +65,7 @@ model Service {
   endingDate   DateTime @default(dbgenerated("(CURRENT_TIMESTAMP + INTERVAL '1 year')"))
   // paid         Boolean  @default(false)
   deviceToken String?
+  terminal    String? // Device name
 
   // Relations
   customerID     String

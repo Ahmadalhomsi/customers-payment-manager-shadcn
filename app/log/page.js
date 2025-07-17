@@ -163,6 +163,22 @@ export default function LogsPage() {
               <h4 className="font-semibold mb-2">Servis Bilgileri</h4>
               <div className="space-y-2 text-sm">
                 <div><strong>Servis Adı:</strong> {log.serviceName || 'N/A'}</div>
+                <div><strong>İşletme Adı:</strong> {(() => {
+                  try {
+                    const requestData = JSON.parse(log.requestBody || '{}');
+                    return requestData.companyName || 'N/A';
+                  } catch {
+                    return 'N/A';
+                  }
+                })()}</div>
+                <div><strong>Terminal:</strong> {(() => {
+                  try {
+                    const requestData = JSON.parse(log.requestBody || '{}');
+                    return requestData.terminal || 'N/A';
+                  } catch {
+                    return 'N/A';
+                  }
+                })()}</div>
                 <div><strong>Device Token:</strong> {log.deviceToken ? `${log.deviceToken.substring(0, 20)}...` : 'N/A'}</div>
                 <div><strong>User Agent:</strong> {log.userAgent || 'N/A'}</div>
               </div>
@@ -253,6 +269,8 @@ export default function LogsPage() {
                     <TableHead className="">Tarih</TableHead>
                     <TableHead className="">IP Adresi</TableHead>
                     <TableHead className="">Servis Adı</TableHead>
+                    <TableHead className="">İşletme Adı</TableHead>
+                    <TableHead className="">Terminal</TableHead>
                     <TableHead className="">Doğrulama Tipi</TableHead>
                     <TableHead className="">Endpoint</TableHead>
                     <TableHead className="">Durum</TableHead>
@@ -270,6 +288,22 @@ export default function LogsPage() {
                         {log.ipAddress}
                       </TableCell>
                       <TableCell className="">{log.serviceName || '-'}</TableCell>
+                      <TableCell className="">{(() => {
+                        try {
+                          const requestData = JSON.parse(log.requestBody || '{}');
+                          return requestData.companyName || '-';
+                        } catch {
+                          return '-';
+                        }
+                      })()}</TableCell>
+                      <TableCell className="">{(() => {
+                        try {
+                          const requestData = JSON.parse(log.requestBody || '{}');
+                          return requestData.terminal || '-';
+                        } catch {
+                          return '-';
+                        }
+                      })()}</TableCell>
                       <TableCell className="">{getValidationTypeBadge(log.validationType)}</TableCell>
                       <TableCell className="font-mono text-sm">
                         <Badge variant="outline" className="">{log.method}</Badge> {log.endpoint}

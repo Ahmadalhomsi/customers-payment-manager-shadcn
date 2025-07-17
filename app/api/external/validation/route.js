@@ -21,7 +21,7 @@ async function logApiRequest(logData, responseStatus, responseBody) {
 /**
  * Creates a trial service for external applications
  */
-async function createTrialService(deviceToken, serviceName, companyName, category, logData = null) {
+async function createTrialService(deviceToken, serviceName, companyName, category, terminal, logData = null) {
     // Validate required fields
     if (!deviceToken || !serviceName) {
         const responseBody = { error: 'Missing required fields: deviceToken and serviceName are required' };
@@ -173,6 +173,7 @@ async function createTrialService(deviceToken, serviceName, companyName, categor
             startingDate: startingDate,
             endingDate: endingDate,
             deviceToken: deviceToken,
+            terminal: terminal || null,
             customerID: trialCustomer.id
         }
     });
@@ -216,7 +217,7 @@ async function createTrialService(deviceToken, serviceName, companyName, categor
 
 export async function POST(request) {
     const data = await request.json();
-    const { token, deviceToken, serviceName, companyName, category } = data;
+    const { token, deviceToken, serviceName, companyName, category, terminal } = data;
 
     // Get client IP address
     const forwarded = request.headers.get("x-forwarded-for");
@@ -237,7 +238,7 @@ export async function POST(request) {
     try {
         // If no token is provided, create a trial service
         if (!token) {
-            return await createTrialService(deviceToken, serviceName, companyName, category, logData);
+            return await createTrialService(deviceToken, serviceName, companyName, category, terminal, logData);
         }
 
         const service = await prisma.service.findUnique({
@@ -247,10 +248,10 @@ export async function POST(request) {
         if (!service) {
             console.log("Service not found");
             const responseBody = { valid: false, message: "Service not found" };
-            const response = NextResponse.json(responseBody);
+            const response = NextResponse.json(responseBody, { status: 404 });
             
             // Log asynchronously without blocking
-            logApiRequest(logData, 200, responseBody);
+            logApiRequest(logData, 404, responseBody);
             
             return response;
         }
@@ -287,13 +288,25 @@ export async function POST(request) {
         }
 
         if (!service.deviceToken) {
-            // Set the device token
+            // Set the device token and update other fields
+            const updateData = {
+                deviceToken,
+                name: serviceName,
+            };
+            
+            // Add companyName if provided
+            if (companyName) {
+                updateData.companyName = companyName;
+            }
+            
+            // Add terminal if provided
+            if (terminal) {
+                updateData.terminal = terminal;
+            }
+            
             await prisma.service.update({
                 where: { id: token },
-                data: {
-                    deviceToken,
-                    name: serviceName,
-                },
+                data: updateData,
             });
 
             const responseBody = {
@@ -319,6 +332,28 @@ export async function POST(request) {
             
             return response;
         } else {
+            // Device token matches, but update companyName and terminal if provided
+            const updateData = {};
+            let needsUpdate = false;
+            
+            if (companyName && service.companyName !== companyName) {
+                updateData.companyName = companyName;
+                needsUpdate = true;
+            }
+            
+            if (terminal && service.terminal !== terminal) {
+                updateData.terminal = terminal;
+                needsUpdate = true;
+            }
+            
+            // Update service if there are changes
+            if (needsUpdate) {
+                await prisma.service.update({
+                    where: { id: token },
+                    data: updateData,
+                });
+            }
+            
             const responseBody = {
                 valid: true,
                 endingDate: service.endingDate,
