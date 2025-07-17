@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key } from 'lucide-react'
+import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy } from 'lucide-react'
 import { format } from "date-fns"
 import { useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -24,6 +24,7 @@ import {
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { tr } from 'date-fns/locale'
+import { copyToClipboard } from '@/lib/clipboard'
 
 const statusColors = {
     active: 'bg-green-500/20 text-green-600 dark:text-green-400',
@@ -524,19 +525,29 @@ export function ServiceTable({
                                         {hasDeviceTokens && (
                                             <TableCell>
                                                 {service.deviceToken ? (
-                                                    <Tooltip>
-                                                        <TooltipTrigger>
-                                                            <div className="flex items-center gap-1">
-                                                                <Key className="h-4 w-4 text-emerald-500" />
-                                                                <span className="font-mono text-xs truncate max-w-[120px]">
-                                                                    {service.deviceToken.substring(0, 8)}...
-                                                                </span>
-                                                            </div>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p className="font-mono text-xs break-all max-w-[300px]">{service.deviceToken}</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
+                                                    <div className="flex items-center gap-2">
+                                                        <Tooltip>
+                                                            <TooltipTrigger>
+                                                                <div className="flex items-center gap-1">
+                                                                    <Key className="h-4 w-4 text-emerald-500" />
+                                                                    <span className="font-mono text-xs truncate max-w-[120px]">
+                                                                        {service.deviceToken.substring(0, 8)}...
+                                                                    </span>
+                                                                </div>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p className="font-mono text-xs break-all max-w-[300px]">{service.deviceToken}</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => copyToClipboard(service.deviceToken, "Device token kopyalandı!")}
+                                                            className="h-6 w-6 p-0 hover:bg-gray-100"
+                                                        >
+                                                            <Copy className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
                                                 ) : '-'}
                                             </TableCell>
                                         )}

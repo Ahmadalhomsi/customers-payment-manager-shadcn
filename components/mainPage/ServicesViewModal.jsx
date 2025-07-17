@@ -9,8 +9,10 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, CalendarCheck2, Plus } from "lucide-react";
+import { Edit, Trash2, CalendarCheck2, Plus, Copy, Key } from "lucide-react";
 import { BeatLoader } from 'react-spinners';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { copyToClipboard } from '@/lib/clipboard';
 
 const PAYMENT_TYPES = [
   { value: "1month", label: "1 Ay" }, 
@@ -42,6 +44,9 @@ export function ServicesViewModal({
   onViewReminders,
   onAddService,
 }) {
+  // Check if any service has a deviceToken
+  const hasDeviceTokens = services.some(service => service.deviceToken);
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
@@ -92,13 +97,14 @@ export function ServicesViewModal({
   };
 
   return (
-    <Dialog open={visible} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
-            {selectedCustomer?.name} için Hizmetler
-          </DialogTitle>
-        </DialogHeader>
+    <TooltipProvider>
+      <Dialog open={visible} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              {selectedCustomer?.name} için Hizmetler
+            </DialogTitle>
+          </DialogHeader>
 
         <div className="flex justify-end mb-4">
           <Button
@@ -113,7 +119,8 @@ export function ServicesViewModal({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID/Token</TableHead>
+              <TableHead>ID</TableHead>
+              {hasDeviceTokens && <TableHead>Device Token</TableHead>}
               <TableHead>İsim</TableHead>
               <TableHead>Açıklama</TableHead>
               <TableHead>İşletme Adı</TableHead>
@@ -129,7 +136,7 @@ export function ServicesViewModal({
           <TableBody>
             {loadingOnModal ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center py-8">
+                <TableCell colSpan={hasDeviceTokens ? 12 : 11} className="text-center py-8">
                   <div className="flex justify-center">
                     <BeatLoader color="#f26000" />
                   </div>
@@ -137,7 +144,7 @@ export function ServicesViewModal({
               </TableRow>
             ) : services.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center">
+                <TableCell colSpan={hasDeviceTokens ? 12 : 11} className="text-center">
                   Hizmet bulunamadı.
                 </TableCell>
               </TableRow>
@@ -147,6 +154,35 @@ export function ServicesViewModal({
                 return (
                   <TableRow key={service.id}>
                     <TableCell>{service.id}</TableCell>
+                    {hasDeviceTokens && (
+                      <TableCell>
+                        {service.deviceToken ? (
+                            <div className="flex items-center gap-2">
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <div className="flex items-center gap-1">
+                                    <Key className="h-4 w-4 text-emerald-500" />
+                                    <span className="font-mono text-xs truncate max-w-[120px]">
+                                      {service.deviceToken.substring(0, 8)}...
+                                    </span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="font-mono text-xs break-all max-w-[300px]">{service.deviceToken}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(service.deviceToken, "Device token kopyalandı!")}
+                                className="h-6 w-6 p-0 hover:bg-gray-100"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </div>
+                        ) : '-'}
+                      </TableCell>
+                    )}
                     <TableCell>{service.name}</TableCell>
                     <TableCell>{service.description}</TableCell>
                     <TableCell>{service.companyName || '-'}</TableCell>
@@ -205,5 +241,6 @@ export function ServicesViewModal({
         </Table>
       </DialogContent>
     </Dialog>
+    </TooltipProvider>
   );
 }
