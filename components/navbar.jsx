@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -80,7 +81,13 @@ export function Navbar() {
         {/* Left Section */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center gap-2 font-bold">
-            <span className="h-6 w-6 bg-primary rounded-lg" />
+            <Image 
+              src="/MAPOS_LOGO.png" 
+              alt="MAPOS Logo" 
+              width={32} 
+              height={32} 
+              className="rounded-lg"
+            />
             <span className="text-primary">MAPOS</span>
           </Link>
           {error && <div className="ml-4 text-xs text-destructive">{error}</div>}

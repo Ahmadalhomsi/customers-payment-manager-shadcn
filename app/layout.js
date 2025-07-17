@@ -17,12 +17,27 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "MAPOS Customer Services Manager",
   description: "A customer services manager for MAPOS",
+  icons: {
+    icon: [
+      {
+        url: "/MAPOS_LOGO.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
+    ],
+    shortcut: "/MAPOS_LOGO.png",
+    apple: "/MAPOS_LOGO.png",
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
 
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/MAPOS_LOGO.png" type="image/png" />
+        <link rel="shortcut icon" href="/MAPOS_LOGO.png" type="image/png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
