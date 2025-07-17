@@ -174,8 +174,8 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="p-4">
-      <div className="flex gap-2 mb-4">
+    <div className="w-full min-h-full pt-6">
+      <div className="flex gap-2 mb-4 px-4">
         {permissions?.canEditCustomers && (
           <Button onClick={() => {
             setSelectedCustomer(null); // Ensure selectedCustomer is reset
@@ -186,31 +186,33 @@ export default function CustomersPage() {
         )}
       </div>
 
-      <CustomerTable
-        customers={customers}
-        services={services}
-        isLoading={loading}
-        sortConfig={sortConfig}
-        setSortConfig={setSortConfig}
-        onEdit={(customer) => {
-          setSelectedCustomer(customer)
-          setCustomerModalVisible(true)
-        }}
-        onDelete={(customer) => {
-          setSelectedCustomer(customer)
-          setDeleteCustomerConfirmVisible(true)
-        }}
-        onAddService={(customer) => {
-          setSelectedCustomer(customer);
-          setSelectedService(null);  // Reset service selection
-          setServiceModalVisible(true);
-        }}
-        onViewServices={(customer) => {
-          fetchServices(customer.id)
-          setSelectedCustomer(customer)
-          setServicesViewModalVisible(true)
-        }}
-      />
+      <div className="px-4">
+        <CustomerTable
+          customers={customers}
+          services={services}
+          isLoading={loading}
+          sortConfig={sortConfig}
+          setSortConfig={setSortConfig}
+          onEdit={(customer) => {
+            setSelectedCustomer(customer)
+            setCustomerModalVisible(true)
+          }}
+          onDelete={(customer) => {
+            setSelectedCustomer(customer)
+            setDeleteCustomerConfirmVisible(true)
+          }}
+          onAddService={(customer) => {
+            setSelectedCustomer(customer);
+            setSelectedService(null);  // Reset service selection
+            setServiceModalVisible(true);
+          }}
+          onViewServices={(customer) => {
+            fetchServices(customer.id)
+            setSelectedCustomer(customer)
+            setServicesViewModalVisible(true)
+          }}
+        />
+      </div>
 
       {/* Modals */}
       <CustomerModal

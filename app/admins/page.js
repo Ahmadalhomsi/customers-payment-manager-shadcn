@@ -190,7 +190,7 @@ export default function AdminsPage() {
     };
 
     return (
-        <div className="p-6">
+        <div className="w-full min-h-full p-6 pt-10">
             <div className="flex items-center mb-6">
                 <Button onClick={handleAddNew} className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />

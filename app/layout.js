@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
 
           <div className="relative flex flex-col h-screen">
             <Navbar />
-            <main className="container mx-auto max-w-7xl pt-10 px-4 flex-grow">
+            <main className="flex-grow w-full overflow-auto">
               {children}
             </main>
             <Toaster />

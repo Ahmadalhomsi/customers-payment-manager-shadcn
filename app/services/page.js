@@ -114,8 +114,8 @@ export default function ServicesPage() {
   }
 
   return (
-    <div className="p-4">
-      <div className="flex gap-2 mb-4">
+    <div className="w-full min-h-full pt-6">
+      <div className="flex gap-2 mb-4 px-4">
 
         {permissions?.canEditServices && (<Button onClick={() => {
           setSelectedService(null)
@@ -126,26 +126,28 @@ export default function ServicesPage() {
         )}
       </div>
 
-      <ServiceTable
-        services={services}
-        customers={customers}
-        isLoading={loading}
-        sortConfig={sortConfig}
-        setSortConfig={setSortConfig}
-        onEdit={(service) => {
-          setSelectedService(service)
-          setServiceModalVisible(true)
-        }}
-        onDelete={(service) => {
-          setSelectedService(service)
-          setDeleteConfirmVisible(true)
-        }}
-        onViewHistory={(service) => {
-          setSelectedServiceForHistory(service)
-          fetchRenewHistory(service.id)
-          setRenewHistoryOpen(true)
-        }}
-      />
+      <div className="px-4">
+        <ServiceTable
+          services={services}
+          customers={customers}
+          isLoading={loading}
+          sortConfig={sortConfig}
+          setSortConfig={setSortConfig}
+          onEdit={(service) => {
+            setSelectedService(service)
+            setServiceModalVisible(true)
+          }}
+          onDelete={(service) => {
+            setSelectedService(service)
+            setDeleteConfirmVisible(true)
+          }}
+          onViewHistory={(service) => {
+            setSelectedServiceForHistory(service)
+            fetchRenewHistory(service.id)
+            setRenewHistoryOpen(true)
+          }}
+        />
+      </div>
 
       <ServiceModal2
         visible={serviceModalVisible}

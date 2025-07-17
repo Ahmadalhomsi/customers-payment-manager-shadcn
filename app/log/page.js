@@ -237,7 +237,7 @@ export default function LogsPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="w-full min-h-full p-6 pt-10 space-y-6">
       {!authenticated ? (
         <div className="text-center py-8">
           Kimlik doğrulanıyor...
