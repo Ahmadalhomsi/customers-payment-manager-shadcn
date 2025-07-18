@@ -189,6 +189,7 @@ export function ServiceTable({
     const filteredServices = sortedServices.filter(service => {
         const customer = customers.find(c => c.id === service.customerID);
         const matchesSearch =
+            service.id.toString().includes(searchTerm) ||
             service.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
             (customer?.name && customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
             (service.companyName && service.companyName.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
@@ -463,7 +464,21 @@ export function ServiceTable({
 
                                 return (
                                     <TableRow key={service.id} className="hover:bg-muted/50 transition-colors">
-                                        <TableCell className="font-mono text-xs">{service.id}</TableCell>
+                                        <TableCell className="font-mono text-xs">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-mono text-xs">
+                                                    {service.id}
+                                                </span>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => copyToClipboard(service.id.toString(), "Servis ID kopyalandı!")}
+                                                    className="h-6 w-6 p-0 hover:bg-gray-100"
+                                                >
+                                                    <Copy className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
                                         <TableCell className="font-medium">{service.name}</TableCell>
                                         <TableCell>
                                             {service.description ? (
