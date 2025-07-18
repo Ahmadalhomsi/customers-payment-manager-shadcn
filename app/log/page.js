@@ -16,7 +16,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight, Trash2 } from 'lucide-react';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState([]);
@@ -35,6 +36,7 @@ export default function LogsPage() {
   const [sortBy, setSortBy] = useState('createdAt'); // New sorting state
   const [sortOrder, setSortOrder] = useState('desc'); // New sorting order state
   const [pageSize, setPageSize] = useState(20); // New page size state
+  const [isClearing, setIsClearing] = useState(false); // State for clear operation
 
   // Check authentication on component mount
   useEffect(() => {
@@ -132,6 +134,34 @@ export default function LogsPage() {
     setPageSize(newPageSize);
     setPagination(prev => ({ ...prev, page: 1, limit: newPageSize })); // Reset to first page and update limit
     fetchLogs(1, searchTerm, validationTypeFilter);
+  };
+
+  const handleClearLogs = async () => {
+    setIsClearing(true);
+    try {
+      const response = await fetch('/api/logs', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`Cleared ${data.deletedCount} logs`);
+        // Refresh the logs after clearing
+        await fetchLogs(1, searchTerm, validationTypeFilter);
+      } else {
+        console.error('Failed to clear logs');
+        alert('Logları temizlerken bir hata oluştu');
+      }
+    } catch (error) {
+      console.error('Error clearing logs:', error);
+      alert('Logları temizlerken bir hata oluştu');
+    } finally {
+      setIsClearing(false);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -249,6 +279,28 @@ export default function LogsPage() {
               <Server className="h-8 w-8" />
               API Logları
             </h1>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={isClearing}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {isClearing ? 'Temizleniyor...' : 'Tüm Logları Temizle'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Tüm logları temizlemek istediğinizden emin misiniz?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Bu işlem geri alınamaz. Tüm API logları kalıcı olarak silinecektir.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>İptal</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClearLogs} className="bg-destructive hover:bg-destructive/90">
+                    Evet, Temizle
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
 
       <Card className="">

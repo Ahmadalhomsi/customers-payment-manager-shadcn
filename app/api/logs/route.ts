@@ -78,3 +78,22 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    // Delete all logs from the database
+    const deletedCount = await prisma.apiLog.deleteMany({});
+    
+    return NextResponse.json({
+      message: 'All logs cleared successfully',
+      deletedCount: deletedCount.count
+    });
+    
+  } catch (error) {
+    console.error('Error clearing logs:', error);
+    return NextResponse.json(
+      { error: 'Failed to clear logs' },
+      { status: 500 }
+    );
+  }
+}
