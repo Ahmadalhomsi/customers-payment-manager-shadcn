@@ -51,6 +51,26 @@ export default function CustomersPage() {
   useEffect(() => {
     fetchAdminData();
     fetchCustomers();
+
+    // Global keyboard shortcuts
+    const handleKeyDown = (event) => {
+      // Ctrl+F or Cmd+F to focus search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        event.preventDefault();
+        document.querySelector('input[placeholder*="Müşteri adı"]')?.focus();
+      }
+      // Ctrl+Enter or Cmd+Enter to search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        handleSearch();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleDeleteCustomer = async () => {
@@ -247,7 +267,12 @@ export default function CustomersPage() {
         {/* Search and Controls */}
         <Card>
           <CardHeader>
-            <CardTitle>Müşteri Arama ve Filtreleme</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Müşteri Arama ve Filtreleme</span>
+              <div className="text-xs text-muted-foreground">
+                Ctrl+F: Arama | Enter: Ara | Esc: Temizle
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-2 flex-wrap">
@@ -255,6 +280,14 @@ export default function CustomersPage() {
                 placeholder="Müşteri adı, email, telefon veya tablo adı ara..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  } else if (e.key === 'Escape') {
+                    setSearchTerm('');
+                    fetchCustomers(1, '', sortBy, sortOrder);
+                  }
+                }}
                 className="max-w-sm"
               />
               <Select value={sortBy} onValueChange={(value) => handleSort(value)}>

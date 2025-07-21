@@ -46,6 +46,25 @@ export default function ServicesPage() {
     fetchCustomers()
     fetchAdminData();
 
+    // Global keyboard shortcuts
+    const handleKeyDown = (event) => {
+      // Ctrl+F or Cmd+F to focus search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        event.preventDefault();
+        document.querySelector('input[placeholder*="Hizmet adı"]')?.focus();
+      }
+      // Ctrl+Enter or Cmd+Enter to search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        handleSearch();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [])
 
   const fetchAdminData = async () => {
@@ -184,7 +203,12 @@ export default function ServicesPage() {
         {/* Search and Controls */}
         <Card>
           <CardHeader>
-            <CardTitle>Hizmet Arama ve Filtreleme</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Hizmet Arama ve Filtreleme</span>
+              <div className="text-xs text-muted-foreground">
+                Ctrl+F: Arama | Enter: Ara | Esc: Temizle
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-2 flex-wrap">
@@ -192,6 +216,14 @@ export default function ServicesPage() {
                 placeholder="Hizmet adı, açıklama, şirket adı veya kategori ara..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  } else if (e.key === 'Escape') {
+                    setSearchTerm('');
+                    fetchServices(1, '', sortBy, sortOrder);
+                  }
+                }}
                 className="max-w-sm"
               />
               <Select value={sortBy} onValueChange={(value) => handleSort(value)}>

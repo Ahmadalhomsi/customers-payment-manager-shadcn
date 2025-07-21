@@ -41,7 +41,30 @@ export default function LogsPage() {
   // Check authentication on component mount
   useEffect(() => {
     checkAuthentication();
-  }, []);
+
+    // Global keyboard shortcuts
+    const handleKeyDown = (event) => {
+      // Only add shortcuts if authenticated
+      if (!authenticated) return;
+      
+      // Ctrl+F or Cmd+F to focus search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        event.preventDefault();
+        document.querySelector('input[placeholder*="IP, Servis"]')?.focus();
+      }
+      // Ctrl+Enter or Cmd+Enter to search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        handleSearch();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [authenticated]);
 
   const checkAuthentication = async () => {
     try {
@@ -312,15 +335,29 @@ export default function LogsPage() {
 
       <Card className="">
         <CardHeader className="">
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            External Validation API Logları
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              External Validation API Logları
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Ctrl+F: Arama | Enter: Ara | Esc: Temizle
+            </div>
           </CardTitle>
           <div className="flex gap-2 flex-wrap">
             <Input
               placeholder="IP, Servis veya İşletme adı ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch();
+                } else if (e.key === 'Escape') {
+                  setSearchTerm('');
+                  setValidationTypeFilter('all');
+                  fetchLogs(1, '', 'all');
+                }
+              }}
               className="max-w-sm"
             />
             <Select value={validationTypeFilter} onValueChange={setValidationTypeFilter}>
