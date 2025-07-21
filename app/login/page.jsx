@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,14 @@ export default function LoginPage() {
     const [isVisible, setIsVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const usernameInputRef = useRef(null);
+
+    useEffect(() => {
+        // Auto-focus the username input when component mounts
+        if (usernameInputRef.current) {
+            usernameInputRef.current.focus();
+        }
+    }, []);
 
     const toggleVisibility = () => setIsVisible(!isVisible);
 
@@ -70,6 +78,7 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <Input
+                                ref={usernameInputRef}
                                 type="text"
                                 placeholder="Username"
                                 value={username}
