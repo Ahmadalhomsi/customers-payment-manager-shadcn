@@ -22,23 +22,23 @@ export async function POST(req) {
         });
 
         // Calculate service dates
-        const startingDate = new Date();
-        const endingDate = addYears(startingDate, 1);
+        // const startingDate = new Date();
+        // const endingDate = addYears(startingDate, 1);
         const reminderDate = subWeeks(endingDate, 1);
 
-        // Create a default service
-        const service = await prisma.service.create({
-            data: {
-                name: "Default Hizmet",
-                description: "Otomatik oluşturulan hizmet",
-                paymentType: "1year",
-                periodPrice: 0.0,
-                currency: "TL",
-                startingDate,
-                endingDate,
-                customerID: customer.id,
-            },
-        });
+        // // Create a default service
+        // const service = await prisma.service.create({
+        //     data: {
+        //         name: "Default Hizmet",
+        //         description: "Otomatik oluşturulan hizmet",
+        //         paymentType: "1year",
+        //         periodPrice: 0.0,
+        //         currency: "TL",
+        //         startingDate,
+        //         endingDate,
+        //         customerID: customer.id,
+        //     },
+        // });
 
         // Create a reminder
         await prisma.reminder.create({
