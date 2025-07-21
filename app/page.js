@@ -233,13 +233,6 @@ export default function CustomersPage() {
     fetchCustomers(1, searchTerm, sortBy, sortOrder);
   };
 
-  const handleSort = (field) => {
-    const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
-    setSortBy(field);
-    setSortOrder(newOrder);
-    fetchCustomers(pagination.page, searchTerm, field, newOrder);
-  };
-
   const handlePageChange = (newPage) => {
     fetchCustomers(newPage, searchTerm, sortBy, sortOrder);
   };
@@ -290,17 +283,6 @@ export default function CustomersPage() {
                 }}
                 className="max-w-sm"
               />
-              <Select value={sortBy} onValueChange={(value) => handleSort(value)}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Sıralama" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="createdAt">Tarih</SelectItem>
-                  <SelectItem value="name">Ad</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                  <SelectItem value="phone">Telefon</SelectItem>
-                </SelectContent>
-              </Select>
               <Button onClick={handleSearch}>
                 <Search className="mr-2 h-4 w-4" />
                 Ara

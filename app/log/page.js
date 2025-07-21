@@ -371,17 +371,6 @@ export default function LogsPage() {
                 <SelectItem value="Existing Service">Existing Service</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={sortBy} onValueChange={(value) => handleSort(value)}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Sıralama" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="createdAt">Tarih</SelectItem>
-                <SelectItem value="ipAddress">IP Adresi</SelectItem>
-                <SelectItem value="serviceName">Servis Adı</SelectItem>
-                <SelectItem value="responseStatus">Durum</SelectItem>
-              </SelectContent>
-            </Select>
             <Button onClick={handleSearch}>Ara</Button>
             {(searchTerm || (validationTypeFilter && validationTypeFilter !== 'all')) && (
               <Button 

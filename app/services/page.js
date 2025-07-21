@@ -169,13 +169,6 @@ export default function ServicesPage() {
     fetchServices(1, searchTerm, sortBy, sortOrder);
   };
 
-  const handleSort = (field) => {
-    const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
-    setSortBy(field);
-    setSortOrder(newOrder);
-    fetchServices(pagination.page, searchTerm, field, newOrder);
-  };
-
   const handlePageChange = (newPage) => {
     fetchServices(newPage, searchTerm, sortBy, sortOrder);
   };
@@ -226,17 +219,6 @@ export default function ServicesPage() {
                 }}
                 className="max-w-sm"
               />
-              <Select value={sortBy} onValueChange={(value) => handleSort(value)}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Sıralama" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="createdAt">Tarih</SelectItem>
-                  <SelectItem value="name">Ad</SelectItem>
-                  <SelectItem value="companyName">Şirket</SelectItem>
-                  <SelectItem value="endingDate">Bitiş Tarihi</SelectItem>
-                </SelectContent>
-              </Select>
               <Button onClick={handleSearch}>
                 <Search className="mr-2 h-4 w-4" />
                 Ara
