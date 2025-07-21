@@ -120,19 +120,65 @@ export async function GET(req) {
         if (!decoded.permissions.canViewServices) {
             return NextResponse.json({ error: 'Yasak: Hizmet görüntüleme izniniz yok' }, { status: 403 });
         }
-        else if (!decoded.permissions.canViewCustomers) {
-            includeCustomer = false;
+        else if (decoded.permissions.canViewCustomers) {
+            includeCustomer = true;
         }
 
+        // Get pagination parameters from URL
+        const { searchParams } = new URL(req.url);
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limit = parseInt(searchParams.get('limit')) || 20;
+        const search = searchParams.get('search') || '';
+        const sortBy = searchParams.get('sortBy') || 'createdAt';
+        const sortOrder = searchParams.get('sortOrder') || 'desc';
+
+        // Calculate skip for pagination
+        const skip = (page - 1) * limit;
+
+        // Build where clause for search
+        const whereClause = search ? {
+            OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { companyName: { contains: search, mode: 'insensitive' } },
+                { category: { contains: search, mode: 'insensitive' } },
+                ...(includeCustomer ? [{ customer: { name: { contains: search, mode: 'insensitive' } } }] : [])
+            ]
+        } : {};
+
+        // Get total count for pagination
+        const totalCount = await prisma.service.count({
+            where: whereClause
+        });
+
+        // Get services from database with pagination
         const services = await prisma.service.findMany({
+            where: whereClause,
             include: {
                 customer: includeCustomer,
             },
             orderBy: {
-                createdAt: 'desc', // Sort by creation date, newest first
+                [sortBy]: sortOrder,
             },
+            skip,
+            take: limit,
         });
-        return NextResponse.json(services, { status: 200 });
+
+        // Calculate pagination info
+        const totalPages = Math.ceil(totalCount / limit);
+
+        // Prepare response data
+        const responseData = {
+            services: services,
+            pagination: {
+                page,
+                limit,
+                total: totalCount,
+                totalPages
+            }
+        };
+
+        return NextResponse.json(responseData, { status: 200 });
     } catch (error) {
         console.error('Service fetch error:', error.message);
         return NextResponse.json(

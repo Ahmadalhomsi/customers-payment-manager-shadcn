@@ -75,31 +75,72 @@ export async function GET(req) {
             includeService = false;
         }
 
-        // Get customers from database
+        // Get pagination parameters from URL
+        const { searchParams } = new URL(req.url);
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limit = parseInt(searchParams.get('limit')) || 20;
+        const search = searchParams.get('search') || '';
+        const sortBy = searchParams.get('sortBy') || 'createdAt';
+        const sortOrder = searchParams.get('sortOrder') || 'desc';
+
+        // Calculate skip for pagination
+        const skip = (page - 1) * limit;
+
+        // Build where clause for search
+        const whereClause = search ? {
+            OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+                { phone: { contains: search, mode: 'insensitive' } },
+                { tableName: { contains: search, mode: 'insensitive' } }
+            ]
+        } : {};
+
+        // Get total count for pagination
+        const totalCount = await prisma.customer.count({
+            where: whereClause
+        });
+
+        // Get customers from database with pagination
         const customers = await prisma.customer.findMany({
+            where: whereClause,
             include: {
                 services: includeService,
             },
             orderBy: {
-                createdAt: 'desc', // Sort by creation date, newest first
+                [sortBy]: sortOrder,
             },
+            skip,
+            take: limit,
         });
+
+        // Calculate pagination info
+        const totalPages = Math.ceil(totalCount / limit);
+
+        // Prepare response data
+        const responseData = {
+            customers: customers,
+            pagination: {
+                page,
+                limit,
+                total: totalCount,
+                totalPages
+            }
+        };
 
         // If user can't see passwords, remove them from the response
         if (!decoded.permissions.canSeePasswords) {
-            return NextResponse.json(
-                customers.map(customer => {
-                    return {
-                        ...customer,
-                        password: "", // Set password to empty string
-                    };
-                }),
-                { status: 206 }
-            );
+            responseData.customers = customers.map(customer => {
+                return {
+                    ...customer,
+                    password: "", // Set password to empty string
+                };
+            });
+            return NextResponse.json(responseData, { status: 206 });
         }
 
         // If user has permission, return full data including passwords
-        return NextResponse.json(customers, { status: 200 });
+        return NextResponse.json(responseData, { status: 200 });
     } catch (error) {
         console.log(error);
         return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });

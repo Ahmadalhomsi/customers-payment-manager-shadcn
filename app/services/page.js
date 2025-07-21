@@ -3,10 +3,13 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ServiceTable } from '@/components/servicesPage/ServicesTable'
 import { ServiceModal2 } from '@/components/servicesPage/ServiceModal2'
 import { DeleteConfirmModal } from '@/components/mainPage/DeleteConfirmModal'
-import { Plus } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react'
 import { RenewHistoryModal } from '@/components/RenewHistoryModal'
 import { toast } from 'sonner'
 
@@ -25,6 +28,18 @@ export default function ServicesPage() {
   const [renewHistory, setRenewHistory] = useState([])
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [permissions, setPermissions] = useState(null);
+
+  // Pagination states
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [pageSize, setPageSize] = useState(20);
 
   useEffect(() => {
     fetchServices()
@@ -46,15 +61,27 @@ export default function ServicesPage() {
     }
   };
 
-  const fetchServices = async () => {
+  const fetchServices = async (page = 1, search = '', sortField = sortBy, order = sortOrder) => {
     try {
       setLoading(true)
-      const response = await axios.get('/api/services')
-      // Sort services by creation date (newest first) to show new services at the top
-      const sortedServices = response.data.sort((a, b) => {
-        return new Date(b.createdAt) - new Date(a.createdAt)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: pageSize.toString(),
+        search,
+        sortBy: sortField,
+        sortOrder: order
+      });
+      
+      const response = await axios.get(`/api/services?${params}`)
+      
+      // Update services and pagination
+      setServices(response.data.services || [])
+      setPagination(response.data.pagination || {
+        page: 1,
+        limit: pageSize,
+        total: 0,
+        totalPages: 0
       })
-      setServices(sortedServices)
     } catch (error) {
       if (error.response.status === 403)
         toast.error('Yasak: Hizmet görüntüleme izniniz yok')
@@ -65,9 +92,10 @@ export default function ServicesPage() {
   const fetchCustomers = async () => {
     try {
       const response = await axios.get('/api/customers')
-      setCustomers(response.data)
+      // Handle the new pagination response structure
+      setCustomers(response.data.customers || response.data || [])
     } catch (error) {
-      if (error.response.status === 403)
+      if (error.response?.status === 403)
         toast.error('Yasak: Müşterileri görüntüleme izniniz yok')
       else
         console.log('Error fetching customers:', error)
@@ -93,7 +121,7 @@ export default function ServicesPage() {
     if (selectedService) {
       try {
         await axios.delete(`/api/services/${selectedService.id}`)
-        fetchServices()
+        fetchServices(pagination.page, searchTerm, sortBy, sortOrder)
         setDeleteConfirmVisible(false)
       } catch (error) {
         console.log('Error deleting service:', error)
@@ -108,7 +136,7 @@ export default function ServicesPage() {
       } else {
         await axios.post('/api/services', formData)
       }
-      await fetchServices() // Ensure fetch completes before closing modal
+      await fetchServices(pagination.page, searchTerm, sortBy, sortOrder) // Ensure fetch completes before closing modal
       setServiceModalVisible(false)
       setSelectedService(null)
     } catch (error) {
@@ -117,17 +145,84 @@ export default function ServicesPage() {
     }
   }
 
+  // Pagination handlers
+  const handleSearch = () => {
+    fetchServices(1, searchTerm, sortBy, sortOrder);
+  };
+
+  const handleSort = (field) => {
+    const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
+    setSortBy(field);
+    setSortOrder(newOrder);
+    fetchServices(pagination.page, searchTerm, field, newOrder);
+  };
+
+  const handlePageChange = (newPage) => {
+    fetchServices(newPage, searchTerm, sortBy, sortOrder);
+  };
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setPagination(prev => ({ ...prev, page: 1, limit: newPageSize }));
+    fetchServices(1, searchTerm, sortBy, sortOrder);
+  };
+
   return (
     <div className="w-full min-h-full pt-6">
-      <div className="flex gap-2 mb-4 px-4">
+      <div className="flex flex-col gap-4 mb-4 px-4">
+        <div className="flex gap-2">
+          {permissions?.canEditServices && (
+            <Button onClick={() => {
+              setSelectedService(null)
+              setServiceModalVisible(true)
+            }}>
+              <Plus className="mr-2 h-4 w-4" /> Hizmet Ekle
+            </Button>
+          )}
+        </div>
 
-        {permissions?.canEditServices && (<Button onClick={() => {
-          setSelectedService(null)
-          setServiceModalVisible(true)
-        }}>
-          <Plus className="mr-2 h-4 w-4" /> Hizmet Ekle
-        </Button>
-        )}
+        {/* Search and Controls */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Hizmet Arama ve Filtreleme</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2 flex-wrap">
+              <Input
+                placeholder="Hizmet adı, açıklama, şirket adı veya kategori ara..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+              <Select value={sortBy} onValueChange={(value) => handleSort(value)}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Sıralama" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="createdAt">Tarih</SelectItem>
+                  <SelectItem value="name">Ad</SelectItem>
+                  <SelectItem value="companyName">Şirket</SelectItem>
+                  <SelectItem value="endingDate">Bitiş Tarihi</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={handleSearch}>
+                <Search className="mr-2 h-4 w-4" />
+                Ara
+              </Button>
+              {searchTerm && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setSearchTerm('');
+                    fetchServices(1, '', sortBy, sortOrder);
+                  }}
+                >
+                  Temizle
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="px-4">
@@ -151,6 +246,108 @@ export default function ServicesPage() {
             setRenewHistoryOpen(true)
           }}
         />
+
+        {/* Pagination Controls */}
+        {pagination.totalPages > 0 && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-muted-foreground">
+                Toplam {pagination.total} kayıt, sayfa {pagination.page} / {pagination.totalPages}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Sayfa başına:</span>
+                <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(1)}
+                disabled={pagination.page <= 1}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              {/* Page numbers */}
+              {(() => {
+                const showPages = [];
+                const current = pagination.page;
+                const total = pagination.totalPages;
+                
+                // Always show first page
+                if (current > 3) {
+                  showPages.push(1);
+                  if (current > 4) showPages.push('...');
+                }
+                
+                // Show pages around current
+                for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
+                  showPages.push(i);
+                }
+                
+                // Always show last page
+                if (current < total - 2) {
+                  if (current < total - 3) showPages.push('...');
+                  showPages.push(total);
+                }
+                
+                return showPages.map((page, index) => {
+                  if (page === '...') {
+                    return <span key={index} className="px-2 text-muted-foreground">...</span>;
+                  }
+                  return (
+                    <Button
+                      key={page}
+                      variant={page === current ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(page)}
+                      className="w-8 h-8 p-0"
+                    >
+                      {page}
+                    </Button>
+                  );
+                });
+              })()}
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.totalPages)}
+                disabled={pagination.page >= pagination.totalPages}
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <ServiceModal2
