@@ -3,6 +3,7 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner"
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,15 +43,15 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-
-          <div className="relative flex flex-col h-screen">
-            <Navbar />
-            <main className="flex-grow w-full overflow-auto">
-              {children}
-            </main>
-            <Toaster />
-
-          </div>
+          <ErrorBoundary>
+            <div className="relative flex flex-col h-screen">
+              <Navbar />
+              <main className="flex-grow w-full overflow-auto">
+                {children}
+              </main>
+              <Toaster />
+            </div>
+          </ErrorBoundary>
         </ThemeProvider>
       </body>
     </html>

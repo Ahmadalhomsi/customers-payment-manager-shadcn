@@ -56,7 +56,14 @@ export default function LogsPage() {
         setAuthenticated(true);
         fetchLogs();
       } else {
-        router.push('/login');
+        // Check if it's a token expiration error
+        const errorData = await res.json();
+        if (res.status === 401) {
+          router.push('/login');
+        } else {
+          console.error("Authentication check failed:", errorData);
+          router.push('/login');
+        }
       }
     } catch (error) {
       console.error("Authentication check failed:", error);

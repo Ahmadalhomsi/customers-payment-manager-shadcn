@@ -14,6 +14,8 @@ import {
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Menu, Home, Briefcase, LogOut, User, FileText } from "lucide-react";
 import { BadgeNotification } from "@/components/BadgeNotification";
+import { authManager } from "@/lib/auth";
+import { simpleAuthenticatedGet } from "@/lib/simple-auth";
 
 export function Navbar() {
   const router = useRouter();
@@ -28,49 +30,50 @@ export function Navbar() {
     try {
       const res = await fetch("/api/logout");
       if (res.ok) {
+        authManager.clearTokens();
         router.push("/login");
       } else {
         console.error("Logout failed:", await res.text());
       }
     } catch (error) {
       console.error("Logout error:", error);
+      // Even if logout fails, clear tokens and redirect
+      authManager.clearTokens();
+      router.push("/login");
     }
   };
 
   useEffect(() => {
     const fetchAdminData = async () => {
+      if (isLoginPage) return;
+      
       try {
         setError(null);
-        const res = await fetch("/api/auth/me");
+        console.log("[Navbar] Fetching admin data...");
         
-        // Check if we got a valid JSON response
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          const text = await res.text();
-          console.error("Non-JSON response:", text);
-          setError("Received non-JSON response");
+        const data = await simpleAuthenticatedGet("/api/auth/me");
+        console.log("[Navbar] Admin data fetched successfully:", data);
+        
+        setAdminName(data.name || "");
+        setPermissions(data.permissions || null);
+        
+      } catch (error) {
+        console.error("[Navbar] Error fetching admin data:", error);
+        
+        // Don't show error for authentication issues - let auth manager handle
+        if (error.message === 'Authentication required') {
+          // Clear any existing state when authentication fails
+          setAdminName("");
+          setPermissions(null);
           return;
         }
-
-        if (res.ok) {
-          const data = await res.json();
-          console.log("Admin data fetched:", data);
-          setAdminName(data.name || "");
-          setPermissions(data.permissions || null);
-        } else {
-          const errorData = await res.json();
-          console.error("Failed to fetch admin data:", errorData);
-          setError(errorData.error || "Failed to fetch admin data");
-        }
-      } catch (error) {
-        console.error("Error fetching admin data:", error);
-        setError(error.message || "Failed to fetch admin data");
+        
+        // For other errors, just log them but don't show to user in the navbar
+        console.log("[Navbar] Non-auth error:", error.message);
       }
     };
 
-    if (!isLoginPage) {
-      fetchAdminData();
-    }
+    fetchAdminData();
   }, [pathname, isLoginPage]);
 
   if (isLoginPage) return null;

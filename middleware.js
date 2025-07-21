@@ -20,6 +20,17 @@ export async function middleware(req) {
   }
 
   if (!token) {
+    console.log("No token found");
+    
+    // For API routes, return JSON error instead of redirect
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { error: "Not authenticated", message: "No token provided" },
+        { status: 401 }
+      );
+    }
+    
+    // For page routes, redirect to login
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
@@ -34,12 +45,35 @@ export async function middleware(req) {
     return NextResponse.next();
   } catch (err) {
     console.error("JWT verification failed:", err);
+    
+    // For API routes, return JSON error instead of redirect
+    if (pathname.startsWith('/api/')) {
+      let errorMessage = "Invalid token";
+      if (err.code === 'ERR_JWT_EXPIRED') {
+        errorMessage = "Token expired";
+      }
+      
+      return NextResponse.json(
+        { error: errorMessage, message: "Authentication failed" },
+        { status: 401 }
+      );
+    }
+    
+    // For page routes, create response that clears the invalid token and redirects
     const response = NextResponse.redirect(new URL("/login", req.url));
     response.cookies.delete("token");
+    
+    // Set headers to help client-side error handling
+    if (err.code === 'ERR_JWT_EXPIRED') {
+      response.headers.set('X-Auth-Error', 'token-expired');
+    } else {
+      response.headers.set('X-Auth-Error', 'invalid-token');
+    }
+    
     return response;
   }
 }
 
 export const config = {
-  matcher: ["/api/:path*", "/", "/login", "/services"],
+  matcher: ["/api/:path*", "/", "/login", "/services", "/log"],
 };

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff } from "lucide-react";
 import { BeatLoader } from "react-spinners"; // Import BeatLoader
+import { authManager } from "@/lib/auth";
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
@@ -23,6 +24,9 @@ export default function LoginPage() {
         if (usernameInputRef.current) {
             usernameInputRef.current.focus();
         }
+        
+        // Clear any existing tokens when on login page
+        authManager.clearTokens();
     }, []);
 
     const toggleVisibility = () => setIsVisible(!isVisible);
@@ -44,8 +48,13 @@ export default function LoginPage() {
             const result = await response.json();
 
             if (response.ok) {
+                // Store token in both localStorage and cookie for consistency
                 localStorage.setItem("token", result.token);
                 document.cookie = `token=${result.token}; path=/; max-age=86400; samesite=strict; secure`;
+                
+                // Reset the auth manager's redirection flag
+                authManager.isRedirecting = false;
+                
                 router.push("/");
             } else {
                 setIsLoading(false); // Stop loading

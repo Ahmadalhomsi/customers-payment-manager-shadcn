@@ -31,6 +31,17 @@ export async function GET(request) {
     });
   } catch (error) {
     console.error("Error in /api/auth/me:", error);
+    
+    // Check if it's a token expiration error
+    if (error.code === 'ERR_JWT_EXPIRED' || error.message.includes('expired')) {
+      return NextResponse.json({ error: "Token expired" }, { status: 401 });
+    }
+    
+    // For invalid token or other JWT errors
+    if (error.code?.startsWith('ERR_JWT_') || error.message.includes('JWT')) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+    
     return NextResponse.json({ error: "Server error", message: error.message }, { status: 500 });
   }
 }
