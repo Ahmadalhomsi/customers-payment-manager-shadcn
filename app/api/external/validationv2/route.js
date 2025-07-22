@@ -25,9 +25,9 @@ function createStandardResponse(success, valid = null, message, data = null, err
     const responseBody = {
         success,
         message,
-        ...(valid !== null && { valid }),
-        ...(data && { data }),
-        ...(error && { error })
+        valid: valid !== null ? valid : false,
+        data,
+        error
     };
     
     return {
