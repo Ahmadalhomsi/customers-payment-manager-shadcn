@@ -19,17 +19,41 @@ async function logApiRequest(logData, responseStatus, responseBody) {
 }
 
 /**
+ * Creates a standardized API response
+ */
+function createStandardResponse(success, valid = null, message, data = null, error = null, status = 200) {
+    const responseBody = {
+        success,
+        message,
+        ...(valid !== null && { valid }),
+        ...(data && { data }),
+        ...(error && { error })
+    };
+    
+    return {
+        body: responseBody,
+        response: NextResponse.json(responseBody, { status })
+    };
+}
+
+/**
  * Creates a trial service for external applications
  */
 async function createTrialService(deviceToken, serviceName, companyName, terminal, logData = null) {
     // Validate required fields
     if (!deviceToken || !serviceName) {
-        const responseBody = { error: 'Missing required fields: deviceToken and serviceName are required' };
-        const response = NextResponse.json(responseBody, { status: 400 });
+        const { body, response } = createStandardResponse(
+            false, 
+            false, 
+            'Missing required fields: deviceToken and serviceName are required', 
+            null, 
+            { code: 'MISSING_REQUIRED_FIELDS', fields: ['deviceToken', 'serviceName'] }, 
+            400
+        );
         
         // Log asynchronously without blocking
         if (logData) {
-            logApiRequest(logData, 400, responseBody);
+            logApiRequest(logData, 400, body);
         }
         
         return response;
@@ -37,24 +61,36 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
 
     // Validate input lengths
     if (deviceToken.length > 255) {
-        const responseBody = { error: 'Device token is too long (maximum 255 characters)' };
-        const response = NextResponse.json(responseBody, { status: 400 });
+        const { body, response } = createStandardResponse(
+            false, 
+            false, 
+            'Device token is too long (maximum 255 characters)', 
+            null, 
+            { code: 'VALIDATION_ERROR', field: 'deviceToken', maxLength: 255 }, 
+            400
+        );
         
         // Log asynchronously without blocking
         if (logData) {
-            logApiRequest(logData, 400, responseBody);
+            logApiRequest(logData, 400, body);
         }
         
         return response;
     }
 
     if (serviceName.length > 100) {
-        const responseBody = { error: 'Service name is too long (maximum 100 characters)' };
-        const response = NextResponse.json(responseBody, { status: 400 });
+        const { body, response } = createStandardResponse(
+            false, 
+            false, 
+            'Service name is too long (maximum 100 characters)', 
+            null, 
+            { code: 'VALIDATION_ERROR', field: 'serviceName', maxLength: 100 }, 
+            400
+        );
         
         // Log asynchronously without blocking
         if (logData) {
-            logApiRequest(logData, 400, responseBody);
+            logApiRequest(logData, 400, body);
         }
         
         return response;
@@ -62,12 +98,18 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
 
     // Validate company name length if provided
     if (companyName && companyName.length > 100) {
-        const responseBody = { error: 'Company name is too long (maximum 100 characters)' };
-        const response = NextResponse.json(responseBody, { status: 400 });
+        const { body, response } = createStandardResponse(
+            false, 
+            false, 
+            'Company name is too long (maximum 100 characters)', 
+            null, 
+            { code: 'VALIDATION_ERROR', field: 'companyName', maxLength: 100 }, 
+            400
+        );
         
         // Log asynchronously without blocking
         if (logData) {
-            logApiRequest(logData, 400, responseBody);
+            logApiRequest(logData, 400, body);
         }
         
         return response;
@@ -89,23 +131,31 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
         if (endDate > now) {
             // Service is still active
             const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            const responseBody = {
-                valid: true,
-                existingService: true,
-                service: {
-                    id: existingService.id,
-                    name: existingService.name,
-                    companyName: existingService.companyName,
-                    endingDate: existingService.endingDate,
-                    daysRemaining: daysRemaining
-                }
-            };
-            const response = NextResponse.json(responseBody, { status: 200 });
+            const { body, response } = createStandardResponse(
+                true, 
+                true, 
+                'Service found and is active', 
+                {
+                    service: {
+                        id: existingService.id,
+                        name: existingService.name,
+                        companyName: existingService.companyName,
+                        deviceToken: existingService.deviceToken,
+                        startingDate: existingService.startingDate,
+                        endingDate: existingService.endingDate,
+                        daysRemaining: daysRemaining
+                    },
+                    serviceType: 'existing',
+                    isTrialService: true
+                }, 
+                null, 
+                200
+            );
             
             // Update validation type for existing service
             if (logData) {
                 logData.validationType = 'Sisteme Giriş';
-                logApiRequest(logData, 200, responseBody);
+                logApiRequest(logData, 200, body);
             }
             
             return response;
@@ -168,24 +218,30 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
         }
     });
 
-    const responseBody = {
-        valid: true,
-        newTrialService: true,
-        service: {
-            id: service.id,
-            name: service.name,
-            companyName: service.companyName,
-            startingDate: service.startingDate,
-            endingDate: service.endingDate,
-            deviceToken: service.deviceToken,
-            trialDaysRemaining: 15
-        }
-    };
-    const response = NextResponse.json(responseBody, { status: 201 });
+    const { body, response } = createStandardResponse(
+        true, 
+        true, 
+        'Trial service created successfully', 
+        {
+            service: {
+                id: service.id,
+                name: service.name,
+                companyName: service.companyName,
+                deviceToken: service.deviceToken,
+                startingDate: service.startingDate,
+                endingDate: service.endingDate,
+                daysRemaining: 15
+            },
+            serviceType: 'new',
+            isTrialService: true
+        }, 
+        null, 
+        201
+    );
     
     // Log asynchronously without blocking
     if (logData) {
-        logApiRequest(logData, 201, responseBody);
+        logApiRequest(logData, 201, body);
     }
     
     return response;
@@ -197,8 +253,15 @@ export async function POST(request) {
 
     // Validate that deviceToken is provided
     if (!deviceToken) {
-        const responseBody = { error: 'Device token is required' };
-        return NextResponse.json(responseBody, { status: 400 });
+        const { body, response } = createStandardResponse(
+            false, 
+            false, 
+            'Device token is required', 
+            null, 
+            { code: 'MISSING_REQUIRED_FIELD', field: 'deviceToken' }, 
+            400
+        );
+        return response;
     }
 
     // Get client IP address
@@ -234,14 +297,29 @@ export async function POST(request) {
 
         // Check if service is active first
         if (!service.active) {
-            const responseBody = {
-                valid: false,
-                message: "Service is inactive",
-            };
-            const response = NextResponse.json(responseBody, { status: 403 });
+            const { body, response } = createStandardResponse(
+                true, 
+                false, 
+                'Service is inactive', 
+                {
+                    service: {
+                        id: service.id,
+                        name: service.name,
+                        companyName: service.companyName,
+                        deviceToken: service.deviceToken,
+                        startingDate: service.startingDate,
+                        endingDate: service.endingDate,
+                        active: service.active
+                    },
+                    serviceType: 'existing',
+                    isTrialService: false
+                }, 
+                { code: 'SERVICE_INACTIVE' }, 
+                403
+            );
             
             // Log asynchronously without blocking
-            logApiRequest(logData, 403, responseBody);
+            logApiRequest(logData, 403, body);
             
             return response;
         }
@@ -250,15 +328,29 @@ export async function POST(request) {
         const endDate = new Date(service.endingDate);
 
         if (endDate <= today) {
-            const responseBody = {
-                valid: false,
-                message: "Service has expired",
-                endingDate: service.endingDate,
-            };
-            const response = NextResponse.json(responseBody, { status: 400 });
+            const { body, response } = createStandardResponse(
+                true, 
+                false, 
+                'Service has expired', 
+                {
+                    service: {
+                        id: service.id,
+                        name: service.name,
+                        companyName: service.companyName,
+                        deviceToken: service.deviceToken,
+                        startingDate: service.startingDate,
+                        endingDate: service.endingDate,
+                        daysRemaining: 0
+                    },
+                    serviceType: 'existing',
+                    isTrialService: false
+                }, 
+                { code: 'SERVICE_EXPIRED', expiredDate: service.endingDate }, 
+                400
+            );
             
             // Log asynchronously without blocking
-            logApiRequest(logData, 400, responseBody);
+            logApiRequest(logData, 400, body);
             
             return response;
         }
@@ -292,20 +384,30 @@ export async function POST(request) {
         
         const daysRemaining = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         
-        const responseBody = {
-            valid: true,
-            service: {
-                id: service.id,
-                name: serviceName || service.name,
-                companyName: companyName || service.companyName,
-                endingDate: service.endingDate,
-                daysRemaining: daysRemaining
-            }
-        };
-        const response = NextResponse.json(responseBody, { status: 200 });
+        const { body, response } = createStandardResponse(
+            true, 
+            true, 
+            'Service is valid and active', 
+            {
+                service: {
+                    id: service.id,
+                    name: serviceName || service.name,
+                    companyName: companyName || service.companyName,
+                    deviceToken: service.deviceToken,
+                    startingDate: service.startingDate,
+                    endingDate: service.endingDate,
+                    daysRemaining: daysRemaining
+                },
+                serviceType: 'existing',
+                isTrialService: false,
+                ...(needsUpdate && { updated: true })
+            }, 
+            null, 
+            200
+        );
         
         // Log asynchronously without blocking
-        logApiRequest(logData, 200, responseBody);
+        logApiRequest(logData, 200, body);
         
         return response;
 
@@ -314,23 +416,32 @@ export async function POST(request) {
         
         // Handle specific Prisma errors for trial service creation
         if (error.code === 'P2002') {
-            const responseBody = { error: 'A service with this device token already exists' };
-            const response = NextResponse.json(responseBody, { status: 409 });
+            const { body, response } = createStandardResponse(
+                false, 
+                false, 
+                'A service with this device token already exists', 
+                null, 
+                { code: 'DUPLICATE_SERVICE', prismaCode: 'P2002' }, 
+                409
+            );
             
             // Log asynchronously without blocking
-            logApiRequest(logData, 409, responseBody);
+            logApiRequest(logData, 409, body);
             
             return response;
         }
 
-        const responseBody = { 
-            error: "Internal Server Error", 
-            details: error.message 
-        };
-        const response = NextResponse.json(responseBody, { status: 500 });
+        const { body, response } = createStandardResponse(
+            false, 
+            false, 
+            'Internal Server Error', 
+            null, 
+            { code: 'INTERNAL_ERROR', details: error.message }, 
+            500
+        );
         
         // Log asynchronously without blocking
-        logApiRequest(logData, 500, responseBody);
+        logApiRequest(logData, 500, body);
         
         return response;
     }
