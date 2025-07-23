@@ -75,9 +75,9 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+# Health check (disabled for Coolify - Coolify has its own health monitoring)
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+#   CMD curl -f http://localhost:3000/api/external/health || exit 1
 
 # Use startup script that handles database migrations
 ENTRYPOINT ["./start.sh"]
