@@ -3,7 +3,7 @@ const express = require('express');
 const next = require('next');
 const cron = require('node-cron');
 const { isSameDay } = require('date-fns');
-import axios from 'axios'
+const axios = require('axios');
 
 // Determine whether you're in production or development mode
 const dev = process.env.NODE_ENV !== 'production';
@@ -86,6 +86,11 @@ app.prepare().then(() => {
     server.use((req, res, next) => {
         console.log('Request received:', req.url);
         next();
+    });
+
+    // Add a simple health check endpoint
+    server.get('/health', (req, res) => {
+        res.json({ status: 'healthy', timestamp: new Date().toISOString() });
     });
 
     server.all('*', (req, res) => {

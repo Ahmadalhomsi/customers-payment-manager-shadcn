@@ -1,0 +1,211 @@
+
+#14 93.44    Collecting page data ...
+2025-Jul-23 12:36:03.064203
+#14 100.1    Generating static pages (0/24) ...
+2025-Jul-23 12:36:05.501221
+#14 102.5    Generating static pages (6/24)
+2025-Jul-23 12:36:05.510955
+2025-Jul-23 12:36:05.671157
+#14 102.5    Generating static pages (12/24)
+2025-Jul-23 12:36:05.671157
+#14 102.5    Generating static pages (18/24)
+2025-Jul-23 12:36:05.715742
+#14 102.7  ✓ Generating static pages (24/24)
+2025-Jul-23 12:36:07.430460
+#14 104.5    Finalizing page optimization ...
+2025-Jul-23 12:36:07.430460
+#14 104.5    Collecting build traces ...
+2025-Jul-23 12:36:44.871897
+#14 141.9
+2025-Jul-23 12:36:45.039210
+#14 141.9 Route (app)                                 Size  First Load JS
+2025-Jul-23 12:36:45.039210
+#14 141.9 ┌ ○ /                                    23.8 kB         222 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ○ /_not-found                            996 B         101 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ○ /admins                              5.01 kB         134 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/admins                            192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/admins/[id]                       192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/auth/me                           192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/customers                         192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/customers/[id]                    192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/external/health                   192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/external/newCustomer              192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/external/renew                    192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/external/validation               192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/external/validationv2             192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/login                             192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/logout                            192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/logs                              192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/mailer                            192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/notifications                     192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/notifications/[id]                192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/reminders                         192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/reminders/[id]                    192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/renew-histories                   192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/renew-histories/[id]              192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/services                          192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/services/[id]                     192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ƒ /api/services/customer/[customerId]    192 B        99.8 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ○ /log                                 4.06 kB         147 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 ├ ○ /login                               4.46 kB         112 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 └ ○ /services                            21.7 kB         220 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9 + First Load JS shared by all            99.6 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9   ├ chunks/4bd1b696-602635ee57868870.js  54.1 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9   ├ chunks/5964-e98f132f9229d654.js      43.5 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9   └ other shared chunks (total)          1.93 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9
+2025-Jul-23 12:36:45.039210
+#14 141.9
+2025-Jul-23 12:36:45.039210
+#14 141.9 ƒ Middleware                               39 kB
+2025-Jul-23 12:36:45.039210
+#14 141.9
+2025-Jul-23 12:36:45.039210
+#14 141.9 ○  (Static)   prerendered as static content
+2025-Jul-23 12:36:45.039210
+#14 141.9 ƒ  (Dynamic)  server-rendered on demand
+2025-Jul-23 12:36:45.039210
+#14 141.9
+2025-Jul-23 12:36:45.082018
+#14 DONE 142.1s
+2025-Jul-23 12:36:47.878485
+#15 [runner  2/11] RUN addgroup --system --gid 1001 nodejs
+2025-Jul-23 12:36:47.878485
+#15 CACHED
+2025-Jul-23 12:36:47.878485
+2025-Jul-23 12:36:47.878485
+#16 [runner  3/11] RUN adduser --system --uid 1001 nextjs
+2025-Jul-23 12:36:47.878485
+#16 CACHED
+2025-Jul-23 12:36:47.878485
+2025-Jul-23 12:36:47.878485
+#17 [runner  4/11] COPY --from=builder /app/public ./public
+2025-Jul-23 12:36:47.878485
+#17 CACHED
+2025-Jul-23 12:36:47.878485
+2025-Jul-23 12:36:47.878485
+#18 [runner  5/11] RUN mkdir .next
+2025-Jul-23 12:36:47.878485
+#18 CACHED
+2025-Jul-23 12:36:47.878485
+2025-Jul-23 12:36:47.878485
+#19 [runner  6/11] RUN chown nextjs:nodejs .next
+2025-Jul-23 12:36:47.878485
+#19 CACHED
+2025-Jul-23 12:36:47.878485
+2025-Jul-23 12:36:47.878485
+#20 [runner  7/11] COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+2025-Jul-23 12:36:48.909423
+#20 DONE 1.0s
+2025-Jul-23 12:36:49.061233
+#21 [runner  8/11] COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+2025-Jul-23 12:36:49.061233
+#21 DONE 0.1s
+2025-Jul-23 12:36:49.061233
+2025-Jul-23 12:36:49.061233
+#22 [runner  9/11] COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+2025-Jul-23 12:36:49.061233
+#22 DONE 0.1s
+2025-Jul-23 12:36:49.272817
+#23 [runner 10/11] COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+2025-Jul-23 12:36:49.272817
+#23 DONE 0.1s
+2025-Jul-23 12:36:49.272817
+2025-Jul-23 12:36:49.272817
+#24 [runner 11/11] COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+2025-Jul-23 12:36:49.272817
+#24 DONE 0.1s
+2025-Jul-23 12:36:49.441020
+#25 exporting to image
+2025-Jul-23 12:36:49.441020
+#25 exporting layers
+2025-Jul-23 12:36:50.432618
+#25 exporting layers 1.2s done
+2025-Jul-23 12:36:50.432618
+#25 writing image sha256:1a227fcc774333df3f4ba5ee9939d74007ba34fdd3dd503d1a98929e313b0973
+2025-Jul-23 12:36:50.498952
+#25 writing image sha256:1a227fcc774333df3f4ba5ee9939d74007ba34fdd3dd503d1a98929e313b0973 done
+2025-Jul-23 12:36:50.498952
+#25 naming to docker.io/library/gc88o84og444ggw0wcwo8cg0:d84763c3242146f8d2b13580fbd721562a513793 done
+2025-Jul-23 12:36:50.498952
+#25 DONE 1.2s
+2025-Jul-23 12:36:50.532863
+Building docker image completed.
+2025-Jul-23 12:36:50.547884
+----------------------------------------
+2025-Jul-23 12:36:50.561012
+Rolling update started.
+2025-Jul-23 12:36:51.006992
+[CMD]: docker exec m4gwcogwco80444ckowkooc4 bash -c 'SOURCE_COMMIT=d84763c3242146f8d2b13580fbd721562a513793 COOLIFY_URL=http://gc88o84og444ggw0wcwo8cg0.23.88.44.63.sslip.io COOLIFY_FQDN=gc88o84og444ggw0wcwo8cg0.23.88.44.63.sslip.io COOLIFY_BRANCH=master  docker compose --project-name gc88o84og444ggw0wcwo8cg0 --project-directory /artifacts/m4gwcogwco80444ckowkooc4 -f /artifacts/m4gwcogwco80444ckowkooc4/docker-compose.yaml up --build -d'
+2025-Jul-23 12:36:51.006992
+Container gc88o84og444ggw0wcwo8cg0-123355313193  Creating
+2025-Jul-23 12:36:51.065058
+gc88o84og444ggw0wcwo8cg0-123355313193 Your kernel does not support memory swappiness capabilities or the cgroup is not mounted. Memory swappiness discarded.
+2025-Jul-23 12:36:51.070115
+Container gc88o84og444ggw0wcwo8cg0-123355313193  Created
+2025-Jul-23 12:36:51.077937
+Container gc88o84og444ggw0wcwo8cg0-123355313193  Starting
+2025-Jul-23 12:36:51.425871
+Container gc88o84og444ggw0wcwo8cg0-123355313193  Started
+2025-Jul-23 12:36:51.446581
+New container started.
+2025-Jul-23 12:36:51.459720
+Custom healthcheck found, skipping default healthcheck.
+2025-Jul-23 12:36:51.467919
+Waiting for healthcheck to pass on the new container.
+2025-Jul-23 12:36:51.478113
+Waiting for the start period (40 seconds) before starting healthcheck.
+2025-Jul-23 12:37:31.692777
+[CMD]: docker inspect --format='{{json .State.Health.Status}}' gc88o84og444ggw0wcwo8cg0-123355313193
+2025-Jul-23 12:37:31.692777
+2025-Jul-23 12:37:31.700229
+template parsing error: template: :1:13: executing "" at <.State.Health.Status>: map has no entry for key "Health"
+2025-Jul-23 12:37:31.759540
+Oops something is not okay, are you okay? 😢
+2025-Jul-23 12:37:31.765864
+template parsing error: template: :1:13: executing "" at <.State.Health.Status>: map has no entry for key "Health"
+2025-Jul-23 12:37:31.771890
+Deployment failed. Removing the new version of your application.
+2025-Jul-23 12:37:32.526490
+Gracefully shutting down build container: m4gwcogwco80444ckowkooc4
+2025-Jul-23 12:37:32.805091
+[CMD]: docker stop --time=30 m4gwcogwco80444ckowkooc4
+2025-Jul-23 12:37:32.805091
+m4gwcogwco80444ckowkooc4
+2025-Jul-23 12:37:32.957353
+[CMD]: docker rm -f m4gwcogwco80444ckowkooc4
+2025-Jul-23 12:37:32.957353
+Error response from daemon: No such container: m4gwcogwco80444ckowkooc4
