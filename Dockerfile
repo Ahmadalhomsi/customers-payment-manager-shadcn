@@ -65,9 +65,9 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Add healthcheck
+# Add healthcheck using the Next.js API health endpoint
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD curl -f http://localhost:3000/api/external/health || exit 1
 
-# Start the application
-CMD ["node", "server.js"]
+# Start the Next.js standalone server
+CMD ["npm", "start"]
