@@ -70,4 +70,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/api/external/health || exit 1
 
 # Start the Next.js standalone server
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
