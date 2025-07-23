@@ -16,11 +16,6 @@ services:
       - "5432:5432"
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d mp_customers"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # Next.js Application
   app:
@@ -29,23 +24,22 @@ services:
       dockerfile: Dockerfile
     container_name: mp_customers_app
     restart: unless-stopped
-    # environment:
-    #   - NODE_ENV=production
-    #   - DATABASE_URL=postgresql://postgres:${DATABASE_PASSWORD:-ahmad}@postgres:5432/mp_customers?schema=public
-    #   - JWT_SECRET=${JWT_SECRET:-your-strong-secret-key}
-    #   - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-    #   - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
-    #   - MAIL_HOST=${MAIL_HOST:-smtp.sendgrid.net}
-    #   - MAIL_USERNAME=${MAIL_USERNAME:-apikey}
-    #   - MAIL_PASSWORD=${MAIL_PASSWORD}
-    #   - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-deployer72@gmail.com}
-    #   - TO_EMAIL=${TO_EMAIL:-tarikuka.aa@gmail.com}
-    #   - renewPassword=${RENEW_PASSWORD:-masterRenewPass}
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${DATABASE_PASSWORD:-ahmad}@postgres:5432/mp_customers?schema=public
+      - JWT_SECRET=${JWT_SECRET:-your-strong-secret-key}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - MAIL_HOST=${MAIL_HOST:-smtp.sendgrid.net}
+      - MAIL_USERNAME=${MAIL_USERNAME:-apikey}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-deployer72@gmail.com}
+      - TO_EMAIL=${TO_EMAIL:-tarikuka.aa@gmail.com}
+      - renewPassword=${RENEW_PASSWORD:-masterRenewPass}
     ports:
       - "3000:3000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     networks:
       - app-network
     # healthcheck:
