@@ -35,8 +35,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# # Install curl for healthchecks
-# RUN apk add --no-cache curl
+# Install curl for healthchecks
+RUN apk add --no-cache curl
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -64,6 +64,10 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
 
 # Start the application
 CMD ["node", "server.js"]
