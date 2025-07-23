@@ -23,7 +23,7 @@ COPY . .
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generate Prisma Client
 RUN npx prisma generate
@@ -38,9 +38,9 @@ WORKDIR /app
 # Install curl for health checks
 RUN apk add --no-cache curl
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 # Uncomment the following line in case you want to disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -71,13 +71,9 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
+ENV PORT=3000
 # set hostname to localhost
-ENV HOSTNAME "0.0.0.0"
-
-# Health check (disabled for Coolify - Coolify has its own health monitoring)
-# HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-#   CMD curl -f http://localhost:3000/api/external/health || exit 1
+ENV HOSTNAME="0.0.0.0"
 
 # Use startup script that handles database migrations
 ENTRYPOINT ["./start.sh"]

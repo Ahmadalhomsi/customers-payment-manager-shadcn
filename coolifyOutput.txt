@@ -1,0 +1,567 @@
+Starting deployment of Ahmadalhomsi/customers-payment-manager-shadcn:master to localhost.
+2025-Jul-23 11:42:40.869869
+Preparing container with helper image: ghcr.io/coollabsio/coolify-helper:1.0.8.
+2025-Jul-23 11:42:41.042492
+[CMD]: docker stop --time=30 uo8sws8wkgww8s8gockos0ck
+2025-Jul-23 11:42:41.042492
+Error response from daemon: No such container: uo8sws8wkgww8s8gockos0ck
+2025-Jul-23 11:42:41.181163
+[CMD]: docker rm -f uo8sws8wkgww8s8gockos0ck
+2025-Jul-23 11:42:41.181163
+Error response from daemon: No such container: uo8sws8wkgww8s8gockos0ck
+2025-Jul-23 11:42:41.421965
+[CMD]: docker run -d --network coolify --name uo8sws8wkgww8s8gockos0ck --rm -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/coollabsio/coolify-helper:1.0.8
+2025-Jul-23 11:42:41.421965
+0ea59aca483da11f161119cc11d28385e6962644676676e573e1c465a43f94a3
+2025-Jul-23 11:42:43.441361
+[CMD]: docker exec uo8sws8wkgww8s8gockos0ck bash -c 'GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" git ls-remote https://x-access-token:<REDACTED>@github.com/Ahmadalhomsi/customers-payment-manager-shadcn.git master'
+2025-Jul-23 11:42:43.441361
+064726afaa4a67eec9b3c3bfcc0488de41e255e4	refs/heads/master
+2025-Jul-23 11:42:43.732298
+----------------------------------------
+2025-Jul-23 11:42:43.738636
+Importing Ahmadalhomsi/customers-payment-manager-shadcn:master (commit sha HEAD) to /artifacts/uo8sws8wkgww8s8gockos0ck.
+2025-Jul-23 11:42:43.947895
+[CMD]: docker exec uo8sws8wkgww8s8gockos0ck bash -c 'git clone -b "master" https://x-access-token:<REDACTED>@github.com/Ahmadalhomsi/customers-payment-manager-shadcn.git /artifacts/uo8sws8wkgww8s8gockos0ck && cd /artifacts/uo8sws8wkgww8s8gockos0ck && GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" git submodule update --init --recursive && cd /artifacts/uo8sws8wkgww8s8gockos0ck && GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" git lfs pull'
+2025-Jul-23 11:42:43.947895
+Cloning into '/artifacts/uo8sws8wkgww8s8gockos0ck'...
+2025-Jul-23 11:42:45.304189
+[CMD]: docker exec uo8sws8wkgww8s8gockos0ck bash -c 'cd /artifacts/uo8sws8wkgww8s8gockos0ck && git log -1 064726afaa4a67eec9b3c3bfcc0488de41e255e4 --pretty=%B'
+2025-Jul-23 11:42:45.304189
+Health api route update in docker
+2025-Jul-23 11:42:45.476206
+Image not found (gc88o84og444ggw0wcwo8cg0:064726afaa4a67eec9b3c3bfcc0488de41e255e4). Building new image.
+2025-Jul-23 11:42:46.696986
+[CMD]: docker exec uo8sws8wkgww8s8gockos0ck bash -c 'cat /artifacts/uo8sws8wkgww8s8gockos0ck/Dockerfile'
+2025-Jul-23 11:42:46.696986
+# Use the official Node.js 18 Alpine image as base
+2025-Jul-23 11:42:46.696986
+FROM node:18-alpine AS base
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Install dependencies only when needed
+2025-Jul-23 11:42:46.696986
+FROM base AS deps
+2025-Jul-23 11:42:46.696986
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+2025-Jul-23 11:42:46.696986
+RUN apk add --no-cache libc6-compat curl
+2025-Jul-23 11:42:46.696986
+WORKDIR /app
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Install dependencies based on the preferred package manager
+2025-Jul-23 11:42:46.696986
+COPY package.json package-lock.json* ./
+2025-Jul-23 11:42:46.696986
+RUN \
+2025-Jul-23 11:42:46.696986
+if [ -f package-lock.json ]; then npm ci --only=production; \
+2025-Jul-23 11:42:46.696986
+else echo "Lockfile not found." && exit 1; \
+2025-Jul-23 11:42:46.696986
+fi
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Rebuild the source code only when needed
+2025-Jul-23 11:42:46.696986
+FROM base AS builder
+2025-Jul-23 11:42:46.696986
+WORKDIR /app
+2025-Jul-23 11:42:46.696986
+COPY --from=deps /app/node_modules ./node_modules
+2025-Jul-23 11:42:46.696986
+COPY . .
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Next.js collects completely anonymous telemetry data about general usage.
+2025-Jul-23 11:42:46.696986
+# Learn more here: https://nextjs.org/telemetry
+2025-Jul-23 11:42:46.696986
+# Uncomment the following line in case you want to disable telemetry during the build.
+2025-Jul-23 11:42:46.696986
+ENV NEXT_TELEMETRY_DISABLED 1
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Generate Prisma Client
+2025-Jul-23 11:42:46.696986
+RUN npx prisma generate
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Build the application
+2025-Jul-23 11:42:46.696986
+RUN npm run build
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Production image, copy all the files and run next
+2025-Jul-23 11:42:46.696986
+FROM base AS runner
+2025-Jul-23 11:42:46.696986
+WORKDIR /app
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Install curl for health checks
+2025-Jul-23 11:42:46.696986
+RUN apk add --no-cache curl
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+ENV NODE_ENV production
+2025-Jul-23 11:42:46.696986
+# Uncomment the following line in case you want to disable telemetry during runtime.
+2025-Jul-23 11:42:46.696986
+ENV NEXT_TELEMETRY_DISABLED 1
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Create a non-root user
+2025-Jul-23 11:42:46.696986
+RUN addgroup --system --gid 1001 nodejs
+2025-Jul-23 11:42:46.696986
+RUN adduser --system --uid 1001 nextjs
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Copy the public folder
+2025-Jul-23 11:42:46.696986
+COPY --from=builder /app/public ./public
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Set the correct permission for prerender cache
+2025-Jul-23 11:42:46.696986
+RUN mkdir .next
+2025-Jul-23 11:42:46.696986
+RUN chown nextjs:nodejs .next
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Automatically leverage output traces to reduce image size
+2025-Jul-23 11:42:46.696986
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+2025-Jul-23 11:42:46.696986
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+2025-Jul-23 11:42:46.696986
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Copy Prisma schema and generated client
+2025-Jul-23 11:42:46.696986
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+2025-Jul-23 11:42:46.696986
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+2025-Jul-23 11:42:46.696986
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Copy startup script
+2025-Jul-23 11:42:46.696986
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/start.sh ./start.sh
+2025-Jul-23 11:42:46.696986
+RUN chmod +x ./start.sh
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+USER nextjs
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+EXPOSE 3000
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+ENV PORT 3000
+2025-Jul-23 11:42:46.696986
+# set hostname to localhost
+2025-Jul-23 11:42:46.696986
+ENV HOSTNAME "0.0.0.0"
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Health check (disabled for Coolify - Coolify has its own health monitoring)
+2025-Jul-23 11:42:46.696986
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+2025-Jul-23 11:42:46.696986
+#   CMD curl -f http://localhost:3000/api/external/health || exit 1
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# Use startup script that handles database migrations
+2025-Jul-23 11:42:46.696986
+ENTRYPOINT ["./start.sh"]
+2025-Jul-23 11:42:46.696986
+2025-Jul-23 11:42:46.696986
+# server.js is created by next build from the standalone output
+2025-Jul-23 11:42:46.696986
+# https://nextjs.org/docs/pages/api-reference/next-config-js/output
+2025-Jul-23 11:42:46.696986
+CMD ["node", "server.js"]
+2025-Jul-23 11:42:47.175020
+[CMD]: docker exec uo8sws8wkgww8s8gockos0ck bash -c 'cat /artifacts/uo8sws8wkgww8s8gockos0ck/Dockerfile'
+2025-Jul-23 11:42:47.175020
+# Use the official Node.js 18 Alpine image as base
+2025-Jul-23 11:42:47.175020
+FROM node:18-alpine AS base
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Install dependencies only when needed
+2025-Jul-23 11:42:47.175020
+FROM base AS deps
+2025-Jul-23 11:42:47.175020
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+2025-Jul-23 11:42:47.175020
+RUN apk add --no-cache libc6-compat curl
+2025-Jul-23 11:42:47.175020
+WORKDIR /app
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Install dependencies based on the preferred package manager
+2025-Jul-23 11:42:47.175020
+COPY package.json package-lock.json* ./
+2025-Jul-23 11:42:47.175020
+RUN \
+2025-Jul-23 11:42:47.175020
+if [ -f package-lock.json ]; then npm ci --only=production; \
+2025-Jul-23 11:42:47.175020
+else echo "Lockfile not found." && exit 1; \
+2025-Jul-23 11:42:47.175020
+fi
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Rebuild the source code only when needed
+2025-Jul-23 11:42:47.175020
+FROM base AS builder
+2025-Jul-23 11:42:47.175020
+WORKDIR /app
+2025-Jul-23 11:42:47.175020
+COPY --from=deps /app/node_modules ./node_modules
+2025-Jul-23 11:42:47.175020
+COPY . .
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Next.js collects completely anonymous telemetry data about general usage.
+2025-Jul-23 11:42:47.175020
+# Learn more here: https://nextjs.org/telemetry
+2025-Jul-23 11:42:47.175020
+# Uncomment the following line in case you want to disable telemetry during the build.
+2025-Jul-23 11:42:47.175020
+ENV NEXT_TELEMETRY_DISABLED 1
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Generate Prisma Client
+2025-Jul-23 11:42:47.175020
+RUN npx prisma generate
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Build the application
+2025-Jul-23 11:42:47.175020
+RUN npm run build
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Production image, copy all the files and run next
+2025-Jul-23 11:42:47.175020
+FROM base AS runner
+2025-Jul-23 11:42:47.175020
+WORKDIR /app
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Install curl for health checks
+2025-Jul-23 11:42:47.175020
+RUN apk add --no-cache curl
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+ENV NODE_ENV production
+2025-Jul-23 11:42:47.175020
+# Uncomment the following line in case you want to disable telemetry during runtime.
+2025-Jul-23 11:42:47.175020
+ENV NEXT_TELEMETRY_DISABLED 1
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Create a non-root user
+2025-Jul-23 11:42:47.175020
+RUN addgroup --system --gid 1001 nodejs
+2025-Jul-23 11:42:47.175020
+RUN adduser --system --uid 1001 nextjs
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Copy the public folder
+2025-Jul-23 11:42:47.175020
+COPY --from=builder /app/public ./public
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Set the correct permission for prerender cache
+2025-Jul-23 11:42:47.175020
+RUN mkdir .next
+2025-Jul-23 11:42:47.175020
+RUN chown nextjs:nodejs .next
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Automatically leverage output traces to reduce image size
+2025-Jul-23 11:42:47.175020
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+2025-Jul-23 11:42:47.175020
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+2025-Jul-23 11:42:47.175020
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Copy Prisma schema and generated client
+2025-Jul-23 11:42:47.175020
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+2025-Jul-23 11:42:47.175020
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+2025-Jul-23 11:42:47.175020
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Copy startup script
+2025-Jul-23 11:42:47.175020
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/start.sh ./start.sh
+2025-Jul-23 11:42:47.175020
+RUN chmod +x ./start.sh
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+USER nextjs
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+EXPOSE 3000
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+ENV PORT 3000
+2025-Jul-23 11:42:47.175020
+# set hostname to localhost
+2025-Jul-23 11:42:47.175020
+ENV HOSTNAME "0.0.0.0"
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Health check (disabled for Coolify - Coolify has its own health monitoring)
+2025-Jul-23 11:42:47.175020
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+2025-Jul-23 11:42:47.175020
+#   CMD curl -f http://localhost:3000/api/external/health || exit 1
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# Use startup script that handles database migrations
+2025-Jul-23 11:42:47.175020
+ENTRYPOINT ["./start.sh"]
+2025-Jul-23 11:42:47.175020
+2025-Jul-23 11:42:47.175020
+# server.js is created by next build from the standalone output
+2025-Jul-23 11:42:47.175020
+# https://nextjs.org/docs/pages/api-reference/next-config-js/output
+2025-Jul-23 11:42:47.175020
+CMD ["node", "server.js"]
+2025-Jul-23 11:42:47.446545
+----------------------------------------
+2025-Jul-23 11:42:47.454175
+Building docker image started.
+2025-Jul-23 11:42:47.461495
+To check the current progress, click on Show Debug Logs.
+2025-Jul-23 11:42:47.895499
+[CMD]: docker exec uo8sws8wkgww8s8gockos0ck bash -c 'cat /artifacts/build.sh'
+2025-Jul-23 11:42:47.895499
+docker build  --add-host coolify:10.0.1.6 --add-host coolify-db:10.0.1.3 --add-host coolify-realtime:10.0.1.2 --add-host coolify-redis:10.0.1.5 --add-host p08swwogkc880c4o0g0ssg0o:10.0.1.7 --network host -f /artifacts/uo8sws8wkgww8s8gockos0ck/Dockerfile --build-arg SOURCE_COMMIT='064726afaa4a67eec9b3c3bfcc0488de41e255e4' --build-arg 'COOLIFY_URL=http://gc88o84og444ggw0wcwo8cg0.23.88.44.63.sslip.io' --build-arg 'COOLIFY_FQDN=gc88o84og444ggw0wcwo8cg0.23.88.44.63.sslip.io' --build-arg 'COOLIFY_BRANCH=master' --build-arg 'COOLIFY_RESOURCE_UUID=gc88o84og444ggw0wcwo8cg0' --build-arg 'COOLIFY_CONTAINER_NAME=gc88o84og444ggw0wcwo8cg0-114239121881' --progress plain -t gc88o84og444ggw0wcwo8cg0:064726afaa4a67eec9b3c3bfcc0488de41e255e4 /artifacts/uo8sws8wkgww8s8gockos0ck
+2025-Jul-23 11:42:48.634571
+[CMD]: docker exec uo8sws8wkgww8s8gockos0ck bash -c 'bash /artifacts/build.sh'
+2025-Jul-23 11:42:48.634571
+#0 building with "default" instance using docker driver
+2025-Jul-23 11:42:48.634571
+2025-Jul-23 11:42:48.634571
+#1 [internal] load build definition from Dockerfile
+2025-Jul-23 11:42:48.634571
+#1 transferring dockerfile: 2.87kB done
+2025-Jul-23 11:42:48.634571
+#1 DONE 0.0s
+2025-Jul-23 11:42:48.634571
+2025-Jul-23 11:42:48.634571
+#2 [internal] load metadata for docker.io/library/node:18-alpine
+2025-Jul-23 11:42:49.207607
+#2 DONE 0.7s
+2025-Jul-23 11:42:49.312202
+#3 [internal] load .dockerignore
+2025-Jul-23 11:42:49.312202
+#3 transferring context: 1.08kB done
+2025-Jul-23 11:42:49.312202
+#3 DONE 0.0s
+2025-Jul-23 11:42:49.312202
+2025-Jul-23 11:42:49.312202
+#4 [base 1/1] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+2025-Jul-23 11:42:49.312202
+#4 DONE 0.0s
+2025-Jul-23 11:42:49.312202
+2025-Jul-23 11:42:49.312202
+#5 [internal] load build context
+2025-Jul-23 11:42:49.312202
+#5 transferring context: 741.84kB 0.0s done
+2025-Jul-23 11:42:49.398169
+#5 DONE 0.1s
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#6 [runner  4/14] RUN adduser --system --uid 1001 nextjs
+2025-Jul-23 11:42:49.398169
+#6 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#7 [runner  5/14] COPY --from=builder /app/public ./public
+2025-Jul-23 11:42:49.398169
+#7 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#8 [builder 3/5] COPY . .
+2025-Jul-23 11:42:49.398169
+#8 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#9 [builder 1/5] WORKDIR /app
+2025-Jul-23 11:42:49.398169
+#9 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#10 [builder 5/5] RUN npm run build
+2025-Jul-23 11:42:49.398169
+#10 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#11 [deps 1/4] RUN apk add --no-cache libc6-compat curl
+2025-Jul-23 11:42:49.398169
+#11 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#12 [runner 13/14] COPY --from=builder --chown=nextjs:nodejs /app/scripts/start.sh ./start.sh
+2025-Jul-23 11:42:49.398169
+#12 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#13 [runner  7/14] RUN chown nextjs:nodejs .next
+2025-Jul-23 11:42:49.398169
+#13 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#14 [runner 10/14] COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+2025-Jul-23 11:42:49.398169
+#14 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#15 [builder 2/5] COPY --from=deps /app/node_modules ./node_modules
+2025-Jul-23 11:42:49.398169
+#15 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#16 [runner 12/14] COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+2025-Jul-23 11:42:49.398169
+#16 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#17 [runner  3/14] RUN addgroup --system --gid 1001 nodejs
+2025-Jul-23 11:42:49.398169
+#17 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#18 [builder 4/5] RUN npx prisma generate
+2025-Jul-23 11:42:49.398169
+#18 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#19 [runner  6/14] RUN mkdir .next
+2025-Jul-23 11:42:49.398169
+#19 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#20 [runner  9/14] COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+2025-Jul-23 11:42:49.398169
+#20 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#21 [runner 11/14] COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+2025-Jul-23 11:42:49.398169
+#21 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#22 [deps 3/4] COPY package.json package-lock.json* ./
+2025-Jul-23 11:42:49.398169
+#22 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#23 [deps 4/4] RUN   if [ -f package-lock.json ]; then npm ci --only=production;   else echo "Lockfile not found." && exit 1;   fi
+2025-Jul-23 11:42:49.398169
+#23 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#24 [runner  2/14] RUN apk add --no-cache curl
+2025-Jul-23 11:42:49.398169
+#24 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#25 [runner  8/14] COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+2025-Jul-23 11:42:49.398169
+#25 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#26 [deps 2/4] WORKDIR /app
+2025-Jul-23 11:42:49.398169
+#26 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#27 [runner 14/14] RUN chmod +x ./start.sh
+2025-Jul-23 11:42:49.398169
+#27 CACHED
+2025-Jul-23 11:42:49.398169
+2025-Jul-23 11:42:49.398169
+#28 exporting to image
+2025-Jul-23 11:42:49.398169
+#28 exporting layers done
+2025-Jul-23 11:42:49.398169
+#28 writing image sha256:65803939ece5b468b9a1e85302ae5813d71529f5ab467fdd5feb2b2369833f64 done
+2025-Jul-23 11:42:49.398169
+#28 naming to docker.io/library/gc88o84og444ggw0wcwo8cg0:064726afaa4a67eec9b3c3bfcc0488de41e255e4 done
+2025-Jul-23 11:42:49.398169
+#28 DONE 0.0s
+2025-Jul-23 11:42:49.413674
+5 warnings found (use docker --debug to expand):
+2025-Jul-23 11:42:49.413674
+- LegacyKeyValueFormat: "ENV key=value" should be used instead of legacy "ENV key value" format (line 26)
+2025-Jul-23 11:42:49.413674
+- LegacyKeyValueFormat: "ENV key=value" should be used instead of legacy "ENV key value" format (line 41)
+2025-Jul-23 11:42:49.413674
+- LegacyKeyValueFormat: "ENV key=value" should be used instead of legacy "ENV key value" format (line 43)
+2025-Jul-23 11:42:49.413674
+- LegacyKeyValueFormat: "ENV key=value" should be used instead of legacy "ENV key value" format (line 74)
+2025-Jul-23 11:42:49.413674
+- LegacyKeyValueFormat: "ENV key=value" should be used instead of legacy "ENV key value" format (line 76)
+2025-Jul-23 11:42:49.434445
+Building docker image completed.
+2025-Jul-23 11:42:49.440840
+----------------------------------------
+2025-Jul-23 11:42:49.448295
+Rolling update started.
+2025-Jul-23 11:42:49.813782
+[CMD]: docker exec uo8sws8wkgww8s8gockos0ck bash -c 'SOURCE_COMMIT=064726afaa4a67eec9b3c3bfcc0488de41e255e4 COOLIFY_URL=http://gc88o84og444ggw0wcwo8cg0.23.88.44.63.sslip.io COOLIFY_FQDN=gc88o84og444ggw0wcwo8cg0.23.88.44.63.sslip.io COOLIFY_BRANCH=master  docker compose --project-name gc88o84og444ggw0wcwo8cg0 --project-directory /artifacts/uo8sws8wkgww8s8gockos0ck -f /artifacts/uo8sws8wkgww8s8gockos0ck/docker-compose.yaml up --build -d'
+2025-Jul-23 11:42:49.813782
+Container gc88o84og444ggw0wcwo8cg0-114239121881  Creating
+2025-Jul-23 11:42:49.896934
+gc88o84og444ggw0wcwo8cg0-114239121881 Your kernel does not support memory swappiness capabilities or the cgroup is not mounted. Memory swappiness discarded.
+2025-Jul-23 11:42:49.903593
+Container gc88o84og444ggw0wcwo8cg0-114239121881  Created
+2025-Jul-23 11:42:49.920978
+Container gc88o84og444ggw0wcwo8cg0-114239121881  Starting
+2025-Jul-23 11:42:50.261575
+Container gc88o84og444ggw0wcwo8cg0-114239121881  Started
+2025-Jul-23 11:42:50.288336
+New container started.
+2025-Jul-23 11:42:50.298089
+Custom healthcheck found, skipping default healthcheck.
+2025-Jul-23 11:42:50.308391
+Waiting for healthcheck to pass on the new container.
+2025-Jul-23 11:42:50.315441
+Waiting for the start period (40 seconds) before starting healthcheck.
+2025-Jul-23 11:43:30.525486
+[CMD]: docker inspect --format='{{json .State.Health.Status}}' gc88o84og444ggw0wcwo8cg0-114239121881
+2025-Jul-23 11:43:30.525486
+2025-Jul-23 11:43:30.532447
+template parsing error: template: :1:13: executing "" at <.State.Health.Status>: map has no entry for key "Health"
+2025-Jul-23 11:43:30.598323
+Oops something is not okay, are you okay? 😢
+2025-Jul-23 11:43:30.605244
+template parsing error: template: :1:13: executing "" at <.State.Health.Status>: map has no entry for key "Health"
+2025-Jul-23 11:43:30.615216
+Deployment failed. Removing the new version of your application.
+2025-Jul-23 11:43:31.511752
+Gracefully shutting down build container: uo8sws8wkgww8s8gockos0ck
+2025-Jul-23 11:43:31.871771
+[CMD]: docker stop --time=30 uo8sws8wkgww8s8gockos0ck
+2025-Jul-23 11:43:31.871771
+uo8sws8wkgww8s8gockos0ck
+2025-Jul-23 11:43:32.044989
+[CMD]: docker rm -f uo8sws8wkgww8s8gockos0ck
+2025-Jul-23 11:43:32.044989
+Error response from daemon: No such container: uo8sws8wkgww8s8gockos0ck
