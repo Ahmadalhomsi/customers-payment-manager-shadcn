@@ -48,12 +48,12 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
             'Missing required fields: deviceToken and serviceName are required', 
             null, 
             { code: 'MISSING_REQUIRED_FIELDS', fields: ['deviceToken', 'serviceName'] }, 
-            400
+            200
         );
         
         // Log asynchronously without blocking
         if (logData) {
-            logApiRequest(logData, 400, body);
+            logApiRequest(logData, 200, body);
         }
         
         return response;
@@ -67,12 +67,12 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
             'Device token is too long (maximum 255 characters)', 
             null, 
             { code: 'VALIDATION_ERROR', field: 'deviceToken', maxLength: 255 }, 
-            400
+            200
         );
         
         // Log asynchronously without blocking
         if (logData) {
-            logApiRequest(logData, 400, body);
+            logApiRequest(logData, 200, body);
         }
         
         return response;
@@ -85,12 +85,12 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
             'Service name is too long (maximum 100 characters)', 
             null, 
             { code: 'VALIDATION_ERROR', field: 'serviceName', maxLength: 100 }, 
-            400
+            200
         );
         
         // Log asynchronously without blocking
         if (logData) {
-            logApiRequest(logData, 400, body);
+            logApiRequest(logData, 200, body);
         }
         
         return response;
@@ -104,12 +104,12 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
             'Company name is too long (maximum 100 characters)', 
             null, 
             { code: 'VALIDATION_ERROR', field: 'companyName', maxLength: 100 }, 
-            400
+            200
         );
         
         // Log asynchronously without blocking
         if (logData) {
-            logApiRequest(logData, 400, body);
+            logApiRequest(logData, 200, body);
         }
         
         return response;
@@ -236,12 +236,12 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
             isTrialService: true
         }, 
         null, 
-        201
+        200
     );
     
     // Log asynchronously without blocking
     if (logData) {
-        logApiRequest(logData, 201, body);
+        logApiRequest(logData, 200, body);
     }
     
     return response;
@@ -259,7 +259,7 @@ export async function POST(request) {
             'Device token is required', 
             null, 
             { code: 'MISSING_REQUIRED_FIELD', field: 'deviceToken' }, 
-            400
+            200
         );
         return response;
     }
@@ -315,11 +315,11 @@ export async function POST(request) {
                     isTrialService: false
                 }, 
                 { code: 'SERVICE_INACTIVE' }, 
-                403
+                200
             );
             
             // Log asynchronously without blocking
-            logApiRequest(logData, 403, body);
+            logApiRequest(logData, 200, body);
             
             return response;
         }
@@ -346,11 +346,11 @@ export async function POST(request) {
                     isTrialService: false
                 }, 
                 { code: 'SERVICE_EXPIRED', expiredDate: service.endingDate }, 
-                400
+                200
             );
             
             // Log asynchronously without blocking
-            logApiRequest(logData, 400, body);
+            logApiRequest(logData, 200, body);
             
             return response;
         }
@@ -422,11 +422,11 @@ export async function POST(request) {
                 'A service with this device token already exists', 
                 null, 
                 { code: 'DUPLICATE_SERVICE', prismaCode: 'P2002' }, 
-                409
+                200
             );
             
             // Log asynchronously without blocking
-            logApiRequest(logData, 409, body);
+            logApiRequest(logData, 200, body);
             
             return response;
         }
@@ -437,11 +437,11 @@ export async function POST(request) {
             'Internal Server Error', 
             null, 
             { code: 'INTERNAL_ERROR', details: error.message }, 
-            500
+            200
         );
         
         // Log asynchronously without blocking
-        logApiRequest(logData, 500, body);
+        logApiRequest(logData, 200, body);
         
         return response;
     }
