@@ -1,22 +1,6 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: mp_customers_db
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: mp_customers
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-ahmad}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - app-network
-
   # Next.js Application
   app:
     build:
@@ -26,7 +10,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:${DATABASE_PASSWORD:-ahmad}@postgres:5432/mp_customers?schema=public
+      - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET:-your-strong-secret-key}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
@@ -38,21 +22,3 @@ services:
       - renewPassword=${RENEW_PASSWORD:-masterRenewPass}
     ports:
       - "3000:3000"
-    depends_on:
-      - postgres
-    networks:
-      - app-network
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
-    #   start_period: 40s
-
-volumes:
-  postgres_data:
-    driver: local
-
-networks:
-  app-network:
-    driver: bridge
