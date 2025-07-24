@@ -63,6 +63,11 @@ RUN echo '#!/bin/sh\necho "Running database migrations..."\nnpx prisma db push -
     chmod +x /app/start.sh && \
     chown nextjs:nodejs /app/start.sh
 
+# Create a manual migration script for convenience
+RUN echo '#!/bin/sh\necho "Running manual database migration..."\nnpx prisma db push\necho "Migration completed!"' > /app/migrate.sh && \
+    chmod +x /app/migrate.sh && \
+    chown nextjs:nodejs /app/migrate.sh
+
 USER nextjs
 
 EXPOSE 3000
