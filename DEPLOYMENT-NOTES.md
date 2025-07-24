@@ -33,16 +33,31 @@ PORT=3000
 
 After the container is running successfully:
 
-1. **Run Database Migrations**
-   - Go to Coolify → Your Application → Terminal
-   - Run: `npx prisma migrate deploy`
+1. **Set Environment Variables in Coolify**
+   - Add DATABASE_URL in Coolify's environment variables
+   - Format: `postgresql://user:password@host:port/database?schema=public`
 
-2. **Verify Health**
+2. **Restart Container After Env Changes**
+   - **IMPORTANT**: After changing environment variables in Coolify, you MUST restart the container
+   - Go to Coolify → Your Application → Click "Restart" or "Redeploy"
+   - Environment variables only take effect after container restart
+
+3. **Verify Environment Variables**
+   - Go to Coolify → Your Application → Terminal
+   - Run: `env | grep DATABASE` to verify the DATABASE_URL is correct
+
+4. **Run Database Migrations**
+   - In terminal, run: `npx prisma db push`
+   - Or use the convenience script: `./migrate.sh`
+
+5. **Verify Health**
    - Check: `https://your-domain/api/external/health`
 
 ## Important Notes
 
-- The new Dockerfile has **no health checks** - Coolify will handle monitoring
-- Database migrations need to be run manually after deployment
+- **Environment Variables**: After changing env vars in Coolify, ALWAYS restart the container
+- **Database Connection**: Use Coolify's PostgreSQL service connection string
+- **Container Restart**: Required for env changes to take effect
+- **Migrations**: Run automatically on startup, but can be run manually if needed
 - The application uses Coolify's PostgreSQL service format
-- Password in URL is URL-encoded (`%2A` = `*`)
+- Password in URL should be URL-encoded if it contains special characters
