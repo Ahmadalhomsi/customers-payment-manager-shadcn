@@ -58,6 +58,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
+# Create a startup script that runs migrations and starts the server
+RUN echo '#!/bin/sh\necho "Running database migrations..."\nnpx prisma db push --accept-data-loss\necho "Starting application..."\nnode server.js' > /app/start.sh && \
+    chmod +x /app/start.sh && \
+    chown nextjs:nodejs /app/start.sh
+
 USER nextjs
 
 EXPOSE 3000
@@ -69,5 +74,5 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/api/external/health || exit 1
 
-# Start the Next.js standalone server
-CMD ["node", "server.js"]
+# Start with the script that runs migrations first
+CMD ["/app/start.sh"]
