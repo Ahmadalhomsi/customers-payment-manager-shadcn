@@ -4,10 +4,6 @@
 
 Based on your Coolify setup, use these environment variables:
 
-### Database Configuration
-```
-DATABASE_URL=postgres://postgres:Akanti85%2A%2A@p08swwogkc880c4o0g0ssg0o:5432/postgres
-```
 
 ### Application Settings
 ```
