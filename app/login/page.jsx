@@ -16,6 +16,7 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [isVisible, setIsVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showSlowMessage, setShowSlowMessage] = useState(false);
     const router = useRouter();
     const usernameInputRef = useRef(null);
 
@@ -35,29 +36,55 @@ export default function LoginPage() {
         e.preventDefault();
         setError(""); // Reset any previous errors
         setIsLoading(true); // Start loading
+        setShowSlowMessage(false); // Reset slow message
+
+        // Show "taking longer than expected" message after 3 seconds
+        const slowMessageTimeout = setTimeout(() => {
+            setShowSlowMessage(true);
+        }, 3000);
 
         try {
+            console.log("Starting login request..."); // Debug log
+            
+            // Add timeout to the fetch request
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
             const response = await fetch("/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ username, password }),
+                signal: controller.signal
             });
 
+            clearTimeout(timeoutId); // Clear timeout if request completes
+            clearTimeout(slowMessageTimeout); // Clear slow message timeout
+            console.log("Login response status:", response.status); // Debug log
+
             const result = await response.json();
+            console.log("Login result:", result); // Debug log
 
             if (response.ok) {
                 // Store token in both localStorage and cookie for consistency
                 localStorage.setItem("token", result.token);
-                document.cookie = `token=${result.token}; path=/; max-age=86400; samesite=strict; secure`;
+                
+                // Check if we're on HTTPS to determine if we should use secure cookies
+                const isSecure = window.location.protocol === 'https:';
+                document.cookie = `token=${result.token}; path=/; max-age=86400; samesite=strict${isSecure ? '; secure' : ''}`;
                 
                 // Reset the auth manager's redirection flag
                 authManager.isRedirecting = false;
                 
+                // Stop loading before redirect
+                setIsLoading(false);
+                setShowSlowMessage(false);
+                
                 router.push("/");
             } else {
                 setIsLoading(false); // Stop loading
+                setShowSlowMessage(false);
                 if (response.status === 429) {
                     setError("Too many failed attempts. Try again later.");
                 } else {
@@ -65,8 +92,18 @@ export default function LoginPage() {
                 }
             }
         } catch (err) {
-            setError("Something went wrong. Please try again.");
+            console.error("Login error:", err); // Debug log
             setIsLoading(false); // Stop loading
+            setShowSlowMessage(false);
+            clearTimeout(slowMessageTimeout); // Clear slow message timeout
+            
+            if (err.name === 'AbortError') {
+                setError("Login request timed out. Please check your connection and try again.");
+            } else if (err.message.includes('NetworkError') || err.message.includes('fetch')) {
+                setError("Network error. Please check your connection and try again.");
+            } else {
+                setError("Something went wrong. Please try again.");
+            }
         }
     };
 
@@ -121,6 +158,14 @@ export default function LoginPage() {
                         {error && (
                             <Alert variant="destructive">
                                 <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        )}
+
+                        {showSlowMessage && isLoading && (
+                            <Alert>
+                                <AlertDescription>
+                                    This is taking longer than expected. Please wait...
+                                </AlertDescription>
                             </Alert>
                         )}
 
