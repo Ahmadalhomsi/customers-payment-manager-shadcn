@@ -187,7 +187,7 @@ export function ServiceTable({
     })
 
     const filteredServices = sortedServices.filter(service => {
-        const customer = customers.find(c => c.id === service.customerID);
+        const customer = service.customer || customers.find(c => c.id === service.customerID);
         const matchesSearch =
             service.id.toString().includes(searchTerm) ||
             service.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
@@ -459,7 +459,7 @@ export function ServiceTable({
                         <TableBody>
                             {filteredServices.map((service) => {
                                 const status = getServiceStatus(service)
-                                const customer = customers.find(c => c.id === service.customerID)
+                                const customer = service.customer || customers.find(c => c.id === service.customerID)
                                 const isActive = status === 'active'
 
                                 return (
