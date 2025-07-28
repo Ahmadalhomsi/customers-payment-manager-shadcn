@@ -17,8 +17,29 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: any = {};
     
-    // Search across IP address, service name, and company name
+    // Search across IP address, service name, request body, and customer names
     if (search) {
+      // First, find customer IDs that match the search term
+      const matchingCustomers = await prisma.customer.findMany({
+        where: {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { tableName: { contains: search, mode: 'insensitive' } }
+          ]
+        },
+        select: { id: true }
+      });
+
+      // Find services that belong to matching customers
+      const matchingServices = await prisma.service.findMany({
+        where: {
+          customerID: { in: matchingCustomers.map(c => c.id) }
+        },
+        select: { name: true }
+      });
+
+      const serviceNames = matchingServices.map(s => s.name);
+
       where.OR = [
         {
           ipAddress: {
@@ -37,7 +58,13 @@ export async function GET(request: NextRequest) {
             contains: search,
             mode: 'insensitive'
           }
-        }
+        },
+        // Include logs for services that belong to matching customers
+        ...(serviceNames.length > 0 ? [{
+          serviceName: {
+            in: serviceNames
+          }
+        }] : [])
       ];
     }
     
@@ -49,19 +76,65 @@ export async function GET(request: NextRequest) {
     const orderBy: any = {};
     orderBy[sortBy] = sortOrder;
     
-    // Get logs with pagination
+    // Get logs with pagination and include related service/customer data
     const [logs, total] = await Promise.all([
       prisma.apiLog.findMany({
         where,
         orderBy,
         skip,
         take: limit,
+        include: {
+          // We'll use a manual approach since ApiLog doesn't have direct relations
+          // Instead, we'll fetch this data separately for each log
+        }
       }),
       prisma.apiLog.count({ where })
     ]);
+
+    // Enhance logs with customer information
+    const enhancedLogs = await Promise.all(
+      logs.map(async (log) => {
+        let customerInfo = null;
+        
+        // If we have a serviceName, try to find the corresponding service and customer
+        if (log.serviceName) {
+          try {
+            const service = await prisma.service.findFirst({
+              where: {
+                name: log.serviceName
+              },
+              include: {
+                customer: {
+                  select: {
+                    id: true,
+                    name: true,
+                    tableName: true,
+                    email: true
+                  }
+                }
+              },
+              orderBy: {
+                createdAt: 'desc' // Get the most recent service with this name
+              }
+            });
+
+            if (service?.customer) {
+              customerInfo = service.customer;
+            }
+          } catch (error) {
+            console.error('Error fetching customer for log:', error);
+          }
+        }
+
+        return {
+          ...log,
+          customer: customerInfo
+        };
+      })
+    );
     
     return NextResponse.json({
-      logs,
+      logs: enhancedLogs,
       pagination: {
         page,
         limit,

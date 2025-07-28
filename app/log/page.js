@@ -50,7 +50,7 @@ export default function LogsPage() {
       // Ctrl+F or Cmd+F to focus search
       if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
         event.preventDefault();
-        document.querySelector('input[placeholder*="IP, Servis"]')?.focus();
+        document.querySelector('input[placeholder*="IP, Servis, İşletme"]')?.focus();
       }
       // Ctrl+Enter or Cmd+Enter to search
       if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
@@ -276,6 +276,12 @@ export default function LogsPage() {
                     return 'N/A';
                   }
                 })()}</div>
+                <div><strong>Müşteri:</strong> {log.customer ? (
+                  <span>
+                    {log.customer.name}
+                    {log.customer.tableName && ` (${log.customer.tableName})`}
+                  </span>
+                ) : 'N/A'}</div>
                 <div><strong>Terminal:</strong> {(() => {
                   try {
                     const requestData = JSON.parse(log.requestBody || '{}');
@@ -359,7 +365,7 @@ export default function LogsPage() {
           </CardTitle>
           <div className="flex gap-2 flex-wrap">
             <Input
-              placeholder="IP, Servis veya İşletme adı ara..."
+              placeholder="IP, Servis, İşletme veya Müşteri adı ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => {
@@ -411,6 +417,7 @@ export default function LogsPage() {
                     <SortableHeader field="ipAddress">IP Adresi</SortableHeader>
                     <SortableHeader field="serviceName">Servis Adı</SortableHeader>
                     <TableHead className="">İşletme Adı</TableHead>
+                    <TableHead className="">Müşteri</TableHead>
                     <TableHead className="">Terminal</TableHead>
                     <TableHead className="">Doğrulama Tipi</TableHead>
                     <TableHead className="">Endpoint</TableHead>
@@ -437,6 +444,7 @@ export default function LogsPage() {
                           return '-';
                         }
                       })()}</TableCell>
+                      <TableCell className="">{log.customer?.name || '-'}</TableCell>
                       <TableCell className="">{(() => {
                         try {
                           const requestData = JSON.parse(log.requestBody || '{}');
