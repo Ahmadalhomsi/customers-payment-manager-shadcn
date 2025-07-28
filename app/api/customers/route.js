@@ -21,10 +21,10 @@ export async function POST(req) {
             data: { name, tableName, email, phone, password },
         });
 
-        // Calculate service dates
+        // Calculate service dates (commented out the automatic service creation)
         // const startingDate = new Date();
         // const endingDate = addYears(startingDate, 1);
-        const reminderDate = subWeeks(endingDate, 1);
+        // const reminderDate = subWeeks(endingDate, 1);
 
         // // Create a default service
         // const service = await prisma.service.create({
@@ -40,15 +40,15 @@ export async function POST(req) {
         //     },
         // });
 
-        // Create a reminder
-        await prisma.reminder.create({
-            data: {
-                scheduledAt: reminderDate,
-                status: "SCHEDULED",
-                message: "Hizmetinizin bitmesine bir hafta kaldı! Kesinti yaşamamak için lütfen yenileyin.",
-                serviceID: service.id,
-            },
-        });
+        // // Create a reminder
+        // await prisma.reminder.create({
+        //     data: {
+        //         scheduledAt: reminderDate,
+        //         status: "SCHEDULED",
+        //         message: "Hizmetinizin bitmesine bir hafta kaldı! Kesinti yaşamamak için lütfen yenileyin.",
+        //         serviceID: service.id,
+        //     },
+        // });
 
         return NextResponse.json(customer, { status: 201 });
 
