@@ -97,8 +97,11 @@ export default function LogsPage() {
   const fetchLogs = async (page = 1, search = '', validationType = '', sortField = sortBy, order = sortOrder) => {
     setLoading(true);
     try {
+      // Validate page parameter
+      const validPage = Math.max(1, parseInt(page) || 1);
+      
       const params = new URLSearchParams({
-        page: page.toString(),
+        page: validPage.toString(),
         limit: pageSize.toString(),
         ...(search && { search }),
         ...(validationType && validationType !== 'all' && { validationType }),
@@ -116,7 +119,15 @@ export default function LogsPage() {
 
       if (response.ok) {
         setLogs(data.logs);
-        setPagination(data.pagination);
+        const newPagination = data.pagination;
+        
+        // Check if current page exceeds total pages and redirect to last page
+        if (newPagination.totalPages > 0 && validPage > newPagination.totalPages) {
+          // Recursively fetch the last valid page
+          return fetchLogs(newPagination.totalPages, search, validationType, sortField, order);
+        }
+        
+        setPagination(newPagination);
       } else {
         console.error('Failed to fetch logs:', data.error);
       }
@@ -157,6 +168,8 @@ export default function LogsPage() {
   );
 
   const handlePageChange = (newPage) => {
+    // Validate page number
+    if (newPage < 1 || newPage > pagination.totalPages) return;
     fetchLogs(newPage, searchTerm, validationTypeFilter);
   };
 
@@ -508,21 +521,49 @@ export default function LogsPage() {
                       const current = pagination.page;
                       const total = pagination.totalPages;
                       
-                      // Always show first page
-                      if (current > 3) {
+                      if (total <= 7) {
+                        // If 7 or fewer pages, show all
+                        for (let i = 1; i <= total; i++) {
+                          showPages.push(i);
+                        }
+                      } else {
+                        // Always show first page
                         showPages.push(1);
-                        if (current > 4) showPages.push('...');
-                      }
-                      
-                      // Show pages around current
-                      for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
-                        showPages.push(i);
-                      }
-                      
-                      // Always show last page
-                      if (current < total - 2) {
-                        if (current < total - 3) showPages.push('...');
-                        showPages.push(total);
+                        
+                        // Calculate start and end of middle range
+                        let start = Math.max(2, current - 1);
+                        let end = Math.min(total - 1, current + 1);
+                        
+                        // Adjust range to ensure we show at least 3 pages in the middle
+                        if (current <= 3) {
+                          start = 2;
+                          end = Math.min(5, total - 1);
+                        } else if (current >= total - 2) {
+                          start = Math.max(2, total - 4);
+                          end = total - 1;
+                        }
+                        
+                        // Add ellipsis if there's a gap after first page
+                        if (start > 2) {
+                          showPages.push('...');
+                        }
+                        
+                        // Add middle pages (avoiding duplicates)
+                        for (let i = start; i <= end; i++) {
+                          if (i > 1 && i < total) { // Avoid duplicating first and last page
+                            showPages.push(i);
+                          }
+                        }
+                        
+                        // Add ellipsis if there's a gap before last page
+                        if (end < total - 1) {
+                          showPages.push('...');
+                        }
+                        
+                        // Always show last page (if it's not the same as first page)
+                        if (total > 1) {
+                          showPages.push(total);
+                        }
                       }
                       
                       return showPages.map((page, index) => {
