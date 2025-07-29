@@ -80,7 +80,7 @@ export default function ServicesPage() {
     }
   };
 
-  const fetchServices = async (page = 1, search = '', sortField = sortBy, order = sortOrder) => {
+  const fetchServices = async (page = 1, search = '', sortField = sortBy, order = sortOrder, limit = pageSize) => {
     try {
       setLoading(true)
       
@@ -89,7 +89,7 @@ export default function ServicesPage() {
       
       const params = new URLSearchParams({
         page: validPage.toString(),
-        limit: pageSize.toString(),
+        limit: limit.toString(),
         search,
         sortBy: sortField,
         sortOrder: order
@@ -109,7 +109,7 @@ export default function ServicesPage() {
       // Check if current page exceeds total pages and redirect to last page
       if (newPagination.totalPages > 0 && validPage > newPagination.totalPages) {
         // Recursively fetch the last valid page
-        return fetchServices(newPagination.totalPages, search, sortField, order);
+        return fetchServices(newPagination.totalPages, search, sortField, order, limit);
       }
       
       setPagination(newPagination)
@@ -190,7 +190,7 @@ export default function ServicesPage() {
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
     setPagination(prev => ({ ...prev, page: 1, limit: newPageSize }));
-    fetchServices(1, searchTerm, sortBy, sortOrder);
+    fetchServices(1, searchTerm, sortBy, sortOrder, newPageSize);
   };
 
   return (

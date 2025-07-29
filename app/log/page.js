@@ -94,7 +94,7 @@ export default function LogsPage() {
     }
   };
 
-  const fetchLogs = async (page = 1, search = '', validationType = '', sortField = sortBy, order = sortOrder) => {
+  const fetchLogs = async (page = 1, search = '', validationType = '', sortField = sortBy, order = sortOrder, limit = pageSize) => {
     setLoading(true);
     try {
       // Validate page parameter
@@ -102,7 +102,7 @@ export default function LogsPage() {
       
       const params = new URLSearchParams({
         page: validPage.toString(),
-        limit: pageSize.toString(),
+        limit: limit.toString(),
         ...(search && { search }),
         ...(validationType && validationType !== 'all' && { validationType }),
         ...(sortField && { sortBy: sortField }),
@@ -124,7 +124,7 @@ export default function LogsPage() {
         // Check if current page exceeds total pages and redirect to last page
         if (newPagination.totalPages > 0 && validPage > newPagination.totalPages) {
           // Recursively fetch the last valid page
-          return fetchLogs(newPagination.totalPages, search, validationType, sortField, order);
+          return fetchLogs(newPagination.totalPages, search, validationType, sortField, order, limit);
         }
         
         setPagination(newPagination);
@@ -176,7 +176,7 @@ export default function LogsPage() {
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
     setPagination(prev => ({ ...prev, page: 1, limit: newPageSize })); // Reset to first page and update limit
-    fetchLogs(1, searchTerm, validationTypeFilter);
+    fetchLogs(1, searchTerm, validationTypeFilter, sortBy, sortOrder, newPageSize);
   };
 
   const handleClearLogs = async () => {

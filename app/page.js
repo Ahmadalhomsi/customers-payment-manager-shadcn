@@ -138,7 +138,7 @@ export default function CustomersPage() {
   }
 
   // Fetch functions remain the same
-  async function fetchCustomers(page = 1, search = '', sortField = sortBy, order = sortOrder) {
+  async function fetchCustomers(page = 1, search = '', sortField = sortBy, order = sortOrder, limit = pageSize) {
     try {
       setLoading(true);
       
@@ -147,7 +147,7 @@ export default function CustomersPage() {
       
       const params = new URLSearchParams({
         page: validPage.toString(),
-        limit: pageSize.toString(),
+        limit: limit.toString(),
         search,
         sortBy: sortField,
         sortOrder: order
@@ -170,7 +170,7 @@ export default function CustomersPage() {
       // Check if current page exceeds total pages and redirect to last page
       if (newPagination.totalPages > 0 && validPage > newPagination.totalPages) {
         // Recursively fetch the last valid page
-        return fetchCustomers(newPagination.totalPages, search, sortField, order);
+        return fetchCustomers(newPagination.totalPages, search, sortField, order, limit);
       }
       
       setPagination(newPagination)
@@ -254,7 +254,7 @@ export default function CustomersPage() {
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
     setPagination(prev => ({ ...prev, page: 1, limit: newPageSize }));
-    fetchCustomers(1, searchTerm, sortBy, sortOrder);
+    fetchCustomers(1, searchTerm, sortBy, sortOrder, newPageSize);
   };
 
   return (
