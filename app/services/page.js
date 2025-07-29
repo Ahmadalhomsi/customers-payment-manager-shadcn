@@ -328,40 +328,34 @@ export default function ServicesPage() {
                     showPages.push(i);
                   }
                 } else {
-                  // Always show first page
+                  // Complex pagination logic for more than 7 pages
+                  const delta = 2; // Number of pages to show around current page
+                  
+                  // Always add first page
                   showPages.push(1);
                   
-                  // Calculate start and end of middle range
-                  let start = Math.max(2, current - 1);
-                  let end = Math.min(total - 1, current + 1);
+                  // Calculate the range around current page
+                  const rangeStart = Math.max(2, current - delta);
+                  const rangeEnd = Math.min(total - 1, current + delta);
                   
-                  // Adjust range to ensure we show at least 3 pages in the middle
-                  if (current <= 3) {
-                    start = 2;
-                    end = Math.min(5, total - 1);
-                  } else if (current >= total - 2) {
-                    start = Math.max(2, total - 4);
-                    end = total - 1;
-                  }
-                  
-                  // Add ellipsis if there's a gap after first page
-                  if (start > 2) {
+                  // Add ellipsis after first page if needed
+                  if (rangeStart > 2) {
                     showPages.push('...');
                   }
                   
-                  // Add middle pages (avoiding duplicates)
-                  for (let i = start; i <= end; i++) {
-                    if (i > 1 && i < total) { // Avoid duplicating first and last page
+                  // Add pages in the middle range
+                  for (let i = rangeStart; i <= rangeEnd; i++) {
+                    if (i !== 1 && i !== total) { // Don't duplicate first or last page
                       showPages.push(i);
                     }
                   }
                   
-                  // Add ellipsis if there's a gap before last page
-                  if (end < total - 1) {
+                  // Add ellipsis before last page if needed
+                  if (rangeEnd < total - 1) {
                     showPages.push('...');
                   }
                   
-                  // Always show last page (if it's not the same as first page)
+                  // Always add last page if it's different from first page
                   if (total > 1) {
                     showPages.push(total);
                   }
