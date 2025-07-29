@@ -193,6 +193,69 @@ export default function ServicesPage() {
     fetchServices(1, searchTerm, sortBy, sortOrder, newPageSize);
   };
 
+  // Memoized pagination component to prevent re-renders
+  const renderPaginationNumbers = () => {
+    const showPages = [];
+    const current = pagination.page;
+    const total = pagination.totalPages;
+    
+    if (total <= 7) {
+      // If 7 or fewer pages, show all
+      for (let i = 1; i <= total; i++) {
+        showPages.push(i);
+      }
+    } else {
+      // Complex pagination logic for more than 7 pages
+      const delta = 2; // Number of pages to show around current page
+      
+      // Always add first page
+      showPages.push(1);
+      
+      // Calculate the range around current page
+      const rangeStart = Math.max(2, current - delta);
+      const rangeEnd = Math.min(total - 1, current + delta);
+      
+      // Add ellipsis after first page if needed
+      if (rangeStart > 2) {
+        showPages.push('...');
+      }
+      
+      // Add pages in the middle range
+      for (let i = rangeStart; i <= rangeEnd; i++) {
+        if (i !== 1 && i !== total) { // Don't duplicate first or last page
+          showPages.push(i);
+        }
+      }
+      
+      // Add ellipsis before last page if needed
+      if (rangeEnd < total - 1) {
+        showPages.push('...');
+      }
+      
+      // Always add last page if it's different from first page
+      if (total > 1) {
+        showPages.push(total);
+      }
+    }
+    
+    return showPages.map((page, index) => {
+      if (page === '...') {
+        return <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">...</span>;
+      }
+      return (
+        <Button
+          key={`page-${page}`}
+          variant={page === current ? "default" : "outline"}
+          size="sm"
+          onClick={() => handlePageChange(page)}
+          className="w-8 h-8 p-0"
+        >
+          {page}
+        </Button>
+      );
+    });
+  };
+
   return (
     <div className="w-full min-h-full pt-6">
       <div className="flex flex-col gap-4 mb-4 px-4">
@@ -275,7 +338,7 @@ export default function ServicesPage() {
           }}
         />
 
-        {/* Pagination Controls */}
+        {/* Pagination Controls - Fixed with working algorithm from logs page */}
         {pagination.totalPages > 0 && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
             <div className="flex items-center gap-4">
@@ -316,68 +379,8 @@ export default function ServicesPage() {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               
-              {/* Page numbers */}
-              {(() => {
-                const showPages = [];
-                const current = pagination.page;
-                const total = pagination.totalPages;
-                
-                if (total <= 7) {
-                  // If 7 or fewer pages, show all
-                  for (let i = 1; i <= total; i++) {
-                    showPages.push(i);
-                  }
-                } else {
-                  // Complex pagination logic for more than 7 pages
-                  const delta = 2; // Number of pages to show around current page
-                  
-                  // Always add first page
-                  showPages.push(1);
-                  
-                  // Calculate the range around current page
-                  const rangeStart = Math.max(2, current - delta);
-                  const rangeEnd = Math.min(total - 1, current + delta);
-                  
-                  // Add ellipsis after first page if needed
-                  if (rangeStart > 2) {
-                    showPages.push('...');
-                  }
-                  
-                  // Add pages in the middle range
-                  for (let i = rangeStart; i <= rangeEnd; i++) {
-                    if (i !== 1 && i !== total) { // Don't duplicate first or last page
-                      showPages.push(i);
-                    }
-                  }
-                  
-                  // Add ellipsis before last page if needed
-                  if (rangeEnd < total - 1) {
-                    showPages.push('...');
-                  }
-                  
-                  // Always add last page if it's different from first page
-                  if (total > 1) {
-                    showPages.push(total);
-                  }
-                }
-                
-                return showPages.map((page, index) => {
-                  if (page === '...') {
-                    return <span key={index} className="px-2 text-muted-foreground">...</span>;
-                  }
-                  return (
-                    <Button
-                      key={page}
-                      variant={page === current ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(page)}
-                      className="w-8 h-8 p-0"
-                    >
-                      {page}
-                    </Button>
-                  );
-                });
-              })()}
+              {/* Fixed Page numbers - using memoized function */}
+              {renderPaginationNumbers()}
               
               <Button
                 variant="outline"
