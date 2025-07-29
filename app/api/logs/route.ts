@@ -99,10 +99,28 @@ export async function GET(request: NextRequest) {
         // If we have a serviceName, try to find the corresponding service and customer
         if (log.serviceName) {
           try {
+            // Build a more specific query using available information
+            const whereClause: any = {
+              name: log.serviceName
+            };
+
+            // If we have deviceToken in the log, use it for precise matching
+            if (log.deviceToken) {
+              whereClause.deviceToken = log.deviceToken;
+            } else {
+              // Fallback: try to extract deviceToken from the request body
+              try {
+                const requestData = JSON.parse(log.requestBody || '{}');
+                if (requestData.deviceToken) {
+                  whereClause.deviceToken = requestData.deviceToken;
+                }
+              } catch (e) {
+                // Ignore JSON parse errors
+              }
+            }
+
             const service = await prisma.service.findFirst({
-              where: {
-                name: log.serviceName
-              },
+              where: whereClause,
               include: {
                 customer: {
                   select: {
@@ -114,7 +132,7 @@ export async function GET(request: NextRequest) {
                 }
               },
               orderBy: {
-                createdAt: 'desc' // Get the most recent service with this name
+                createdAt: 'desc' // Get the most recent service with these criteria
               }
             });
 
