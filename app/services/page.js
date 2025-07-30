@@ -412,6 +412,7 @@ export default function ServicesPage() {
         onSubmit={handleSubmit}
         selectedService={selectedService}
         customers={customers}
+        onRefreshCustomers={fetchCustomers}
       />
 
       <DeleteConfirmModal

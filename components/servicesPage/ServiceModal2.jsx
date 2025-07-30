@@ -28,10 +28,12 @@ import {
     CommandItem,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { tr } from 'date-fns/locale';
+import axios from 'axios';
+import { toast } from 'sonner';
 
 const PAYMENT_TYPES = [
     { value: "Monthly", label: "Aylık" },
@@ -96,6 +98,7 @@ export function ServiceModal2({
     isLoading = false,
     selectedService,
     customers = [],
+    onRefreshCustomers
 }) {
     const [isCustomersLoading, setIsCustomersLoading] = useState(false);
     const [formData, setFormData] = useState(INITIAL_FORM_STATE);
@@ -104,6 +107,17 @@ export function ServiceModal2({
     const [startDateMonth, setStartDateMonth] = useState(new Date());
     const [endDateMonth, setEndDateMonth] = useState(new Date());
     const [selectedDuration, setSelectedDuration] = useState("1year");
+    
+    // Customer creation states
+    const [showCustomerForm, setShowCustomerForm] = useState(false);
+    const [customerFormData, setCustomerFormData] = useState({
+        name: "",
+        email: "",
+        phone: "",
+        password: ""
+    });
+    const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
+    const [generatedPassword, setGeneratedPassword] = useState(null);
 
     useEffect(() => {
         if (visible && selectedService) {
@@ -248,6 +262,71 @@ export function ServiceModal2({
         }
     };
 
+    // Customer creation functions
+    const handleCustomerFormChange = (name, value) => {
+        setCustomerFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleCreateCustomer = async () => {
+        if (!customerFormData.name.trim()) {
+            toast.error('Müşteri adı gereklidir');
+            return;
+        }
+
+        setIsCreatingCustomer(true);
+        try {
+            const requestData = {
+                name: customerFormData.name.trim(),
+                email: customerFormData.email.trim() || null,
+                phone: customerFormData.phone.trim() || null
+            };
+
+            // Only include password if one was provided
+            if (customerFormData.password.trim()) {
+                requestData.password = customerFormData.password.trim();
+            }
+
+            const response = await axios.post('/api/customers', requestData);
+
+            if (response.data) {
+                // Check if a password was auto-generated
+                if (response.data.generatedPassword) {
+                    setGeneratedPassword(response.data.generatedPassword);
+                    toast.success(`Müşteri oluşturuldu! Otomatik şifre: ${response.data.generatedPassword}`);
+                } else {
+                    toast.success('Müşteri başarıyla oluşturuldu');
+                }
+                
+                // Refresh customers list
+                if (onRefreshCustomers) {
+                    await onRefreshCustomers();
+                }
+                
+                // Select the newly created customer
+                handleChange("customerID", response.data.id);
+                
+                // Reset form and close
+                setCustomerFormData({ name: "", email: "", phone: "", password: "" });
+                setShowCustomerForm(false);
+                setOpenCustomerCombobox(false);
+            }
+        } catch (error) {
+            console.error('Error creating customer:', error);
+            toast.error('Müşteri oluşturulurken hata oluştu');
+        } finally {
+            setIsCreatingCustomer(false);
+        }
+    };
+
+    const cancelCustomerCreation = () => {
+        setCustomerFormData({ name: "", email: "", phone: "", password: "" });
+        setShowCustomerForm(false);
+        setGeneratedPassword(null);
+    };
+
     const selectedCustomer = customers.find((c) => c.id === formData.customerID);
 
     return (
@@ -322,6 +401,142 @@ export function ServiceModal2({
                             </PopoverContent>
                         </Popover>
                     </div>
+
+                    {/* Quick Customer Creation Button */}
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                        <div></div>
+                        <div className="sm:col-span-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowCustomerForm(true)}
+                                className="w-full text-sm text-muted-foreground hover:text-foreground"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Yeni Müşteri Oluştur
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Customer Creation Form */}
+                    {showCustomerForm && (
+                        <div className="border rounded-lg p-4 bg-muted/50">
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-medium">Yeni Müşteri Oluştur</h4>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={cancelCustomerCreation}
+                                >
+                                    ✕
+                                </Button>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                                    <Label className="text-left sm:text-right">
+                                        Ad <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Input
+                                        value={customerFormData.name}
+                                        onChange={(e) => handleCustomerFormChange("name", e.target.value)}
+                                        placeholder="Müşteri adı"
+                                        className="sm:col-span-3"
+                                    />
+                                </div>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                                    <Label className="text-left sm:text-right">E-posta</Label>
+                                    <Input
+                                        type="email"
+                                        value={customerFormData.email}
+                                        onChange={(e) => handleCustomerFormChange("email", e.target.value)}
+                                        placeholder="ornek@email.com"
+                                        className="sm:col-span-3"
+                                    />
+                                </div>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                                    <Label className="text-left sm:text-right">Telefon</Label>
+                                    <Input
+                                        value={customerFormData.phone}
+                                        onChange={(e) => handleCustomerFormChange("phone", e.target.value)}
+                                        placeholder="+90 XXX XXX XX XX"
+                                        className="sm:col-span-3"
+                                    />
+                                </div>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                                    <Label className="text-left sm:text-right">Şifre</Label>
+                                    <div className="sm:col-span-3">
+                                        <Input
+                                            type="password"
+                                            value={customerFormData.password}
+                                            onChange={(e) => handleCustomerFormChange("password", e.target.value)}
+                                            placeholder="Boş bırakırsanız otomatik oluşturulur"
+                                        />
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Şifre boş bırakılırsa güvenli bir şifre otomatik olarak oluşturulacaktır
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {generatedPassword && (
+                                    <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-green-800 font-medium">Otomatik Oluşturulan Şifre:</div>
+                                            <code className="bg-green-100 px-2 py-1 rounded text-green-900 font-mono">
+                                                {generatedPassword}
+                                            </code>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(generatedPassword);
+                                                    toast.success('Şifre kopyalandı!');
+                                                }}
+                                                className="h-6 w-6 p-0"
+                                            >
+                                                <Copy className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                        <p className="text-xs text-green-700 mt-1">
+                                            Bu şifreyi not alın! Müşteri giriş yaparken kullanacak.
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                <div className="flex justify-end gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={cancelCustomerCreation}
+                                    >
+                                        İptal
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        onClick={handleCreateCustomer}
+                                        disabled={isCreatingCustomer || !customerFormData.name.trim()}
+                                    >
+                                        {isCreatingCustomer ? (
+                                            <>
+                                                <BeatLoader size={4} className="mr-2" />
+                                                Oluşturuluyor...
+                                            </>
+                                        ) : (
+                                            'Oluştur'
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
                         <Label htmlFor="name" className="text-left sm:text-right">

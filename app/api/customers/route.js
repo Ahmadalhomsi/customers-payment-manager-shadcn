@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyJWT } from '@/lib/jwt'; // You'll need to create this helper
 import { addYears, subWeeks } from 'date-fns';  // Use date-fns to handle date calculations
+import { generateSecurePassword } from '@/lib/utils';
 
 export async function POST(req) {
     try {
@@ -16,41 +17,27 @@ export async function POST(req) {
         // Extract request body
         const { name, tableName, email, phone, password } = await req.json();
 
-        // Create the customer
-        const customer = await prisma.customer.create({
-            data: { name, tableName, email, phone, password },
+        // Generate a secure password if none provided
+        const finalPassword = password || generateSecurePassword(12, {
+            includeUppercase: true,
+            includeLowercase: true,
+            includeNumbers: true,
+            includeSymbols: false, // Don't include symbols for easier typing
+            excludeSimilar: true
         });
 
-        // Calculate service dates (commented out the automatic service creation)
-        // const startingDate = new Date();
-        // const endingDate = addYears(startingDate, 1);
-        // const reminderDate = subWeeks(endingDate, 1);
+        // Create the customer
+        const customer = await prisma.customer.create({
+            data: { name, tableName, email, phone, password: finalPassword },
+        });
 
-        // // Create a default service
-        // const service = await prisma.service.create({
-        //     data: {
-        //         name: "Default Hizmet",
-        //         description: "Otomatik oluşturulan hizmet",
-        //         paymentType: "1year",
-        //         periodPrice: 0.0,
-        //         currency: "TL",
-        //         startingDate,
-        //         endingDate,
-        //         customerID: customer.id,
-        //     },
-        // });
+        // Return customer data with the generated password (for display purposes)
+        const responseData = {
+            ...customer,
+            generatedPassword: !password ? finalPassword : null // Only include generated password if we created one
+        };
 
-        // // Create a reminder
-        // await prisma.reminder.create({
-        //     data: {
-        //         scheduledAt: reminderDate,
-        //         status: "SCHEDULED",
-        //         message: "Hizmetinizin bitmesine bir hafta kaldı! Kesinti yaşamamak için lütfen yenileyin.",
-        //         serviceID: service.id,
-        //     },
-        // });
-
-        return NextResponse.json(customer, { status: 201 });
+        return NextResponse.json(responseData, { status: 201 });
 
     } catch (error) {
         console.log(error);
