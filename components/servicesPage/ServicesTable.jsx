@@ -566,7 +566,7 @@ export function ServiceTable({
                                                 ) : '-'}
                                             </TableCell>
                                         )}
-                                        <TableCell className="flex justify-end gap-2">
+                                        <TableCell className="flex justify-end items-center gap-2">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
