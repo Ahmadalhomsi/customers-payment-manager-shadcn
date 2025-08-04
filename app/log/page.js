@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight, Trash2 } from 'lucide-react';
+import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight, Trash2, X } from 'lucide-react';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState([]);
@@ -37,6 +37,16 @@ export default function LogsPage() {
   const [sortOrder, setSortOrder] = useState('desc'); // New sorting order state
   const [pageSize, setPageSize] = useState(20); // New page size state
   const [isClearing, setIsClearing] = useState(false); // State for clear operation
+  
+  // Column-specific filters
+  const [columnFilters, setColumnFilters] = useState({
+    ipAddress: '',
+    serviceName: '',
+    companyName: '',
+    customerName: '',
+    endpoint: '',
+    terminal: ''
+  });
 
   // Check authentication on component mount
   useEffect(() => {
@@ -50,7 +60,7 @@ export default function LogsPage() {
       // Ctrl+F or Cmd+F to focus search
       if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
         event.preventDefault();
-        document.querySelector('input[placeholder*="IP, Servis, İşletme"]')?.focus();
+        document.querySelector('input[placeholder*="IP Adresi"]')?.focus();
       }
       // Ctrl+Enter or Cmd+Enter to search
       if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
@@ -144,6 +154,65 @@ export default function LogsPage() {
 
   const handleSearch = () => {
     fetchLogs(1, searchTerm, validationTypeFilter);
+  };
+
+  // Add function to filter logs based on column filters
+  const getFilteredLogs = () => {
+    if (!logs.length) return logs;
+    
+    return logs.filter(log => {
+      const matchesIP = !columnFilters.ipAddress || 
+        log.ipAddress?.toLowerCase().includes(columnFilters.ipAddress.toLowerCase());
+      
+      const matchesService = !columnFilters.serviceName || 
+        log.serviceName?.toLowerCase().includes(columnFilters.serviceName.toLowerCase());
+      
+      const matchesCompany = !columnFilters.companyName || (() => {
+        try {
+          const requestData = JSON.parse(log.requestBody || '{}');
+          return requestData.companyName?.toLowerCase().includes(columnFilters.companyName.toLowerCase());
+        } catch {
+          return false;
+        }
+      })();
+      
+      const matchesCustomer = !columnFilters.customerName || 
+        log.customer?.name?.toLowerCase().includes(columnFilters.customerName.toLowerCase());
+      
+      const matchesEndpoint = !columnFilters.endpoint || 
+        log.endpoint?.toLowerCase().includes(columnFilters.endpoint.toLowerCase());
+      
+      const matchesTerminal = !columnFilters.terminal || (() => {
+        try {
+          const requestData = JSON.parse(log.requestBody || '{}');
+          return requestData.terminal?.toLowerCase().includes(columnFilters.terminal.toLowerCase());
+        } catch {
+          return false;
+        }
+      })();
+      
+      return matchesIP && matchesService && matchesCompany && matchesCustomer && matchesEndpoint && matchesTerminal;
+    });
+  };
+
+  const clearAllFilters = () => {
+    setColumnFilters({
+      ipAddress: '',
+      serviceName: '',
+      companyName: '',
+      customerName: '',
+      endpoint: '',
+      terminal: ''
+    });
+    setValidationTypeFilter('all');
+    setSearchTerm('');
+    fetchLogs(1, '', 'all');
+  };
+
+  const hasActiveFilters = () => {
+    return Object.values(columnFilters).some(Boolean) || 
+           validationTypeFilter !== 'all' || 
+           searchTerm;
   };
 
   const handleSort = (field) => {
@@ -363,46 +432,102 @@ export default function LogsPage() {
               Ctrl+F: Arama | Enter: Ara | Esc: Temizle
             </div>
           </CardTitle>
-          <div className="flex gap-2 flex-wrap">
-            <Input
-              placeholder="IP, Servis, İşletme veya Müşteri adı ara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch();
-                } else if (e.key === 'Escape') {
-                  setSearchTerm('');
-                  setValidationTypeFilter('all');
-                  fetchLogs(1, '', 'all');
-                }
-              }}
-              className="max-w-sm"
-            />
-            <Select value={validationTypeFilter} onValueChange={setValidationTypeFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Doğrulama Tipi" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tümü</SelectItem>
-                <SelectItem value="Sisteme Giriş">Sisteme Giriş</SelectItem>
-                <SelectItem value="Trial">Trial</SelectItem>
-                <SelectItem value="Existing Service">Existing Service</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={handleSearch}>Ara</Button>
-            {(searchTerm || (validationTypeFilter && validationTypeFilter !== 'all')) && (
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSearchTerm('');
-                  setValidationTypeFilter('all');
-                  fetchLogs(1, '', 'all');
+          
+          {/* Column-specific search filters */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2">
+              <Input
+                placeholder="IP Adresi ara..."
+                value={columnFilters.ipAddress}
+                onChange={(e) => setColumnFilters(prev => ({ ...prev, ipAddress: e.target.value }))}
+                className="text-sm"
+              />
+              <Input
+                placeholder="Servis adı ara..."
+                value={columnFilters.serviceName}
+                onChange={(e) => setColumnFilters(prev => ({ ...prev, serviceName: e.target.value }))}
+                className="text-sm"
+              />
+              <Input
+                placeholder="İşletme adı ara..."
+                value={columnFilters.companyName}
+                onChange={(e) => setColumnFilters(prev => ({ ...prev, companyName: e.target.value }))}
+                className="text-sm"
+              />
+              <Input
+                placeholder="Müşteri ara..."
+                value={columnFilters.customerName}
+                onChange={(e) => setColumnFilters(prev => ({ ...prev, customerName: e.target.value }))}
+                className="text-sm"
+              />
+              <Input
+                placeholder="Endpoint ara..."
+                value={columnFilters.endpoint}
+                onChange={(e) => setColumnFilters(prev => ({ ...prev, endpoint: e.target.value }))}
+                className="text-sm"
+              />
+              <Input
+                placeholder="Terminal ara..."
+                value={columnFilters.terminal}
+                onChange={(e) => setColumnFilters(prev => ({ ...prev, terminal: e.target.value }))}
+                className="text-sm"
+              />
+            </div>
+            
+            <div className="flex gap-2 flex-wrap items-center">
+              <Select value={validationTypeFilter} onValueChange={setValidationTypeFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Doğrulama Tipi" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tümü</SelectItem>
+                  <SelectItem value="Sisteme Giriş">Sisteme Giriş</SelectItem>
+                  <SelectItem value="Trial">Trial</SelectItem>
+                  <SelectItem value="Existing Service">Existing Service</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {hasActiveFilters() && (
+                <Button 
+                  variant="outline" 
+                  onClick={clearAllFilters}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Tüm Filtreleri Temizle
+                </Button>
+              )}
+            </div>
+            
+            {/* General search as backup */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Genel arama (tüm alanlar)..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  } else if (e.key === 'Escape') {
+                    setSearchTerm('');
+                    fetchLogs(1, '', validationTypeFilter);
+                  }
                 }}
-              >
-                Temizle
-              </Button>
-            )}
+                className="max-w-sm"
+              />
+              <Button onClick={handleSearch}>Ara</Button>
+              {(searchTerm || (validationTypeFilter && validationTypeFilter !== 'all')) && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setValidationTypeFilter('all');
+                    fetchLogs(1, '', 'all');
+                  }}
+                >
+                  Temizle
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="">
@@ -426,7 +551,7 @@ export default function LogsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="">
-                  {logs.map((log) => (
+                  {getFilteredLogs().map((log) => (
                     <TableRow key={log.id} className="">
                       <TableCell className="font-mono text-sm">
                         {formatDate(log.createdAt)}
@@ -477,6 +602,12 @@ export default function LogsPage() {
                 </TableBody>
               </Table>
 
+              {getFilteredLogs().length === 0 && logs.length > 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  Filtre kriterlerinize uygun log bulunamadı.
+                </div>
+              )}
+
               {logs.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   Henüz log kaydı bulunmuyor.
@@ -487,7 +618,10 @@ export default function LogsPage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
                   <div className="flex items-center gap-4">
                     <div className="text-sm text-muted-foreground">
-                      Toplam {pagination.total} kayıt, sayfa {pagination.page} / {pagination.totalPages}
+                      {getFilteredLogs().length !== logs.length 
+                        ? `${getFilteredLogs().length} / ${logs.length} kayıt gösteriliyor (${pagination.total} toplam)`
+                        : `Toplam ${pagination.total} kayıt, sayfa ${pagination.page} / ${pagination.totalPages}`
+                      }
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">Sayfa başına:</span>
