@@ -30,7 +30,6 @@ export default function LogsPage() {
     total: 0,
     totalPages: 0
   });
-  const [searchTerm, setSearchTerm] = useState(''); // Changed from searchEndpoint
   const [validationTypeFilter, setValidationTypeFilter] = useState('all');
   const [selectedLog, setSelectedLog] = useState(null);
   const [sortBy, setSortBy] = useState('createdAt'); // New sorting state
@@ -62,10 +61,10 @@ export default function LogsPage() {
         event.preventDefault();
         document.querySelector('input[placeholder*="IP Adresi"]')?.focus();
       }
-      // Ctrl+Enter or Cmd+Enter to search
+      // Ctrl+Enter or Cmd+Enter to clear all filters
       if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
         event.preventDefault();
-        handleSearch();
+        clearAllFilters();
       }
     };
 
@@ -152,10 +151,6 @@ export default function LogsPage() {
     // Fetch logs is now called from checkAuthentication after auth is verified
   }, []);
 
-  const handleSearch = () => {
-    fetchLogs(1, searchTerm, validationTypeFilter);
-  };
-
   // Add function to filter logs based on column filters
   const getFilteredLogs = () => {
     if (!logs.length) return logs;
@@ -205,21 +200,19 @@ export default function LogsPage() {
       terminal: ''
     });
     setValidationTypeFilter('all');
-    setSearchTerm('');
     fetchLogs(1, '', 'all');
   };
 
   const hasActiveFilters = () => {
     return Object.values(columnFilters).some(Boolean) || 
-           validationTypeFilter !== 'all' || 
-           searchTerm;
+           validationTypeFilter !== 'all';
   };
 
   const handleSort = (field) => {
     const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
     setSortBy(field);
     setSortOrder(newOrder);
-    fetchLogs(pagination.page, searchTerm, validationTypeFilter, field, newOrder);
+    fetchLogs(pagination.page, '', validationTypeFilter, field, newOrder);
   };
 
   const SortableHeader = ({ field, children }) => (
@@ -239,13 +232,13 @@ export default function LogsPage() {
   const handlePageChange = (newPage) => {
     // Validate page number
     if (newPage < 1 || newPage > pagination.totalPages) return;
-    fetchLogs(newPage, searchTerm, validationTypeFilter);
+    fetchLogs(newPage, '', validationTypeFilter);
   };
 
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
     setPagination(prev => ({ ...prev, page: 1, limit: newPageSize })); // Reset to first page and update limit
-    fetchLogs(1, searchTerm, validationTypeFilter, sortBy, sortOrder, newPageSize);
+    fetchLogs(1, '', validationTypeFilter, sortBy, sortOrder, newPageSize);
   };
 
   const handleClearLogs = async () => {
@@ -263,7 +256,7 @@ export default function LogsPage() {
         const data = await response.json();
         console.log(`Cleared ${data.deletedCount} logs`);
         // Refresh the logs after clearing
-        await fetchLogs(1, searchTerm, validationTypeFilter);
+        await fetchLogs(1, '', validationTypeFilter);
       } else {
         console.error('Failed to clear logs');
         alert('Logları temizlerken bir hata oluştu');
@@ -429,7 +422,7 @@ export default function LogsPage() {
               External Validation API Logları
             </div>
             <div className="text-xs text-muted-foreground">
-              Ctrl+F: Arama | Enter: Ara | Esc: Temizle
+              Ctrl+F: İlk filtreye odaklan | Ctrl+Enter: Filtreleri temizle
             </div>
           </CardTitle>
           
@@ -494,37 +487,6 @@ export default function LogsPage() {
                 >
                   <X className="h-4 w-4 mr-2" />
                   Tüm Filtreleri Temizle
-                </Button>
-              )}
-            </div>
-            
-            {/* General search as backup */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Genel arama (tüm alanlar)..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch();
-                  } else if (e.key === 'Escape') {
-                    setSearchTerm('');
-                    fetchLogs(1, '', validationTypeFilter);
-                  }
-                }}
-                className="max-w-sm"
-              />
-              <Button onClick={handleSearch}>Ara</Button>
-              {(searchTerm || (validationTypeFilter && validationTypeFilter !== 'all')) && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSearchTerm('');
-                    setValidationTypeFilter('all');
-                    fetchLogs(1, '', 'all');
-                  }}
-                >
-                  Temizle
                 </Button>
               )}
             </div>
