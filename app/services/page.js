@@ -20,7 +20,6 @@ export default function ServicesPage() {
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false)
   const [selectedService, setSelectedService] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [sortConfig, setSortConfig] = useState(null)
   const [customers, setCustomers] = useState([])
 
   const [renewHistoryOpen, setRenewHistoryOpen] = useState(false)
@@ -176,7 +175,13 @@ export default function ServicesPage() {
     }
   }
 
-  // Pagination handlers
+  // Sorting handlers
+  const handleSort = (field) => {
+    const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
+    setSortBy(field);
+    setSortOrder(newOrder);
+    fetchServices(pagination.page, searchTerm, field, newOrder);
+  };
   const handleSearch = () => {
     fetchServices(1, searchTerm, sortBy, sortOrder);
   };
@@ -321,8 +326,9 @@ export default function ServicesPage() {
           services={services}
           customers={customers}
           isLoading={loading}
-          sortConfig={sortConfig}
-          setSortConfig={setSortConfig}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
           onEdit={(service) => {
             setSelectedService(service)
             setServiceModalVisible(true)

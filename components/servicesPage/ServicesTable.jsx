@@ -72,11 +72,13 @@ export function ServiceTable({
     onDelete,
     isLoading = false,
     onViewHistory,
+    sortBy,
+    sortOrder,
+    onSort,
 }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
     const [categoryFilter, setCategoryFilter] = useState('all')
-    const [sortConfig, setSortConfig] = useState(null)
     const [dateRangeFilter, setDateRangeFilter] = useState()
     const [endDateRangeFilter, setEndDateRangeFilter] = useState()
 
@@ -130,63 +132,19 @@ export function ServiceTable({
     }
 
     const handleSort = (key) => {
-        setSortConfig(prev => {
-            if (prev?.key === key) {
-                return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-            }
-            return { key, direction: 'asc' }
-        })
+        if (onSort) {
+            onSort(key);
+        }
     }
 
     const SortIcon = ({ column }) => {
-        if (sortConfig?.key !== column) return <ChevronDown className="h-4 w-4 opacity-30" />
-        return sortConfig.direction === 'asc'
+        if (sortBy !== column) return <ChevronDown className="h-4 w-4 opacity-30" />
+        return sortOrder === 'asc'
             ? <ChevronUp className="h-4 w-4" />
             : <ChevronDown className="h-4 w-4" />
     }
 
-    const sortedServices = [...services].sort((a, b) => {
-        if (!sortConfig) return 0
-        const key = sortConfig.key
-        const aValue = a[key]
-        const bValue = b[key]
-
-        if (key === 'paymentType') {
-            const paymentOrder = ['6months', '1year', '2years', '3years', 'custom']
-            const aIndex = paymentOrder.indexOf(aValue)
-            const bIndex = paymentOrder.indexOf(bValue)
-            const aOrder = aIndex === -1 ? paymentOrder.length : aIndex
-            const bOrder = bIndex === -1 ? paymentOrder.length : bIndex
-
-            return sortConfig.direction === 'asc'
-                ? aOrder - bOrder
-                : bOrder - aOrder
-        }
-
-        if (key === 'deviceToken') {
-            const aHasToken = !!aValue;
-            const bHasToken = !!bValue;
-            
-            if (aHasToken === bHasToken) {
-                return sortConfig.direction === 'asc'
-                    ? (aValue || '').localeCompare(bValue || '')
-                    : (bValue || '').localeCompare(aValue || '');
-            }
-            
-            return sortConfig.direction === 'asc'
-                ? (aHasToken ? 1 : -1)
-                : (aHasToken ? -1 : 1);
-        }
-
-        if (typeof aValue === 'string') {
-            return sortConfig.direction === 'asc'
-                ? aValue.localeCompare(bValue)
-                : bValue.localeCompare(aValue)
-        }
-        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue
-    })
-
-    const filteredServices = sortedServices.filter(service => {
+    const filteredServices = services.filter(service => {
         const customer = service.customer || customers.find(c => c.id === service.customerID);
         const matchesSearch =
             service.id.toString().includes(searchTerm) ||
@@ -434,11 +392,11 @@ export function ServiceTable({
                                 </TableHead>
                                 <TableHead
                                     className="cursor-pointer hover:bg-muted/50"
-                                    onClick={() => handleSort('status')}
+                                    onClick={() => handleSort('endingDate')}
                                 >
                                     <div className="flex items-center gap-1">
                                         Durum
-                                        <SortIcon column="status" />
+                                        <SortIcon column="endingDate" />
                                     </div>
                                 </TableHead>
                                 {hasDeviceTokens && (
