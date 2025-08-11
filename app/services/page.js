@@ -73,11 +73,11 @@ export default function ServicesPage() {
 
   // Trigger filtering when filter values change
   useEffect(() => {
-    if (statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from) {
+    if (statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from || searchTerm.trim()) {
       handleFilterChange();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter]);
+  }, [statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter, searchTerm]);
 
   const fetchAdminData = async () => {
     try {
@@ -190,67 +190,90 @@ export default function ServicesPage() {
 
   // Enhanced search handlers
   const handleSearch = () => {
-    fetchServices(1, searchTerm, sortBy, sortOrder);
+    // Always fetch all data when search is active to enable proper client-side filtering
+    if (searchTerm.trim()) {
+      fetchServices(1, '', sortBy, sortOrder, 10000); // Fetch all data, no server-side search
+    } else {
+      fetchServices(1, '', sortBy, sortOrder, pageSize); // Normal pagination when no search
+    }
   };
 
   const handleFilterChange = () => {
-    // When advanced filters are applied, we need to fetch all data to ensure proper filtering
-    if (statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from) {
+    // When any filters are applied, fetch all data to ensure proper filtering
+    if (statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from || searchTerm.trim()) {
       // Fetch all data without pagination when filters are active
-      fetchServices(1, searchTerm, sortBy, sortOrder, 10000); // Use a large limit to get all data
+      fetchServices(1, '', sortBy, sortOrder, 10000); // No server search, get all data
     } else {
-      // Use normal pagination when no advanced filters are applied
-      fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
+      // Use normal pagination when no filters are applied
+      fetchServices(1, '', sortBy, sortOrder, pageSize);
     }
   };
 
   // Helper function to apply client-side filtering on fetched data
   const getFilteredServices = () => {
-    if (statusFilter === 'all' && categoryFilter === 'all' && !dateRangeFilter?.from && !endDateRangeFilter?.from) {
-      return services; // No filtering needed
+    let filtered = services;
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(service => 
+        service.serviceType.toLowerCase().includes(searchLower) ||
+        (service.category && service.category.toLowerCase().includes(searchLower)) ||
+        (service.customer && service.customer.name.toLowerCase().includes(searchLower)) ||
+        (service.customer && service.customer.tableName && service.customer.tableName.toLowerCase().includes(searchLower)) ||
+        service.id.toString().includes(searchLower)
+      );
     }
 
-    return services.filter(service => {
-      // Status filtering
-      if (statusFilter !== 'all') {
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(service => {
         const status = getServiceStatus(service);
-        if (status !== statusFilter) return false;
-      }
+        return status === statusFilter;
+      });
+    }
 
-      // Category filtering
-      if (categoryFilter !== 'all') {
+    // Apply category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(service => {
         const serviceCategory = service.category || 'Adisyon Programı';
-        if (serviceCategory !== categoryFilter) return false;
-      }
+        return serviceCategory === categoryFilter;
+      });
+    }
 
-      // Start date filtering
-      if (dateRangeFilter?.from || dateRangeFilter?.to) {
+    // Apply start date filter
+    if (dateRangeFilter?.from || dateRangeFilter?.to) {
+      filtered = filtered.filter(service => {
         const serviceStart = new Date(service.startingDate);
         
         if (dateRangeFilter?.from && dateRangeFilter?.to) {
-          if (serviceStart < dateRangeFilter.from || serviceStart > dateRangeFilter.to) return false;
+          return serviceStart >= dateRangeFilter.from && serviceStart <= dateRangeFilter.to;
         } else if (dateRangeFilter?.from) {
-          if (serviceStart < dateRangeFilter.from) return false;
+          return serviceStart >= dateRangeFilter.from;
         } else if (dateRangeFilter?.to) {
-          if (serviceStart > dateRangeFilter.to) return false;
+          return serviceStart <= dateRangeFilter.to;
         }
-      }
+        return true;
+      });
+    }
 
-      // End date filtering
-      if (endDateRangeFilter?.from || endDateRangeFilter?.to) {
+    // Apply end date filter
+    if (endDateRangeFilter?.from || endDateRangeFilter?.to) {
+      filtered = filtered.filter(service => {
         const serviceEnd = new Date(service.endingDate);
         
         if (endDateRangeFilter?.from && endDateRangeFilter?.to) {
-          if (serviceEnd < endDateRangeFilter.from || serviceEnd > endDateRangeFilter.to) return false;
+          return serviceEnd >= endDateRangeFilter.from && serviceEnd <= endDateRangeFilter.to;
         } else if (endDateRangeFilter?.from) {
-          if (serviceEnd < endDateRangeFilter.from) return false;
+          return serviceEnd >= endDateRangeFilter.from;
         } else if (endDateRangeFilter?.to) {
-          if (serviceEnd > endDateRangeFilter.to) return false;
+          return serviceEnd <= endDateRangeFilter.to;
         }
-      }
+        return true;
+      });
+    }
 
-      return true;
-    });
+    return filtered;
   };
 
   // Helper function to get service status

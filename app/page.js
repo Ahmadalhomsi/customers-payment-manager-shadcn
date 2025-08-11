@@ -81,11 +81,11 @@ export default function CustomersPage() {
 
   // Trigger filtering when filter values change
   useEffect(() => {
-    if (statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to) {
+    if (statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to || searchTerm.trim()) {
       handleFilterChange();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, dateRangeFilter]);
+  }, [statusFilter, dateRangeFilter, searchTerm]);
 
   const handleDeleteCustomer = async () => {
     if (selectedCustomer) {
@@ -256,48 +256,65 @@ export default function CustomersPage() {
 
   // Enhanced search handlers
   const handleSearch = () => {
-    fetchCustomers(1, searchTerm, sortBy, sortOrder);
+    // Always fetch all data when search is active to enable proper client-side filtering
+    if (searchTerm.trim()) {
+      fetchCustomers(1, '', sortBy, sortOrder, 10000); // Fetch all data, no server-side search
+    } else {
+      fetchCustomers(1, '', sortBy, sortOrder, pageSize); // Normal pagination when no search
+    }
   };
 
   const handleFilterChange = () => {
-    // When advanced filters are applied, we need to fetch all data to ensure proper filtering
-    if (statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to) {
+    // When any filters are applied, fetch all data to ensure proper filtering
+    if (statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to || searchTerm.trim()) {
       // Fetch all data without pagination when filters are active
-      fetchCustomers(1, searchTerm, sortBy, sortOrder, 10000); // Use a large limit to get all data
+      fetchCustomers(1, '', sortBy, sortOrder, 10000); // No server search, get all data
     } else {
-      // Use normal pagination when no advanced filters are applied
-      fetchCustomers(1, searchTerm, sortBy, sortOrder, pageSize);
+      // Use normal pagination when no filters are applied
+      fetchCustomers(1, '', sortBy, sortOrder, pageSize);
     }
   };
 
   // Helper function to apply client-side filtering on fetched data
   const getFilteredCustomers = () => {
-    if (statusFilter === 'all' && !dateRangeFilter?.from && !dateRangeFilter?.to) {
-      return customers; // No filtering needed
+    let filtered = customers;
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(customer => 
+        customer.name.toLowerCase().includes(searchLower) ||
+        (customer.tableName && customer.tableName.toLowerCase().includes(searchLower)) ||
+        customer.email.toLowerCase().includes(searchLower) ||
+        customer.phone.toLowerCase().includes(searchLower)
+      );
     }
 
-    return customers.filter(customer => {
-      // Status filtering
-      if (statusFilter !== 'all') {
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(customer => {
         const status = getCustomerStatus(customer);
-        if (status !== statusFilter) return false;
-      }
+        return status === statusFilter;
+      });
+    }
 
-      // Date range filtering
-      if (dateRangeFilter?.from || dateRangeFilter?.to) {
+    // Apply date range filter
+    if (dateRangeFilter?.from || dateRangeFilter?.to) {
+      filtered = filtered.filter(customer => {
         const customerDate = new Date(customer.createdAt);
         
         if (dateRangeFilter?.from && dateRangeFilter?.to) {
-          if (customerDate < dateRangeFilter.from || customerDate > dateRangeFilter.to) return false;
+          return customerDate >= dateRangeFilter.from && customerDate <= dateRangeFilter.to;
         } else if (dateRangeFilter?.from) {
-          if (customerDate < dateRangeFilter.from) return false;
+          return customerDate >= dateRangeFilter.from;
         } else if (dateRangeFilter?.to) {
-          if (customerDate > dateRangeFilter.to) return false;
+          return customerDate <= dateRangeFilter.to;
         }
-      }
+        return true;
+      });
+    }
 
-      return true;
-    });
+    return filtered;
   };
 
   // Helper function to get customer status
