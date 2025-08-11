@@ -151,11 +151,26 @@ export default function LogsPage() {
     // Fetch logs is now called from checkAuthentication after auth is verified
   }, []);
 
+  // Trigger fetching when validation type filter changes
+  useEffect(() => {
+    if (authenticated && validationTypeFilter !== 'all') {
+      // Fetch all data when validation type filter is applied
+      fetchLogs(1, '', validationTypeFilter, sortBy, sortOrder, 10000);
+    } else if (authenticated && validationTypeFilter === 'all') {
+      // Use normal pagination when no validation type filter
+      fetchLogs(1, '', '', sortBy, sortOrder, pageSize);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [validationTypeFilter, authenticated]);
+
   // Add function to filter logs based on column filters
   const getFilteredLogs = () => {
     if (!logs.length) return logs;
     
     return logs.filter(log => {
+      // Check validation type filter (only needed when column filters are also applied)
+      const matchesValidationType = validationTypeFilter === 'all' || log.validationType === validationTypeFilter;
+      
       const matchesIP = !columnFilters.ipAddress || 
         log.ipAddress?.toLowerCase().includes(columnFilters.ipAddress.toLowerCase());
       
@@ -186,7 +201,7 @@ export default function LogsPage() {
         }
       })();
       
-      return matchesIP && matchesService && matchesCompany && matchesCustomer && matchesEndpoint && matchesTerminal;
+      return matchesValidationType && matchesIP && matchesService && matchesCompany && matchesCustomer && matchesEndpoint && matchesTerminal;
     });
   };
 
@@ -200,7 +215,8 @@ export default function LogsPage() {
       terminal: ''
     });
     setValidationTypeFilter('all');
-    fetchLogs(1, '', 'all');
+    // Fetch with normal pagination when all filters are cleared
+    fetchLogs(1, '', '', sortBy, sortOrder, pageSize);
   };
 
   const hasActiveFilters = () => {
@@ -212,7 +228,10 @@ export default function LogsPage() {
     const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
     setSortBy(field);
     setSortOrder(newOrder);
-    fetchLogs(pagination.page, '', validationTypeFilter, field, newOrder);
+    
+    // Use appropriate limit based on whether validation type filter is active
+    const limit = validationTypeFilter !== 'all' ? 10000 : pageSize;
+    fetchLogs(pagination.page, '', validationTypeFilter, field, newOrder, limit);
   };
 
   const SortableHeader = ({ field, children }) => (
@@ -232,7 +251,10 @@ export default function LogsPage() {
   const handlePageChange = (newPage) => {
     // Validate page number
     if (newPage < 1 || newPage > pagination.totalPages) return;
-    fetchLogs(newPage, '', validationTypeFilter);
+    
+    // Use appropriate limit based on whether validation type filter is active
+    const limit = validationTypeFilter !== 'all' ? 10000 : pageSize;
+    fetchLogs(newPage, '', validationTypeFilter, sortBy, sortOrder, limit);
   };
 
   const handlePageSizeChange = (newPageSize) => {
@@ -256,7 +278,8 @@ export default function LogsPage() {
         const data = await response.json();
         console.log(`Cleared ${data.deletedCount} logs`);
         // Refresh the logs after clearing
-        await fetchLogs(1, '', validationTypeFilter);
+        const limit = validationTypeFilter !== 'all' ? 10000 : pageSize;
+        await fetchLogs(1, '', validationTypeFilter, sortBy, sortOrder, limit);
       } else {
         console.error('Failed to clear logs');
         alert('Logları temizlerken bir hata oluştu');
@@ -580,7 +603,7 @@ export default function LogsPage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
                   <div className="flex items-center gap-4">
                     <div className="text-sm text-muted-foreground">
-                      {getFilteredLogs().length !== logs.length 
+                      {(getFilteredLogs().length !== logs.length || validationTypeFilter !== 'all')
                         ? `${getFilteredLogs().length} / ${logs.length} kayıt gösteriliyor (${pagination.total} toplam)`
                         : `Toplam ${pagination.total} kayıt, sayfa ${pagination.page} / ${pagination.totalPages}`
                       }
