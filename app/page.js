@@ -283,10 +283,10 @@ export default function CustomersPage() {
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(customer => 
-        customer.name.toLowerCase().includes(searchLower) ||
+        (customer.name && customer.name.toLowerCase().includes(searchLower)) ||
         (customer.tableName && customer.tableName.toLowerCase().includes(searchLower)) ||
-        customer.email.toLowerCase().includes(searchLower) ||
-        customer.phone.toLowerCase().includes(searchLower)
+        (customer.email && customer.email.toLowerCase().includes(searchLower)) ||
+        (customer.phone && customer.phone.toLowerCase().includes(searchLower))
       );
     }
 

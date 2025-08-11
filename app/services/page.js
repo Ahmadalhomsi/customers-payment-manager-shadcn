@@ -217,9 +217,9 @@ export default function ServicesPage() {
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(service => 
-        service.serviceType.toLowerCase().includes(searchLower) ||
+        (service.serviceType && service.serviceType.toLowerCase().includes(searchLower)) ||
         (service.category && service.category.toLowerCase().includes(searchLower)) ||
-        (service.customer && service.customer.name.toLowerCase().includes(searchLower)) ||
+        (service.customer && service.customer.name && service.customer.name.toLowerCase().includes(searchLower)) ||
         (service.customer && service.customer.tableName && service.customer.tableName.toLowerCase().includes(searchLower)) ||
         service.id.toString().includes(searchLower)
       );
