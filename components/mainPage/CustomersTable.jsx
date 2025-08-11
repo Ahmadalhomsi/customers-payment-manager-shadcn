@@ -12,17 +12,17 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, Plus, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react'
+import { Calendar } from "@/components/ui/calendar"
+import { Edit, Trash2, Plus, Eye, EyeOff, ChevronDown, ChevronUp, CalendarIcon, X } from 'lucide-react'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { CalendarIcon } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
-import { tr } from 'date-fns/locale'
+import { tr } from "date-fns/locale"
+
 
 export function CustomerTable({
   customers,
@@ -30,16 +30,19 @@ export function CustomerTable({
   onDelete,
   onAddService,
   onViewServices,
-  isLoading = false
+  isLoading = false,
+  // Add props for server-side filtering
+  searchTerm,
+  onSearchChange,
+  statusFilter,
+  onStatusChange,
+  dateRangeFilter,
+  onDateRangeChange,
+  // Add clear filters prop
+  onClearFilters
 }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
-  const [dateRangeFilter, setDateRangeFilter] = useState({
-    from: undefined,
-    to: undefined
-  });
 
   const statusTranslations = {
     active: 'Aktif',
@@ -154,42 +157,8 @@ export function CustomerTable({
     return format(new Date(dateString), 'dd MMMM yyyy', { locale: tr });
   };
 
-  const isDateInRange = (date, dateRange) => {
-    if (!dateRange?.from && !dateRange?.to) return true;
-    const checkDate = new Date(date);
-
-    if (dateRange?.from && dateRange?.to) {
-      return checkDate >= dateRange.from && checkDate <= dateRange.to;
-    }
-
-    if (dateRange?.from) {
-      return checkDate >= dateRange.from;
-    }
-
-    if (dateRange?.to) {
-      return checkDate <= dateRange.to;
-    }
-
-    return true;
-  };
-
-  const filteredCustomers = sortCustomers(
-    customers.filter(customer => {
-      const matchesSearch =
-        customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
-        (customer.tableName && customer.tableName.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')));
-
-      const status = getCustomerStatus(customer);
-      const matchesDateRange = isDateInRange(
-        customer.createdAt,
-        dateRangeFilter
-      );
-
-      return matchesSearch &&
-        (statusFilter === 'all' || status === statusFilter) &&
-        matchesDateRange;
-    })
-  );
+  // Remove client-side filtering - data is already filtered server-side
+  const filteredCustomers = sortCustomers(customers);
 
 
   return (
@@ -198,11 +167,11 @@ export function CustomerTable({
         <Input
           placeholder="Müşteri ara..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => onSearchChange?.(e.target.value)}
           className="max-w-xs focus-visible:ring-2"
         />
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={onStatusChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Durum filtrele" />
           </SelectTrigger>
@@ -244,12 +213,24 @@ export function CustomerTable({
               mode="range"
               defaultMonth={dateRangeFilter?.from}
               selected={dateRangeFilter}
-              onSelect={setDateRangeFilter}
+              onSelect={onDateRangeChange}
               numberOfMonths={2}
               locale={tr}
             />
           </PopoverContent>
         </Popover>
+
+        {/* Clear Filters Button */}
+        {(statusFilter !== 'all' || dateRangeFilter?.from) && (
+          <Button 
+            variant="outline" 
+            onClick={onClearFilters}
+            className="flex items-center gap-2"
+          >
+            <X className="h-4 w-4" />
+            Filtreleri Temizle
+          </Button>
+        )}
       </div>
 
       <div className="relative rounded-lg border shadow-sm">

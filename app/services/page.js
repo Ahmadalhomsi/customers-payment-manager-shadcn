@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,6 +39,11 @@ export default function ServicesPage() {
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [pageSize, setPageSize] = useState(20);
+  // Add additional filter states
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [dateRangeFilter, setDateRangeFilter] = useState();
+  const [endDateRangeFilter, setEndDateRangeFilter] = useState();
 
   useEffect(() => {
     fetchServices()
@@ -50,7 +55,7 @@ export default function ServicesPage() {
       // Ctrl+F or Cmd+F to focus search
       if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
         event.preventDefault();
-        document.querySelector('input[placeholder*="Hizmet adı"]')?.focus();
+        document.querySelector('input[placeholder*="Hizmetleri ara"]')?.focus();
       }
       // Ctrl+Enter or Cmd+Enter to search
       if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
@@ -65,6 +70,14 @@ export default function ServicesPage() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [])
+
+  // Trigger filtering when filter values change
+  useEffect(() => {
+    if (statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from) {
+      handleFilterChange();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter]);
 
   const fetchAdminData = async () => {
     try {
@@ -175,15 +188,115 @@ export default function ServicesPage() {
     }
   }
 
-  // Sorting handlers
+  // Enhanced search handlers
+  const handleSearch = () => {
+    fetchServices(1, searchTerm, sortBy, sortOrder);
+  };
+
+  const handleFilterChange = () => {
+    // When advanced filters are applied, we need to fetch all data to ensure proper filtering
+    if (statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from) {
+      // Fetch all data without pagination when filters are active
+      fetchServices(1, searchTerm, sortBy, sortOrder, 10000); // Use a large limit to get all data
+    } else {
+      // Use normal pagination when no advanced filters are applied
+      fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
+    }
+  };
+
+  // Helper function to apply client-side filtering on fetched data
+  const getFilteredServices = () => {
+    if (statusFilter === 'all' && categoryFilter === 'all' && !dateRangeFilter?.from && !endDateRangeFilter?.from) {
+      return services; // No filtering needed
+    }
+
+    return services.filter(service => {
+      // Status filtering
+      if (statusFilter !== 'all') {
+        const status = getServiceStatus(service);
+        if (status !== statusFilter) return false;
+      }
+
+      // Category filtering
+      if (categoryFilter !== 'all') {
+        const serviceCategory = service.category || 'Adisyon Programı';
+        if (serviceCategory !== categoryFilter) return false;
+      }
+
+      // Start date filtering
+      if (dateRangeFilter?.from || dateRangeFilter?.to) {
+        const serviceStart = new Date(service.startingDate);
+        
+        if (dateRangeFilter?.from && dateRangeFilter?.to) {
+          if (serviceStart < dateRangeFilter.from || serviceStart > dateRangeFilter.to) return false;
+        } else if (dateRangeFilter?.from) {
+          if (serviceStart < dateRangeFilter.from) return false;
+        } else if (dateRangeFilter?.to) {
+          if (serviceStart > dateRangeFilter.to) return false;
+        }
+      }
+
+      // End date filtering
+      if (endDateRangeFilter?.from || endDateRangeFilter?.to) {
+        const serviceEnd = new Date(service.endingDate);
+        
+        if (endDateRangeFilter?.from && endDateRangeFilter?.to) {
+          if (serviceEnd < endDateRangeFilter.from || serviceEnd > endDateRangeFilter.to) return false;
+        } else if (endDateRangeFilter?.from) {
+          if (serviceEnd < endDateRangeFilter.from) return false;
+        } else if (endDateRangeFilter?.to) {
+          if (serviceEnd > endDateRangeFilter.to) return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
+  // Helper function to get service status
+  const getServiceStatus = (service) => {
+    // First check if the service is explicitly set as inactive
+    if (service.active === false) return 'inactive'
+    
+    const today = new Date()
+    const startDate = new Date(service.startingDate)
+    const endDate = new Date(service.endingDate)
+
+    // If service hasn't started yet, it's not started
+    if (today < startDate) {
+        return 'notStarted'
+    }
+    
+    // If service has already expired, it's expired
+    if (today > endDate) {
+        return 'expired'
+    }
+    
+    // Check if service is expiring within 1 month (30 days)
+    const oneMonthFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000))
+    
+    if (endDate <= oneMonthFromNow) {
+        return 'upcoming'
+    }
+    
+    return 'active'
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter('all');
+    setCategoryFilter('all');
+    setDateRangeFilter(undefined);
+    setEndDateRangeFilter(undefined);
+    // Reset to normal pagination
+    fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
+  };
+
+  // Sorting handler
   const handleSort = (field) => {
     const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
     setSortBy(field);
     setSortOrder(newOrder);
     fetchServices(pagination.page, searchTerm, field, newOrder);
-  };
-  const handleSearch = () => {
-    fetchServices(1, searchTerm, sortBy, sortOrder);
   };
 
   const handlePageChange = (newPage) => {
@@ -274,61 +387,27 @@ export default function ServicesPage() {
             </Button>
           )}
         </div>
-
-        {/* Search and Controls */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Hizmet Arama ve Filtreleme</span>
-              <div className="text-xs text-muted-foreground">
-                Ctrl+F: Arama | Enter: Ara | Esc: Temizle
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2 flex-wrap">
-              <Input
-                placeholder="Hizmet adı, açıklama, şirket adı veya kategori ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch();
-                  } else if (e.key === 'Escape') {
-                    setSearchTerm('');
-                    fetchServices(1, '', sortBy, sortOrder);
-                  }
-                }}
-                className="max-w-sm"
-              />
-              <Button onClick={handleSearch}>
-                <Search className="mr-2 h-4 w-4" />
-                Ara
-              </Button>
-              {searchTerm && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSearchTerm('');
-                    fetchServices(1, '', sortBy, sortOrder);
-                  }}
-                >
-                  Temizle
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="px-4">
         <ServiceTable
-          services={services}
+          services={getFilteredServices()}
           customers={customers}
           isLoading={loading}
           sortBy={sortBy}
           sortOrder={sortOrder}
           onSort={handleSort}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          categoryFilter={categoryFilter}
+          onCategoryChange={setCategoryFilter}
+          dateRangeFilter={dateRangeFilter}
+          onDateRangeChange={setDateRangeFilter}
+          endDateRangeFilter={endDateRangeFilter}
+          onEndDateRangeChange={setEndDateRangeFilter}
+          onClearFilters={handleClearFilters}
           onEdit={(service) => {
             setSelectedService(service)
             setServiceModalVisible(true)
@@ -349,7 +428,11 @@ export default function ServicesPage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
             <div className="flex items-center gap-4">
               <div className="text-sm text-muted-foreground">
-                Toplam {pagination.total} kayıt, sayfa {pagination.page} / {pagination.totalPages}
+                {statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from ? (
+                  `${getFilteredServices().length} / ${services.length} kayıt gösteriliyor (${pagination.total} toplam)`
+                ) : (
+                  `Toplam ${pagination.total} kayıt, sayfa ${pagination.page} / ${pagination.totalPages}`
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Sayfa başına:</span>

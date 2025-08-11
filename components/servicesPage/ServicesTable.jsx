@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy } from 'lucide-react'
+import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy, X } from 'lucide-react'
 import { format } from "date-fns"
 import { useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -75,12 +75,21 @@ export function ServiceTable({
     sortBy,
     sortOrder,
     onSort,
+    // Add props for server-side filtering
+    searchTerm,
+    onSearchChange,
+    statusFilter,
+    onStatusChange,
+    categoryFilter,
+    onCategoryChange,
+    dateRangeFilter,
+    onDateRangeChange,
+    endDateRangeFilter,
+    onEndDateRangeChange,
+    // Add clear filters prop
+    onClearFilters
 }) {
-    const [searchTerm, setSearchTerm] = useState('')
-    const [statusFilter, setStatusFilter] = useState('all')
-    const [categoryFilter, setCategoryFilter] = useState('all')
-    const [dateRangeFilter, setDateRangeFilter] = useState()
-    const [endDateRangeFilter, setEndDateRangeFilter] = useState()
+    // Remove client-side filter states - they'll come from props now
 
     // Check if any service has a deviceToken
     const hasDeviceTokens = services.some(service => service.deviceToken);
@@ -144,51 +153,8 @@ export function ServiceTable({
             : <ChevronDown className="h-4 w-4" />
     }
 
-    const filteredServices = services.filter(service => {
-        const customer = service.customer || customers.find(c => c.id === service.customerID);
-        const matchesSearch =
-            service.id.toString().includes(searchTerm) ||
-            service.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')) ||
-            (customer?.name && customer.name.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
-            (service.companyName && service.companyName.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
-            (service.category && service.category.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR'))) ||
-            (service.deviceToken && service.deviceToken.toLocaleLowerCase('tr-TR').includes(searchTerm.toLocaleLowerCase('tr-TR')));
-
-        const status = getServiceStatus(service);
-        const matchesStatus = statusFilter === 'all' || status === statusFilter;
-
-        const matchesCategory = categoryFilter === 'all' || service.category === categoryFilter;
-
-        let matchesStartDate = true;
-        if (dateRangeFilter) {
-            const { from, to } = dateRangeFilter;
-            const serviceStart = new Date(service.startingDate);
-
-            if (from && to) {
-                matchesStartDate = serviceStart >= from && serviceStart <= to;
-            } else if (from) {
-                matchesStartDate = serviceStart >= from;
-            } else if (to) {
-                matchesStartDate = serviceStart <= to;
-            }
-        }
-
-        let matchesEndDate = true;
-        if (endDateRangeFilter) {
-            const { from, to } = endDateRangeFilter;
-            const serviceEnd = new Date(service.endingDate);
-
-            if (from && to) {
-                matchesEndDate = serviceEnd >= from && serviceEnd <= to;
-            } else if (from) {
-                matchesEndDate = serviceEnd >= from;
-            } else if (to) {
-                matchesEndDate = serviceEnd <= to;
-            }
-        }
-
-        return matchesSearch && matchesStatus && matchesCategory && matchesStartDate && matchesEndDate;
-    });
+    // Remove client-side filtering - data is already filtered server-side
+    const filteredServices = services;
 
 
     return (
@@ -198,11 +164,11 @@ export function ServiceTable({
                     <Input
                         placeholder="Hizmetleri ara..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => onSearchChange?.(e.target.value)}
                         className="max-w-xs focus-visible:ring-2"
                     />
 
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <Select value={statusFilter} onValueChange={onStatusChange}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Duruma göre filtrele" />
                         </SelectTrigger>
@@ -216,7 +182,7 @@ export function ServiceTable({
                         </SelectContent>
                     </Select>
 
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <Select value={categoryFilter} onValueChange={onCategoryChange}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Kategoriye göre filtrele" />
                         </SelectTrigger>
@@ -262,13 +228,12 @@ export function ServiceTable({
                                 mode="range"
                                 defaultMonth={dateRangeFilter?.from}
                                 selected={dateRangeFilter}
-                                onSelect={setDateRangeFilter}
+                                onSelect={onDateRangeChange}
                                 numberOfMonths={2}
                                 locale={tr}
                             />
                         </PopoverContent>
                     </Popover>
-
 
                     <Popover>
                         <PopoverTrigger asChild>
@@ -300,12 +265,24 @@ export function ServiceTable({
                                 mode="range"
                                 defaultMonth={endDateRangeFilter?.from}
                                 selected={endDateRangeFilter}
-                                onSelect={setEndDateRangeFilter}
+                                onSelect={onEndDateRangeChange}
                                 numberOfMonths={2}
                                 locale={tr}
                             />
                         </PopoverContent>
                     </Popover>
+
+                    {/* Clear Filters Button */}
+                    {(statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from) && (
+                      <Button 
+                        variant="outline" 
+                        onClick={onClearFilters}
+                        className="flex items-center gap-2"
+                      >
+                        <X className="h-4 w-4" />
+                        Filtreleri Temizle
+                      </Button>
+                    )}
                 </div>
 
                 <div className="relative rounded-lg border shadow-sm">

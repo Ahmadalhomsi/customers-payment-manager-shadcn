@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -47,6 +47,12 @@ export default function CustomersPage() {
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [pageSize, setPageSize] = useState(20);
+  // Add additional filter states
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateRangeFilter, setDateRangeFilter] = useState({
+    from: undefined,
+    to: undefined
+  });
 
   useEffect(() => {
     fetchAdminData();
@@ -57,7 +63,7 @@ export default function CustomersPage() {
       // Ctrl+F or Cmd+F to focus search
       if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
         event.preventDefault();
-        document.querySelector('input[placeholder*="Müşteri adı"]')?.focus();
+        document.querySelector('input[placeholder*="Müşteri ara"]')?.focus();
       }
       // Ctrl+Enter or Cmd+Enter to search
       if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
@@ -72,6 +78,14 @@ export default function CustomersPage() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
+  // Trigger filtering when filter values change
+  useEffect(() => {
+    if (statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to) {
+      handleFilterChange();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, dateRangeFilter]);
 
   const handleDeleteCustomer = async () => {
     if (selectedCustomer) {
@@ -240,9 +254,78 @@ export default function CustomersPage() {
     }
   };
 
-  // Pagination handlers
+  // Enhanced search handlers
   const handleSearch = () => {
     fetchCustomers(1, searchTerm, sortBy, sortOrder);
+  };
+
+  const handleFilterChange = () => {
+    // When advanced filters are applied, we need to fetch all data to ensure proper filtering
+    if (statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to) {
+      // Fetch all data without pagination when filters are active
+      fetchCustomers(1, searchTerm, sortBy, sortOrder, 10000); // Use a large limit to get all data
+    } else {
+      // Use normal pagination when no advanced filters are applied
+      fetchCustomers(1, searchTerm, sortBy, sortOrder, pageSize);
+    }
+  };
+
+  // Helper function to apply client-side filtering on fetched data
+  const getFilteredCustomers = () => {
+    if (statusFilter === 'all' && !dateRangeFilter?.from && !dateRangeFilter?.to) {
+      return customers; // No filtering needed
+    }
+
+    return customers.filter(customer => {
+      // Status filtering
+      if (statusFilter !== 'all') {
+        const status = getCustomerStatus(customer);
+        if (status !== statusFilter) return false;
+      }
+
+      // Date range filtering
+      if (dateRangeFilter?.from || dateRangeFilter?.to) {
+        const customerDate = new Date(customer.createdAt);
+        
+        if (dateRangeFilter?.from && dateRangeFilter?.to) {
+          if (customerDate < dateRangeFilter.from || customerDate > dateRangeFilter.to) return false;
+        } else if (dateRangeFilter?.from) {
+          if (customerDate < dateRangeFilter.from) return false;
+        } else if (dateRangeFilter?.to) {
+          if (customerDate > dateRangeFilter.to) return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
+  // Helper function to get customer status
+  const getCustomerStatus = (customer) => {
+    const today = new Date();
+    let hasActive = false;
+    let hasOverdue = false;
+
+    if (customer.services?.length > 0) {
+      for (const service of customer.services) {
+        const startDate = new Date(service.startingDate);
+        const endDate = new Date(service.endingDate);
+
+        if (startDate <= today && today <= endDate) hasActive = true;
+        if (endDate < today) hasOverdue = true;
+      }
+    }
+
+    if (hasActive) return 'active';
+    if (hasOverdue) return 'overdue';
+    return 'inactive';
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter('all');
+    setDateRangeFilter({ from: undefined, to: undefined });
+    // Reset to normal pagination
+    fetchCustomers(1, searchTerm, sortBy, sortOrder, pageSize);
   };
 
   const handlePageChange = (newPage) => {
@@ -270,60 +353,22 @@ export default function CustomersPage() {
             </Button>
           )}
         </div>
-        
-        {/* Search and Controls */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Müşteri Arama ve Filtreleme</span>
-              <div className="text-xs text-muted-foreground">
-                Ctrl+F: Arama | Enter: Ara | Esc: Temizle
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2 flex-wrap">
-              <Input
-                placeholder="Müşteri adı, email, telefon veya tablo adı ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch();
-                  } else if (e.key === 'Escape') {
-                    setSearchTerm('');
-                    fetchCustomers(1, '', sortBy, sortOrder);
-                  }
-                }}
-                className="max-w-sm"
-              />
-              <Button onClick={handleSearch}>
-                <Search className="mr-2 h-4 w-4" />
-                Ara
-              </Button>
-              {searchTerm && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSearchTerm('');
-                    fetchCustomers(1, '', sortBy, sortOrder);
-                  }}
-                >
-                  Temizle
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="px-4">
         <CustomerTable
-          customers={customers}
+          customers={getFilteredCustomers()}
           services={services}
           isLoading={loading}
           sortConfig={sortConfig}
           setSortConfig={setSortConfig}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          dateRangeFilter={dateRangeFilter}
+          onDateRangeChange={setDateRangeFilter}
+          onClearFilters={handleClearFilters}
           onEdit={(customer) => {
             setSelectedCustomer(customer)
             setCustomerModalVisible(true)
@@ -349,7 +394,11 @@ export default function CustomersPage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
             <div className="flex items-center gap-4">
               <div className="text-sm text-muted-foreground">
-                Toplam {pagination.total} kayıt, sayfa {pagination.page} / {pagination.totalPages}
+                {statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to ? (
+                  `${getFilteredCustomers().length} / ${customers.length} kayıt gösteriliyor (${pagination.total} toplam)`
+                ) : (
+                  `Toplam ${pagination.total} kayıt, sayfa ${pagination.page} / ${pagination.totalPages}`
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Sayfa başına:</span>
