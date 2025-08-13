@@ -376,7 +376,7 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="w-full min-h-full pt-6">
+    <div className="w-full min-h-full pt-6 pb-6">
       <div className="flex flex-col gap-4 mb-4 px-4">
         <div className="flex gap-2">
           {permissions?.canEditServices && (
