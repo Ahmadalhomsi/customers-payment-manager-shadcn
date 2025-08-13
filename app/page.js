@@ -535,15 +535,24 @@ export default function CustomersPage() {
 
       <DeleteConfirmModal
         visible={deleteCustomerConfirmVisible}
-        onClose={() => setDeleteCustomerConfirmVisible(false)}
+        onClose={() => {
+          setDeleteCustomerConfirmVisible(false);
+          setSelectedCustomer(null);
+        }}
         onConfirm={handleDeleteCustomer}
         itemName={selectedCustomer?.name}
         itemType="customer"
         customer={selectedCustomer}
         onViewServices={(customer) => {
-          fetchServices(customer.id);
-          setSelectedCustomer(customer);
-          setServicesViewModalVisible(true);
+          // Close delete modal first
+          setDeleteCustomerConfirmVisible(false);
+          // Reset selected customer and set new one
+          setSelectedCustomer(null);
+          setTimeout(() => {
+            setSelectedCustomer(customer);
+            fetchServices(customer.id);
+            setServicesViewModalVisible(true);
+          }, 100);
         }}
       />
 
@@ -561,8 +570,9 @@ export default function CustomersPage() {
       <ServicesViewModal
         visible={servicesViewModalVisible}
         onClose={() => {
-          setServicesViewModalVisible(false)
-          setServices([])
+          setServicesViewModalVisible(false);
+          setServices([]);
+          // Ensure customer selection is maintained for potential future actions
         }}
         services={services}
         loadingOnModal={loadingOnModal}

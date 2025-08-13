@@ -38,10 +38,7 @@ export function DeleteConfirmModal({ visible, onClose, onConfirm, itemName, item
             <AlertDialogCancel>Kapat</AlertDialogCancel>
             {onViewServices && (
               <AlertDialogAction 
-                onClick={() => {
-                  onClose();
-                  onViewServices(customer);
-                }}
+                onClick={() => onViewServices(customer)}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 Hizmetleri Görüntüle
