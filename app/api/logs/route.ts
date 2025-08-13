@@ -14,11 +14,20 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
     
+    // Individual field searches
+    const ipAddress = searchParams.get('ipAddress');
+    const serviceName = searchParams.get('serviceName'); 
+    const companyName = searchParams.get('companyName');
+    const customerName = searchParams.get('customerName');
+    const endpoint = searchParams.get('endpoint');
+    const terminal = searchParams.get('terminal');
+    
     // Build where clause
     const where: any = {};
+    const andConditions: any[] = [];
     
-    // Search across IP address, service name, request body, and customer names
-    if (search) {
+    // Handle general search (when no specific fields are provided)
+    if (search && !ipAddress && !serviceName && !companyName && !customerName && !endpoint && !terminal) {
       // First, find customer IDs that match the search term
       const matchingCustomers = await prisma.customer.findMany({
         where: {
@@ -66,6 +75,90 @@ export async function GET(request: NextRequest) {
           }
         }] : [])
       ];
+    }
+    
+    // Handle specific field searches
+    if (ipAddress) {
+      andConditions.push({
+        ipAddress: { contains: ipAddress, mode: 'insensitive' }
+      });
+    }
+    
+    if (serviceName) {
+      andConditions.push({
+        serviceName: { contains: serviceName, mode: 'insensitive' }
+      });
+    }
+    
+    if (endpoint) {
+      andConditions.push({
+        endpoint: { contains: endpoint, mode: 'insensitive' }
+      });
+    }
+    
+    // For company name and terminal, search in requestBody JSON with flexible patterns
+    if (companyName) {
+      // Search with multiple patterns to handle different JSON formatting and partial matches
+      andConditions.push({
+        OR: [
+          { requestBody: { contains: companyName, mode: 'insensitive' } }, // General search in JSON
+          { requestBody: { contains: `"companyName":"${companyName}"`, mode: 'insensitive' } },
+          { requestBody: { contains: `"companyName": "${companyName}"`, mode: 'insensitive' } },
+          { requestBody: { contains: `companyName":"${companyName}"`, mode: 'insensitive' } },
+          { requestBody: { contains: `companyName": "${companyName}"`, mode: 'insensitive' } }
+        ]
+      });
+    }
+    
+    if (terminal) {
+      // Search with multiple patterns to handle different JSON formatting and partial matches  
+      andConditions.push({
+        OR: [
+          { requestBody: { contains: terminal, mode: 'insensitive' } }, // General search in JSON
+          { requestBody: { contains: `"terminal":"${terminal}"`, mode: 'insensitive' } },
+          { requestBody: { contains: `"terminal": "${terminal}"`, mode: 'insensitive' } },
+          { requestBody: { contains: `terminal":"${terminal}"`, mode: 'insensitive' } },
+          { requestBody: { contains: `terminal": "${terminal}"`, mode: 'insensitive' } }
+        ]
+      });
+    }
+    
+    // For customer name, find matching customers first
+    if (customerName) {
+      const matchingCustomers = await prisma.customer.findMany({
+        where: {
+          OR: [
+            { name: { contains: customerName, mode: 'insensitive' } },
+            { tableName: { contains: customerName, mode: 'insensitive' } }
+          ]
+        },
+        select: { id: true }
+      });
+
+      const matchingServices = await prisma.service.findMany({
+        where: {
+          customerID: { in: matchingCustomers.map(c => c.id) }
+        },
+        select: { name: true }
+      });
+
+      const serviceNames = matchingServices.map(s => s.name);
+      
+      if (serviceNames.length > 0) {
+        andConditions.push({
+          serviceName: { in: serviceNames }
+        });
+      } else {
+        // No matching customers, return empty result
+        andConditions.push({
+          id: { equals: -1 } // This will match no records
+        });
+      }
+    }
+    
+    // Combine all conditions
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
     
     if (validationType) {

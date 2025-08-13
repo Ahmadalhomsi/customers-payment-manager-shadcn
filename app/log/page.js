@@ -165,17 +165,62 @@ export default function LogsPage() {
 
   // Add search handler for column filters
   const handleColumnSearch = () => {
-    // Apply column filters via server-side search - build search string from filters
-    const searchTerms = [];
-    if (columnFilters.ipAddress?.trim()) searchTerms.push(columnFilters.ipAddress.trim());
-    if (columnFilters.serviceName?.trim()) searchTerms.push(columnFilters.serviceName.trim());
-    if (columnFilters.companyName?.trim()) searchTerms.push(columnFilters.companyName.trim());
-    if (columnFilters.customerName?.trim()) searchTerms.push(columnFilters.customerName.trim());
-    if (columnFilters.endpoint?.trim()) searchTerms.push(columnFilters.endpoint.trim());
-    if (columnFilters.terminal?.trim()) searchTerms.push(columnFilters.terminal.trim());
-    
-    const combinedSearch = searchTerms.join(' ');
-    fetchLogs(1, combinedSearch, validationTypeFilter !== 'all' ? validationTypeFilter : '', sortBy, sortOrder, pageSize);
+    // Build individual filter parameters for server-side search
+    const params = new URLSearchParams({
+      page: '1',
+      limit: pageSize.toString(),
+      ...(validationTypeFilter !== 'all' && { validationType: validationTypeFilter }),
+      sortBy: sortBy,
+      sortOrder: sortOrder
+    });
+
+    // Add individual field filters
+    if (columnFilters.ipAddress?.trim()) {
+      params.append('ipAddress', columnFilters.ipAddress.trim());
+    }
+    if (columnFilters.serviceName?.trim()) {
+      params.append('serviceName', columnFilters.serviceName.trim());
+    }
+    if (columnFilters.companyName?.trim()) {
+      params.append('companyName', columnFilters.companyName.trim());
+    }
+    if (columnFilters.customerName?.trim()) {
+      params.append('customerName', columnFilters.customerName.trim());
+    }
+    if (columnFilters.endpoint?.trim()) {
+      params.append('endpoint', columnFilters.endpoint.trim());
+    }
+    if (columnFilters.terminal?.trim()) {
+      params.append('terminal', columnFilters.terminal.trim());
+    }
+
+    // Fetch with individual parameters
+    fetchLogsWithParams(params);
+  };
+
+  // Helper function to fetch logs with custom parameters
+  const fetchLogsWithParams = async (params) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/logs?${params}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setLogs(data.logs);
+        setPagination(data.pagination);
+      } else {
+        console.error('Failed to fetch logs:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Add function to filter logs based on column filters (client-side, minimal)
@@ -208,9 +253,16 @@ export default function LogsPage() {
     setSortBy(field);
     setSortOrder(newOrder);
     
-    // Use appropriate limit based on whether validation type filter is active
-    const limit = validationTypeFilter !== 'all' ? 10000 : pageSize;
-    fetchLogs(pagination.page, '', validationTypeFilter, field, newOrder, limit);
+    // Check if we have active column filters
+    const hasColumnFilters = Object.values(columnFilters).some(Boolean);
+    
+    if (hasColumnFilters) {
+      // Use column search with new sort order
+      handleColumnSearch();
+    } else {
+      // Use normal pagination
+      fetchLogs(pagination.page, '', validationTypeFilter !== 'all' ? validationTypeFilter : '', field, newOrder, pageSize);
+    }
   };
 
   const SortableHeader = ({ field, children }) => (
@@ -231,15 +283,88 @@ export default function LogsPage() {
     // Validate page number
     if (newPage < 1 || newPage > pagination.totalPages) return;
     
-    // Use appropriate limit based on whether validation type filter is active
-    const limit = validationTypeFilter !== 'all' ? 10000 : pageSize;
-    fetchLogs(newPage, '', validationTypeFilter, sortBy, sortOrder, limit);
+    // Check if we have active column filters
+    const hasColumnFilters = Object.values(columnFilters).some(Boolean);
+    
+    if (hasColumnFilters) {
+      // Build parameters for column search with new page
+      const params = new URLSearchParams({
+        page: newPage.toString(),
+        limit: pageSize.toString(),
+        ...(validationTypeFilter !== 'all' && { validationType: validationTypeFilter }),
+        sortBy: sortBy,
+        sortOrder: sortOrder
+      });
+
+      // Add individual field filters
+      if (columnFilters.ipAddress?.trim()) {
+        params.append('ipAddress', columnFilters.ipAddress.trim());
+      }
+      if (columnFilters.serviceName?.trim()) {
+        params.append('serviceName', columnFilters.serviceName.trim());
+      }
+      if (columnFilters.companyName?.trim()) {
+        params.append('companyName', columnFilters.companyName.trim());
+      }
+      if (columnFilters.customerName?.trim()) {
+        params.append('customerName', columnFilters.customerName.trim());
+      }
+      if (columnFilters.endpoint?.trim()) {
+        params.append('endpoint', columnFilters.endpoint.trim());
+      }
+      if (columnFilters.terminal?.trim()) {
+        params.append('terminal', columnFilters.terminal.trim());
+      }
+
+      fetchLogsWithParams(params);
+    } else {
+      // Use normal pagination
+      fetchLogs(newPage, '', validationTypeFilter !== 'all' ? validationTypeFilter : '', sortBy, sortOrder, pageSize);
+    }
   };
 
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
     setPagination(prev => ({ ...prev, page: 1, limit: newPageSize })); // Reset to first page and update limit
-    fetchLogs(1, '', validationTypeFilter, sortBy, sortOrder, newPageSize);
+    
+    // Check if we have active column filters
+    const hasColumnFilters = Object.values(columnFilters).some(Boolean);
+    
+    if (hasColumnFilters) {
+      // Build parameters for column search with new page size
+      const params = new URLSearchParams({
+        page: '1',
+        limit: newPageSize.toString(),
+        ...(validationTypeFilter !== 'all' && { validationType: validationTypeFilter }),
+        sortBy: sortBy,
+        sortOrder: sortOrder
+      });
+
+      // Add individual field filters
+      if (columnFilters.ipAddress?.trim()) {
+        params.append('ipAddress', columnFilters.ipAddress.trim());
+      }
+      if (columnFilters.serviceName?.trim()) {
+        params.append('serviceName', columnFilters.serviceName.trim());
+      }
+      if (columnFilters.companyName?.trim()) {
+        params.append('companyName', columnFilters.companyName.trim());
+      }
+      if (columnFilters.customerName?.trim()) {
+        params.append('customerName', columnFilters.customerName.trim());
+      }
+      if (columnFilters.endpoint?.trim()) {
+        params.append('endpoint', columnFilters.endpoint.trim());
+      }
+      if (columnFilters.terminal?.trim()) {
+        params.append('terminal', columnFilters.terminal.trim());
+      }
+
+      fetchLogsWithParams(params);
+    } else {
+      // Use normal pagination
+      fetchLogs(1, '', validationTypeFilter !== 'all' ? validationTypeFilter : '', sortBy, sortOrder, newPageSize);
+    }
   };
 
   const handleClearLogs = async () => {
@@ -257,8 +382,16 @@ export default function LogsPage() {
         const data = await response.json();
         console.log(`Cleared ${data.deletedCount} logs`);
         // Refresh the logs after clearing
-        const limit = validationTypeFilter !== 'all' ? 10000 : pageSize;
-        await fetchLogs(1, '', validationTypeFilter, sortBy, sortOrder, limit);
+        // Check if we have active column filters
+        const hasColumnFilters = Object.values(columnFilters).some(Boolean);
+        
+        if (hasColumnFilters) {
+          // Use column search to maintain current filters
+          handleColumnSearch();
+        } else {
+          // Use normal pagination
+          fetchLogs(1, '', validationTypeFilter !== 'all' ? validationTypeFilter : '', sortBy, sortOrder, pageSize);
+        }
       } else {
         console.error('Failed to clear logs');
         alert('Logları temizlerken bir hata oluştu');
