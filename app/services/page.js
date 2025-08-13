@@ -71,11 +71,9 @@ export default function ServicesPage() {
     };
   }, [])
 
-  // Trigger filtering when filter values change (but not search - search needs button/enter)
+  // Trigger filtering when filter values change (including when changing to 'all')
   useEffect(() => {
-    if (statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from) {
-      handleFilterChange();
-    }
+    handleFilterChange();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter]);
 
@@ -106,6 +104,30 @@ export default function ServicesPage() {
         sortBy: sortField,
         sortOrder: order
       });
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.append('status', statusFilter);
+      }
+
+      // Add category filter if not 'all'
+      if (categoryFilter !== 'all') {
+        params.append('category', categoryFilter);
+      }
+
+      // Add date filters if set
+      if (dateRangeFilter?.from) {
+        params.append('startDateFrom', dateRangeFilter.from.toISOString());
+      }
+      if (dateRangeFilter?.to) {
+        params.append('startDateTo', dateRangeFilter.to.toISOString());
+      }
+      if (endDateRangeFilter?.from) {
+        params.append('endDateFrom', endDateRangeFilter.from.toISOString());
+      }
+      if (endDateRangeFilter?.to) {
+        params.append('endDateTo', endDateRangeFilter.to.toISOString());
+      }
       
       const response = await axios.get(`/api/services?${params}`)
       
@@ -392,7 +414,7 @@ export default function ServicesPage() {
 
       <div className="px-4">
         <ServiceTable
-          services={getFilteredServices()}
+          services={services}
           customers={customers}
           isLoading={loading}
           sortBy={sortBy}
@@ -431,7 +453,7 @@ export default function ServicesPage() {
             <div className="flex items-center gap-4">
               <div className="text-sm text-muted-foreground">
                 {statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from ? (
-                  `${getFilteredServices().length} / ${services.length} kayıt gösteriliyor (${pagination.total} toplam)`
+                  `${services.length} / ${pagination.total} kayıt gösteriliyor`
                 ) : (
                   `Toplam ${pagination.total} kayıt, sayfa ${pagination.page} / ${pagination.totalPages}`
                 )}

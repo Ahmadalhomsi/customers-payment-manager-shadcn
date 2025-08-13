@@ -96,11 +96,9 @@ export default function CustomersPage() {
     };
   }, []);
 
-  // Trigger filtering when filter values change (but not search - search needs button/enter)
+  // Trigger filtering when filter values change (including when changing to 'all')
   useEffect(() => {
-    if (statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to) {
-      handleFilterChange();
-    }
+    handleFilterChange();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, dateRangeFilter]);
 
@@ -189,6 +187,19 @@ export default function CustomersPage() {
         sortBy: sortField,
         sortOrder: order
       });
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.append('status', statusFilter);
+      }
+
+      // Add date filters if set
+      if (dateRangeFilter?.from) {
+        params.append('dateFrom', dateRangeFilter.from.toISOString());
+      }
+      if (dateRangeFilter?.to) {
+        params.append('dateTo', dateRangeFilter.to.toISOString());
+      }
       
       const response = await axios.get(`/api/customers?${params}`)
       if (response.status === 206) {
@@ -376,7 +387,7 @@ export default function CustomersPage() {
 
       <div className="px-4">
         <CustomerTable
-          customers={getFilteredCustomers()}
+          customers={customers}
           services={services}
           isLoading={loading}
           sortConfig={sortConfig}
@@ -415,7 +426,7 @@ export default function CustomersPage() {
             <div className="flex items-center gap-4">
               <div className="text-sm text-muted-foreground">
                 {statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to ? (
-                  `${getFilteredCustomers().length} / ${customers.length} kayıt gösteriliyor (${pagination.total} toplam)`
+                  `${customers.length} / ${pagination.total} kayıt gösteriliyor`
                 ) : (
                   `Toplam ${pagination.total} kayıt, sayfa ${pagination.page} / ${pagination.totalPages}`
                 )}

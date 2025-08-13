@@ -69,44 +69,111 @@ export async function GET(req) {
         const search = searchParams.get('search') || '';
         const sortBy = searchParams.get('sortBy') || 'createdAt';
         const sortOrder = searchParams.get('sortOrder') || 'desc';
+        const statusFilter = searchParams.get('status') || 'all';
+        const dateFrom = searchParams.get('dateFrom');
+        const dateTo = searchParams.get('dateTo');
 
         // Calculate skip for pagination
         const skip = (page - 1) * limit;
 
-        // Build where clause for search
-        const whereClause = search ? {
-            OR: [
+        // Build where clause for search and date filtering
+        const whereClause = {};
+        
+        // Add search conditions
+        if (search) {
+            whereClause.OR = [
                 { name: { contains: search, mode: 'insensitive' } },
                 { email: { contains: search, mode: 'insensitive' } },
                 { phone: { contains: search, mode: 'insensitive' } },
                 { tableName: { contains: search, mode: 'insensitive' } }
-            ]
-        } : {};
+            ];
+        }
 
-        // Get total count for pagination
-        const totalCount = await prisma.customer.count({
-            where: whereClause
-        });
+        // Add date range filtering
+        if (dateFrom || dateTo) {
+            whereClause.createdAt = {};
+            if (dateFrom) {
+                whereClause.createdAt.gte = new Date(dateFrom);
+            }
+            if (dateTo) {
+                whereClause.createdAt.lte = new Date(dateTo);
+            }
+        }
 
-        // Get customers from database with pagination
-        const customers = await prisma.customer.findMany({
-            where: whereClause,
-            include: {
-                services: includeService,
-            },
-            orderBy: {
-                [sortBy]: sortOrder,
-            },
-            skip,
-            take: limit,
-        });
+        // For status filtering, we need to get all customers first and then filter
+        // because status is calculated based on service dates
+        let allCustomers;
+        let totalCount;
+
+        if (statusFilter !== 'all') {
+            // First, get all customers matching other criteria
+            allCustomers = await prisma.customer.findMany({
+                where: whereClause,
+                include: {
+                    services: includeService,
+                },
+                orderBy: {
+                    [sortBy]: sortOrder,
+                }
+            });
+
+            // Apply status filtering
+            const today = new Date();
+            // Set time to start of day for consistent comparison
+            today.setHours(0, 0, 0, 0);
+            
+            const filteredCustomers = allCustomers.filter(customer => {
+                let hasActive = false;
+                let hasOverdue = false;
+
+                if (customer.services?.length > 0) {
+                    for (const service of customer.services) {
+                        const startDate = new Date(service.startingDate);
+                        const endDate = new Date(service.endingDate);
+                        
+                        // Set time to start of day for consistent comparison
+                        startDate.setHours(0, 0, 0, 0);
+                        endDate.setHours(23, 59, 59, 999);
+
+                        if (startDate <= today && today <= endDate) hasActive = true;
+                        if (endDate < today) hasOverdue = true;
+                    }
+                }
+
+                const status = hasActive ? 'active' : hasOverdue ? 'overdue' : 'inactive';
+                return status === statusFilter;
+            });
+
+            // Apply pagination to filtered results
+            totalCount = filteredCustomers.length;
+            const startIndex = (page - 1) * limit;
+            const endIndex = startIndex + limit;
+            allCustomers = filteredCustomers.slice(startIndex, endIndex);
+        } else {
+            // No status filter, use regular pagination
+            totalCount = await prisma.customer.count({
+                where: whereClause
+            });
+
+            allCustomers = await prisma.customer.findMany({
+                where: whereClause,
+                include: {
+                    services: includeService,
+                },
+                orderBy: {
+                    [sortBy]: sortOrder,
+                },
+                skip,
+                take: limit,
+            });
+        }
 
         // Calculate pagination info
         const totalPages = Math.ceil(totalCount / limit);
 
         // Prepare response data
         const responseData = {
-            customers: customers,
+            customers: allCustomers,
             pagination: {
                 page,
                 limit,
