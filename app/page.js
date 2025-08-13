@@ -54,6 +54,23 @@ export default function CustomersPage() {
     to: undefined
   });
 
+  // Utility function to reset all modal states
+  const resetModalStates = () => {
+    setCustomerModalVisible(false);
+    setDeleteCustomerConfirmVisible(false);
+    setServiceModalVisible(false);
+    setServicesViewModalVisible(false);
+    setDeleteServiceConfirmVisible(false);
+    setReminderViewModalVisible(false);
+    setDeleteReminderConfirmVisible(false);
+    setReminderModalVisible(false);
+    setSelectedCustomer(null);
+    setSelectedService(null);
+    setSelectedReminder(null);
+    setReminderToDelete(null);
+    setServices([]);
+  };
+
   useEffect(() => {
     fetchAdminData();
     fetchCustomers();
@@ -544,15 +561,13 @@ export default function CustomersPage() {
         itemType="customer"
         customer={selectedCustomer}
         onViewServices={(customer) => {
-          // Close delete modal first
+          // Close delete modal and open services view with a small delay to prevent modal conflicts
           setDeleteCustomerConfirmVisible(false);
-          // Reset selected customer and set new one
-          setSelectedCustomer(null);
           setTimeout(() => {
             setSelectedCustomer(customer);
             fetchServices(customer.id);
             setServicesViewModalVisible(true);
-          }, 100);
+          }, 200); // Small delay to ensure delete modal is fully closed
         }}
       />
 
@@ -572,7 +587,11 @@ export default function CustomersPage() {
         onClose={() => {
           setServicesViewModalVisible(false);
           setServices([]);
-          // Ensure customer selection is maintained for potential future actions
+          setSelectedCustomer(null);
+          // Add a small delay to ensure proper cleanup
+          setTimeout(() => {
+            // Additional cleanup can be done here if needed
+          }, 100);
         }}
         services={services}
         loadingOnModal={loadingOnModal}

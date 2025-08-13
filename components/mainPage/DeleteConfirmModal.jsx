@@ -19,20 +19,20 @@ export function DeleteConfirmModal({ visible, onClose, onConfirm, itemName, item
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-amber-600">Silme İşlemi Engellenmiş</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <div>
+            <div className="space-y-3">
+              <AlertDialogDescription>
                 <strong>{itemName}</strong> müşterisini silmek için önce bu müşteriye ait tüm hizmetleri silmelisiniz.
-              </div>
+              </AlertDialogDescription>
               <div className="flex items-center gap-2">
-                <span>Mevcut hizmet sayısı:</span>
+                <span className="text-sm text-muted-foreground">Mevcut hizmet sayısı:</span>
                 <Badge variant="destructive" className="text-sm">
                   {customer.services.length} hizmet
                 </Badge>
               </div>
-              <div className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Müşterinin hizmetlerini görüntülemek ve silmek için "Hizmetleri Görüntüle" butonunu kullanabilirsiniz.
-              </div>
-            </AlertDialogDescription>
+              </p>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Kapat</AlertDialogCancel>
