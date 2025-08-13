@@ -157,11 +157,35 @@ export default function LogsPage() {
       // Fetch all data when validation type filter is applied
       fetchLogs(1, '', validationTypeFilter, sortBy, sortOrder, 10000);
     } else if (authenticated && validationTypeFilter === 'all') {
-      // Use normal pagination when no validation type filter
-      fetchLogs(1, '', '', sortBy, sortOrder, pageSize);
+      // Check if any column filters are active
+      const hasColumnFilters = Object.values(columnFilters).some(filter => filter.trim() !== '');
+      if (hasColumnFilters) {
+        // Fetch all data when column filters are active
+        fetchLogs(1, '', '', sortBy, sortOrder, 10000);
+      } else {
+        // Use normal pagination when no filters
+        fetchLogs(1, '', '', sortBy, sortOrder, pageSize);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [validationTypeFilter, authenticated]);
+
+  // Trigger fetching when column filters change
+  useEffect(() => {
+    if (authenticated) {
+      const hasColumnFilters = Object.values(columnFilters).some(filter => filter.trim() !== '');
+      const hasValidationFilter = validationTypeFilter !== 'all';
+      
+      if (hasColumnFilters || hasValidationFilter) {
+        // Fetch all data when any filter is active
+        fetchLogs(1, '', validationTypeFilter !== 'all' ? validationTypeFilter : '', sortBy, sortOrder, 10000);
+      } else {
+        // Use normal pagination when no filters
+        fetchLogs(1, '', '', sortBy, sortOrder, pageSize);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columnFilters, authenticated]);
 
   // Add function to filter logs based on column filters
   const getFilteredLogs = () => {
@@ -603,7 +627,7 @@ export default function LogsPage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
                   <div className="flex items-center gap-4">
                     <div className="text-sm text-muted-foreground">
-                      {(getFilteredLogs().length !== logs.length || validationTypeFilter !== 'all')
+                      {(getFilteredLogs().length !== logs.length || validationTypeFilter !== 'all' || Object.values(columnFilters).some(filter => filter.trim() !== ''))
                         ? `${getFilteredLogs().length} / ${logs.length} kayıt gösteriliyor (${pagination.total} toplam)`
                         : `Toplam ${pagination.total} kayıt, sayfa ${pagination.page} / ${pagination.totalPages}`
                       }
