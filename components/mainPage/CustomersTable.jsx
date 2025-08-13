@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
 import { Calendar } from "@/components/ui/calendar"
-import { Edit, Trash2, Plus, Eye, EyeOff, ChevronDown, ChevronUp, CalendarIcon, X } from 'lucide-react'
+import { Edit, Trash2, Plus, Eye, EyeOff, ChevronDown, ChevronUp, CalendarIcon, X, Search } from 'lucide-react'
 import {
   Popover,
   PopoverContent,
@@ -34,6 +34,7 @@ export function CustomerTable({
   // Add props for server-side filtering
   searchTerm,
   onSearchChange,
+  onSearch, // Add search trigger prop
   statusFilter,
   onStatusChange,
   dateRangeFilter,
@@ -164,12 +165,23 @@ export function CustomerTable({
   return (
     <div className="space-y-4 relative">
       <div className="flex gap-2 flex-wrap items-center">
-        <Input
-          placeholder="Müşteri ara..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange?.(e.target.value)}
-          className="max-w-xs focus-visible:ring-2"
-        />
+        <div className="flex gap-1 max-w-sm">
+          <Input
+            placeholder="Müşteri ara..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange?.(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && onSearch?.()}
+            className="focus-visible:ring-2"
+          />
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => onSearch?.()}
+            className="px-3"
+          >
+            <Search className="h-4 w-4" />
+          </Button>
+        </div>
 
         <Select value={statusFilter} onValueChange={onStatusChange}>
           <SelectTrigger className="w-[180px]">

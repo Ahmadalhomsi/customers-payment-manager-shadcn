@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight, Trash2, X } from 'lucide-react';
+import { Eye, Calendar, Globe, Server, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight, Trash2, X, Search } from 'lucide-react';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState([]);
@@ -151,82 +151,37 @@ export default function LogsPage() {
     // Fetch logs is now called from checkAuthentication after auth is verified
   }, []);
 
-  // Trigger fetching when validation type filter changes
+  // Trigger fetching when validation type filter changes (but not column filters - they need button/enter)
   useEffect(() => {
     if (authenticated && validationTypeFilter !== 'all') {
-      // Fetch all data when validation type filter is applied
-      fetchLogs(1, '', validationTypeFilter, sortBy, sortOrder, 10000);
+      // Use server-side validation type filtering
+      fetchLogs(1, '', validationTypeFilter, sortBy, sortOrder, pageSize);
     } else if (authenticated && validationTypeFilter === 'all') {
-      // Check if any column filters are active
-      const hasColumnFilters = Object.values(columnFilters).some(filter => filter.trim() !== '');
-      if (hasColumnFilters) {
-        // Fetch all data when column filters are active
-        fetchLogs(1, '', '', sortBy, sortOrder, 10000);
-      } else {
-        // Use normal pagination when no filters
-        fetchLogs(1, '', '', sortBy, sortOrder, pageSize);
-      }
+      // Use normal pagination when no validation type filter
+      fetchLogs(1, '', '', sortBy, sortOrder, pageSize);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [validationTypeFilter, authenticated]);
 
-  // Trigger fetching when column filters change
-  useEffect(() => {
-    if (authenticated) {
-      const hasColumnFilters = Object.values(columnFilters).some(filter => filter.trim() !== '');
-      const hasValidationFilter = validationTypeFilter !== 'all';
-      
-      if (hasColumnFilters || hasValidationFilter) {
-        // Fetch all data when any filter is active
-        fetchLogs(1, '', validationTypeFilter !== 'all' ? validationTypeFilter : '', sortBy, sortOrder, 10000);
-      } else {
-        // Use normal pagination when no filters
-        fetchLogs(1, '', '', sortBy, sortOrder, pageSize);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnFilters, authenticated]);
-
-  // Add function to filter logs based on column filters
-  const getFilteredLogs = () => {
-    if (!logs.length) return logs;
+  // Add search handler for column filters
+  const handleColumnSearch = () => {
+    // Apply column filters via server-side search - build search string from filters
+    const searchTerms = [];
+    if (columnFilters.ipAddress?.trim()) searchTerms.push(columnFilters.ipAddress.trim());
+    if (columnFilters.serviceName?.trim()) searchTerms.push(columnFilters.serviceName.trim());
+    if (columnFilters.companyName?.trim()) searchTerms.push(columnFilters.companyName.trim());
+    if (columnFilters.customerName?.trim()) searchTerms.push(columnFilters.customerName.trim());
+    if (columnFilters.endpoint?.trim()) searchTerms.push(columnFilters.endpoint.trim());
+    if (columnFilters.terminal?.trim()) searchTerms.push(columnFilters.terminal.trim());
     
-    return logs.filter(log => {
-      // Check validation type filter (only needed when column filters are also applied)
-      const matchesValidationType = validationTypeFilter === 'all' || log.validationType === validationTypeFilter;
-      
-      const matchesIP = !columnFilters.ipAddress || 
-        log.ipAddress?.toLowerCase().includes(columnFilters.ipAddress.toLowerCase());
-      
-      const matchesService = !columnFilters.serviceName || 
-        log.serviceName?.toLowerCase().includes(columnFilters.serviceName.toLowerCase());
-      
-      const matchesCompany = !columnFilters.companyName || (() => {
-        try {
-          const requestData = JSON.parse(log.requestBody || '{}');
-          return requestData.companyName?.toLowerCase().includes(columnFilters.companyName.toLowerCase());
-        } catch {
-          return false;
-        }
-      })();
-      
-      const matchesCustomer = !columnFilters.customerName || 
-        log.customer?.name?.toLowerCase().includes(columnFilters.customerName.toLowerCase());
-      
-      const matchesEndpoint = !columnFilters.endpoint || 
-        log.endpoint?.toLowerCase().includes(columnFilters.endpoint.toLowerCase());
-      
-      const matchesTerminal = !columnFilters.terminal || (() => {
-        try {
-          const requestData = JSON.parse(log.requestBody || '{}');
-          return requestData.terminal?.toLowerCase().includes(columnFilters.terminal.toLowerCase());
-        } catch {
-          return false;
-        }
-      })();
-      
-      return matchesValidationType && matchesIP && matchesService && matchesCompany && matchesCustomer && matchesEndpoint && matchesTerminal;
-    });
+    const combinedSearch = searchTerms.join(' ');
+    fetchLogs(1, combinedSearch, validationTypeFilter !== 'all' ? validationTypeFilter : '', sortBy, sortOrder, pageSize);
+  };
+
+  // Add function to filter logs based on column filters (client-side, minimal)
+  const getFilteredLogs = () => {
+    // Since we're using server-side search now, minimal client-side filtering
+    return logs;
   };
 
   const clearAllFilters = () => {
@@ -480,38 +435,68 @@ export default function LogsPage() {
                 placeholder="IP Adresi ara..."
                 value={columnFilters.ipAddress}
                 onChange={(e) => setColumnFilters(prev => ({ ...prev, ipAddress: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
                 className="text-sm"
               />
               <Input
                 placeholder="Servis adı ara..."
                 value={columnFilters.serviceName}
                 onChange={(e) => setColumnFilters(prev => ({ ...prev, serviceName: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
                 className="text-sm"
               />
               <Input
                 placeholder="İşletme adı ara..."
                 value={columnFilters.companyName}
                 onChange={(e) => setColumnFilters(prev => ({ ...prev, companyName: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
                 className="text-sm"
               />
               <Input
                 placeholder="Müşteri ara..."
                 value={columnFilters.customerName}
                 onChange={(e) => setColumnFilters(prev => ({ ...prev, customerName: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
                 className="text-sm"
               />
               <Input
                 placeholder="Endpoint ara..."
                 value={columnFilters.endpoint}
                 onChange={(e) => setColumnFilters(prev => ({ ...prev, endpoint: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
                 className="text-sm"
               />
               <Input
                 placeholder="Terminal ara..."
                 value={columnFilters.terminal}
                 onChange={(e) => setColumnFilters(prev => ({ ...prev, terminal: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
                 className="text-sm"
               />
+            </div>
+            
+            {/* Search and Clear buttons */}
+            <div className="flex gap-2 items-center">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleColumnSearch}
+                className="flex items-center gap-2"
+              >
+                <Search className="h-4 w-4" />
+                Ara
+              </Button>
+              {hasActiveFilters() && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="flex items-center gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Filtreleri Temizle
+                </Button>
+              )}
             </div>
             
             <div className="flex gap-2 flex-wrap items-center">

@@ -71,13 +71,13 @@ export default function ServicesPage() {
     };
   }, [])
 
-  // Trigger filtering when filter values change
+  // Trigger filtering when filter values change (but not search - search needs button/enter)
   useEffect(() => {
-    if (statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from || searchTerm.trim()) {
+    if (statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from) {
       handleFilterChange();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter, searchTerm]);
+  }, [statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter]);
 
   const fetchAdminData = async () => {
     try {
@@ -188,44 +188,22 @@ export default function ServicesPage() {
     }
   }
 
-  // Enhanced search handlers
+  // Enhanced search handlers - now server-side with button/enter trigger
   const handleSearch = () => {
-    // Always fetch all data when search is active to enable proper client-side filtering
-    if (searchTerm.trim()) {
-      fetchServices(1, '', sortBy, sortOrder, 10000); // Fetch all data, no server-side search
-    } else {
-      fetchServices(1, '', sortBy, sortOrder, pageSize); // Normal pagination when no search
-    }
+    // Always use server-side search with current filters
+    fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
   };
 
   const handleFilterChange = () => {
-    // When any filters are applied, fetch all data to ensure proper filtering
-    if (statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from || searchTerm.trim()) {
-      // Fetch all data without pagination when filters are active
-      fetchServices(1, '', sortBy, sortOrder, 10000); // No server search, get all data
-    } else {
-      // Use normal pagination when no filters are applied
-      fetchServices(1, '', sortBy, sortOrder, pageSize);
-    }
+    // Apply filters on server-side - user needs to click search or press enter for search
+    fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
   };
 
-  // Helper function to apply client-side filtering on fetched data
+  // Helper function to apply client-side filtering on fetched data (minimal, just for status/category/dates)
   const getFilteredServices = () => {
     let filtered = services;
 
-    // Apply search filter
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(service => 
-        (service.serviceType && service.serviceType.toLowerCase().includes(searchLower)) ||
-        (service.category && service.category.toLowerCase().includes(searchLower)) ||
-        (service.customer && service.customer.name && service.customer.name.toLowerCase().includes(searchLower)) ||
-        (service.customer && service.customer.tableName && service.customer.tableName.toLowerCase().includes(searchLower)) ||
-        service.id.toString().includes(searchLower)
-      );
-    }
-
-    // Apply status filter
+    // Apply status filter (client-side for UI responsiveness)
     if (statusFilter !== 'all') {
       filtered = filtered.filter(service => {
         const status = getServiceStatus(service);
@@ -233,7 +211,7 @@ export default function ServicesPage() {
       });
     }
 
-    // Apply category filter
+    // Apply category filter (client-side for UI responsiveness)
     if (categoryFilter !== 'all') {
       filtered = filtered.filter(service => {
         const serviceCategory = service.category || 'Adisyon Programı';
@@ -241,7 +219,7 @@ export default function ServicesPage() {
       });
     }
 
-    // Apply start date filter
+    // Apply start date filter (client-side for UI responsiveness)
     if (dateRangeFilter?.from || dateRangeFilter?.to) {
       filtered = filtered.filter(service => {
         const serviceStart = new Date(service.startingDate);
@@ -257,7 +235,7 @@ export default function ServicesPage() {
       });
     }
 
-    // Apply end date filter
+    // Apply end date filter (client-side for UI responsiveness)
     if (endDateRangeFilter?.from || endDateRangeFilter?.to) {
       filtered = filtered.filter(service => {
         const serviceEnd = new Date(service.endingDate);
@@ -422,6 +400,7 @@ export default function ServicesPage() {
           onSort={handleSort}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
+          onSearch={handleSearch}
           statusFilter={statusFilter}
           onStatusChange={setStatusFilter}
           categoryFilter={categoryFilter}

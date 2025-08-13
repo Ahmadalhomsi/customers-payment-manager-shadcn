@@ -65,23 +65,13 @@ export async function GET(req) {
         // Get pagination parameters from URL
         const { searchParams } = new URL(req.url);
         const page = parseInt(searchParams.get('page')) || 1;
-        const requestedLimit = parseInt(searchParams.get('limit')) || 20;
-        
-        // If requested limit is very high (10000+), fetch ALL records without pagination
-        const fetchAll = requestedLimit >= 10000;
-        let limit, skip;
-        
-        if (fetchAll) {
-            limit = undefined; // No limit - fetch all records
-            skip = 0; // No skip - start from beginning
-        } else {
-            limit = requestedLimit;
-            skip = (page - 1) * limit;
-        }
-        
+        const limit = parseInt(searchParams.get('limit')) || 20;
         const search = searchParams.get('search') || '';
         const sortBy = searchParams.get('sortBy') || 'createdAt';
         const sortOrder = searchParams.get('sortOrder') || 'desc';
+
+        // Calculate skip for pagination
+        const skip = (page - 1) * limit;
 
         // Build where clause for search
         const whereClause = search ? {
@@ -98,8 +88,8 @@ export async function GET(req) {
             where: whereClause
         });
 
-        // Get customers from database with conditional pagination
-        const queryOptions = {
+        // Get customers from database with pagination
+        const customers = await prisma.customer.findMany({
             where: whereClause,
             include: {
                 services: includeService,
@@ -108,24 +98,18 @@ export async function GET(req) {
                 [sortBy]: sortOrder,
             },
             skip,
-        };
-        
-        // Only add 'take' if we're not fetching all records
-        if (!fetchAll && limit !== undefined) {
-            queryOptions.take = limit;
-        }
-        
-        const customers = await prisma.customer.findMany(queryOptions);
+            take: limit,
+        });
 
         // Calculate pagination info
-        const totalPages = fetchAll ? 1 : Math.ceil(totalCount / limit);
+        const totalPages = Math.ceil(totalCount / limit);
 
         // Prepare response data
         const responseData = {
             customers: customers,
             pagination: {
-                page: fetchAll ? 1 : page,
-                limit: fetchAll ? customers.length : limit,
+                page,
+                limit,
                 total: totalCount,
                 totalPages
             }

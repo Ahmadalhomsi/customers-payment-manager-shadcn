@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy, X } from 'lucide-react'
+import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy, X, Search } from 'lucide-react'
 import { format } from "date-fns"
 import { useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -78,6 +78,7 @@ export function ServiceTable({
     // Add props for server-side filtering
     searchTerm,
     onSearchChange,
+    onSearch, // Add search trigger prop
     statusFilter,
     onStatusChange,
     categoryFilter,
@@ -161,12 +162,23 @@ export function ServiceTable({
         <TooltipProvider>
             <div className="space-y-4 relative">
                 <div className="flex gap-2 flex-wrap items-center">
-                    <Input
-                        placeholder="Hizmetleri ara..."
-                        value={searchTerm}
-                        onChange={(e) => onSearchChange?.(e.target.value)}
-                        className="max-w-xs focus-visible:ring-2"
-                    />
+                    <div className="flex gap-1 max-w-sm">
+                        <Input
+                            placeholder="Hizmetleri ara..."
+                            value={searchTerm}
+                            onChange={(e) => onSearchChange?.(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && onSearch?.()}
+                            className="focus-visible:ring-2"
+                        />
+                        <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => onSearch?.()}
+                            className="px-3"
+                        >
+                            <Search className="h-4 w-4" />
+                        </Button>
+                    </div>
 
                     <Select value={statusFilter} onValueChange={onStatusChange}>
                         <SelectTrigger className="w-[180px]">

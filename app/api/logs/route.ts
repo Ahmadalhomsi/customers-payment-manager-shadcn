@@ -6,18 +6,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const requestedLimit = parseInt(searchParams.get('limit') || '20');
-    
-    // If requested limit is very high (10000+), fetch ALL records without pagination
-    const fetchAll = requestedLimit >= 10000;
-    let limit, skip;
-    
-    if (fetchAll) {
-      limit = undefined; // No limit - fetch all records
-      skip = 0; // No skip - start from beginning
-    } else {
-      limit = Math.min(100, Math.max(1, requestedLimit)); // Normal pagination limit
-      skip = (page - 1) * limit;
-    }
+    const limit = Math.min(100, Math.max(1, requestedLimit)); // Normal pagination limit
+    const skip = (page - 1) * limit;
     
     const search = searchParams.get('search');
     const validationType = searchParams.get('validationType');
@@ -86,20 +76,14 @@ export async function GET(request: NextRequest) {
     const orderBy: any = {};
     orderBy[sortBy] = sortOrder;
     
-    // Get logs with conditional pagination and include related service/customer data
-    const queryOptions: any = {
-      where,
-      orderBy,
-      skip,
-    };
-    
-    // Only add 'take' if we're not fetching all records
-    if (!fetchAll && limit !== undefined) {
-      queryOptions.take = limit;
-    }
-    
+    // Get logs with pagination and include related service/customer data
     const [logs, total] = await Promise.all([
-      prisma.apiLog.findMany(queryOptions),
+      prisma.apiLog.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+      }),
       prisma.apiLog.count({ where })
     ]);
 
@@ -166,10 +150,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       logs: enhancedLogs,
       pagination: {
-        page: fetchAll ? 1 : page,
-        limit: fetchAll ? enhancedLogs.length : limit,
+        page,
+        limit,
         total,
-        totalPages: fetchAll ? 1 : Math.ceil(total / limit!)
+        totalPages: Math.ceil(total / limit)
       }
     });
     

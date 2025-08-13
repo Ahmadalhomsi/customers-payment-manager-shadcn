@@ -79,13 +79,13 @@ export default function CustomersPage() {
     };
   }, []);
 
-  // Trigger filtering when filter values change
+  // Trigger filtering when filter values change (but not search - search needs button/enter)
   useEffect(() => {
-    if (statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to || searchTerm.trim()) {
+    if (statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to) {
       handleFilterChange();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, dateRangeFilter, searchTerm]);
+  }, [statusFilter, dateRangeFilter]);
 
   const handleDeleteCustomer = async () => {
     if (selectedCustomer) {
@@ -254,43 +254,22 @@ export default function CustomersPage() {
     }
   };
 
-  // Enhanced search handlers
+  // Enhanced search handlers - now server-side with button/enter trigger
   const handleSearch = () => {
-    // Always fetch all data when search is active to enable proper client-side filtering
-    if (searchTerm.trim()) {
-      fetchCustomers(1, '', sortBy, sortOrder, 10000); // Fetch all data, no server-side search
-    } else {
-      fetchCustomers(1, '', sortBy, sortOrder, pageSize); // Normal pagination when no search
-    }
+    // Always use server-side search with current filters
+    fetchCustomers(1, searchTerm, sortBy, sortOrder, pageSize);
   };
 
   const handleFilterChange = () => {
-    // When any filters are applied, fetch all data to ensure proper filtering
-    if (statusFilter !== 'all' || dateRangeFilter?.from || dateRangeFilter?.to || searchTerm.trim()) {
-      // Fetch all data without pagination when filters are active
-      fetchCustomers(1, '', sortBy, sortOrder, 10000); // No server search, get all data
-    } else {
-      // Use normal pagination when no filters are applied
-      fetchCustomers(1, '', sortBy, sortOrder, pageSize);
-    }
+    // Apply filters on server-side - user needs to click search or press enter
+    fetchCustomers(1, searchTerm, sortBy, sortOrder, pageSize);
   };
 
-  // Helper function to apply client-side filtering on fetched data
+  // Helper function to apply client-side filtering on fetched data (minimal, just for status/date)
   const getFilteredCustomers = () => {
     let filtered = customers;
 
-    // Apply search filter
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(customer => 
-        (customer.name && customer.name.toLowerCase().includes(searchLower)) ||
-        (customer.tableName && customer.tableName.toLowerCase().includes(searchLower)) ||
-        (customer.email && customer.email.toLowerCase().includes(searchLower)) ||
-        (customer.phone && customer.phone.toLowerCase().includes(searchLower))
-      );
-    }
-
-    // Apply status filter
+    // Apply status filter (client-side for UI responsiveness)
     if (statusFilter !== 'all') {
       filtered = filtered.filter(customer => {
         const status = getCustomerStatus(customer);
@@ -298,7 +277,7 @@ export default function CustomersPage() {
       });
     }
 
-    // Apply date range filter
+    // Apply date range filter (client-side for UI responsiveness) 
     if (dateRangeFilter?.from || dateRangeFilter?.to) {
       filtered = filtered.filter(customer => {
         const customerDate = new Date(customer.createdAt);
@@ -381,6 +360,7 @@ export default function CustomersPage() {
           setSortConfig={setSortConfig}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
+          onSearch={handleSearch}
           statusFilter={statusFilter}
           onStatusChange={setStatusFilter}
           dateRangeFilter={dateRangeFilter}
