@@ -36,6 +36,25 @@ export async function DELETE(req, { params }) {
     }
 
     try {
+        // Check if customer has any services
+        const customerWithServices = await prisma.customer.findUnique({
+            where: { id },
+            include: {
+                services: true
+            }
+        });
+
+        if (!customerWithServices) {
+            return NextResponse.json({ error: 'Müşteri bulunamadı' }, { status: 404 });
+        }
+
+        if (customerWithServices.services.length > 0) {
+            return NextResponse.json({ 
+                error: 'Bu müşteriyi silmeden önce tüm hizmetlerini silmelisiniz',
+                serviceCount: customerWithServices.services.length
+            }, { status: 400 });
+        }
+
         await prisma.customer.delete({
             where: { id },
         });

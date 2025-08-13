@@ -91,14 +91,20 @@ export default function CustomersPage() {
     if (selectedCustomer) {
       try {
         await axios.delete(`/api/customers/${selectedCustomer.id}`);
+        toast.success('Müşteri başarıyla silindi');
         fetchCustomers(pagination.page, searchTerm, sortBy, sortOrder);
         setDeleteCustomerConfirmVisible(false);
       } catch (error) {
         if (error.status === 403) {
           toast.error('Yasak: Müşteri silme izniniz yok')
-        }
-        else
+        } else if (error.status === 400) {
+          // This case should not occur now since we handle it in the modal
+          const errorData = error.response?.data;
+          toast.error(errorData?.error || 'Bu müşteriyi silmeden önce tüm hizmetlerini silmelisiniz');
+        } else {
+          toast.error('Müşteri silinirken bir hata oluştu');
           console.log('Error deleting customer:', error)
+        }
       }
     }
   };
@@ -533,6 +539,12 @@ export default function CustomersPage() {
         onConfirm={handleDeleteCustomer}
         itemName={selectedCustomer?.name}
         itemType="customer"
+        customer={selectedCustomer}
+        onViewServices={(customer) => {
+          fetchServices(customer.id);
+          setSelectedCustomer(customer);
+          setServicesViewModalVisible(true);
+        }}
       />
 
       <ServiceModal

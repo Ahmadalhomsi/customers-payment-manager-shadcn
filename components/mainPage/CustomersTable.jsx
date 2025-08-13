@@ -326,7 +326,20 @@ export function CustomerTable({
                   key={customer.id}
                   className="hover:bg-muted/50 transition-colors"
                 >
-                  <TableCell className="font-medium">{customer.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <span>{customer.name}</span>
+                      {customer.services?.length > 0 && (
+                        <Badge 
+                          variant="secondary" 
+                          className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                          title={`${customer.services.length} hizmet`}
+                        >
+                          {customer.services.length}
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-foreground/80">{customer.tableName || '-'}</TableCell>
                   <TableCell>
                     <Badge
@@ -371,7 +384,14 @@ export function CustomerTable({
                       variant="ghost"
                       size="sm"
                       onClick={() => onDelete(customer)}
-                      className={`h-8 w-8 p-0 ${actionButtonColors.delete}`}
+                      className={`h-8 w-8 p-0 ${actionButtonColors.delete} ${
+                        customer.services?.length > 0 ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      title={
+                        customer.services?.length > 0 
+                          ? `Bu müşteriyi silmek için önce ${customer.services.length} hizmetini silmelisiniz`
+                          : 'Müşteriyi sil'
+                      }
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
