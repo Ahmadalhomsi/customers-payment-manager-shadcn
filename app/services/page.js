@@ -156,7 +156,8 @@ export default function ServicesPage() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get('/api/customers')
+      // Fetch all customers without pagination limit for the modal
+      const response = await axios.get('/api/customers?limit=1000')
       // Handle the new pagination response structure
       setCustomers(response.data.customers || response.data || [])
     } catch (error) {

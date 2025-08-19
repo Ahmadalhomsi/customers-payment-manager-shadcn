@@ -364,7 +364,7 @@ export function ServiceModal2({
                                         value={searchQuery}
                                         onValueChange={setSearchQuery}
                                     />
-                                    <CommandList>
+                                    <CommandList className="max-h-[200px] overflow-y-auto">
                                         {isCustomersLoading ? (
                                             <div className="py-6 text-center text-sm">
                                                 <BeatLoader size={8} className="inline-block" />
