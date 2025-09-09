@@ -167,7 +167,7 @@ export function CustomerTable({
       <div className="flex gap-2 flex-wrap items-center">
         <div className="flex gap-1 max-w-sm">
           <Input
-            placeholder="Müşteri ara..."
+            placeholder="Müşteri ara (ID, ad, email, telefon...)..."
             value={searchTerm}
             onChange={(e) => onSearchChange?.(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && onSearch?.()}

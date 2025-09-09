@@ -55,7 +55,7 @@ export default function ServicesPage() {
       // Ctrl+F or Cmd+F to focus search
       if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
         event.preventDefault();
-        document.querySelector('input[placeholder*="Hizmetleri ara"]')?.focus();
+        document.querySelector('input[placeholder*="Hizmet ara"]')?.focus();
       }
       // Ctrl+Enter or Cmd+Enter to search
       if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {

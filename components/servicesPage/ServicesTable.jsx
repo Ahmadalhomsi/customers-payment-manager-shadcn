@@ -164,7 +164,7 @@ export function ServiceTable({
                 <div className="flex gap-2 flex-wrap items-center">
                     <div className="flex gap-1 max-w-sm">
                         <Input
-                            placeholder="Hizmetleri ara..."
+                            placeholder="Hizmet ara (ID, ad, açıklama...)..."
                             value={searchTerm}
                             onChange={(e) => onSearchChange?.(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && onSearch?.()}

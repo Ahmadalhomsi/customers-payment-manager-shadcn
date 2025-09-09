@@ -146,13 +146,36 @@ export async function GET(req) {
         
         // Add search conditions
         if (search) {
-            whereClause.OR = [
-                { name: { contains: search, mode: 'insensitive' } },
-                { description: { contains: search, mode: 'insensitive' } },
-                { companyName: { contains: search, mode: 'insensitive' } },
-                { category: { contains: search, mode: 'insensitive' } },
-                ...(includeCustomer ? [{ customer: { name: { contains: search, mode: 'insensitive' } } }] : [])
-            ];
+            // Check if search term looks like an ID (starts with 'c' for cuid)
+            const isIdSearch = search.match(/^c[a-z0-9]+$/i);
+            
+            if (isIdSearch) {
+                // If it looks like an ID, search by exact ID match first, then fallback to text search
+                whereClause.OR = [
+                    { id: { equals: search } },
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { description: { contains: search, mode: 'insensitive' } },
+                    { companyName: { contains: search, mode: 'insensitive' } },
+                    { category: { contains: search, mode: 'insensitive' } },
+                    ...(includeCustomer ? [
+                        { customer: { id: { equals: search } } },
+                        { customer: { name: { contains: search, mode: 'insensitive' } } }
+                    ] : [])
+                ];
+            } else {
+                // Regular text search
+                whereClause.OR = [
+                    { id: { contains: search, mode: 'insensitive' } },
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { description: { contains: search, mode: 'insensitive' } },
+                    { companyName: { contains: search, mode: 'insensitive' } },
+                    { category: { contains: search, mode: 'insensitive' } },
+                    ...(includeCustomer ? [
+                        { customer: { id: { contains: search, mode: 'insensitive' } } },
+                        { customer: { name: { contains: search, mode: 'insensitive' } } }
+                    ] : [])
+                ];
+            }
         }
 
         // Add category filtering

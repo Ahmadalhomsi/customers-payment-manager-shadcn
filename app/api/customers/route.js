@@ -81,12 +81,28 @@ export async function GET(req) {
         
         // Add search conditions
         if (search) {
-            whereClause.OR = [
-                { name: { contains: search, mode: 'insensitive' } },
-                { email: { contains: search, mode: 'insensitive' } },
-                { phone: { contains: search, mode: 'insensitive' } },
-                { tableName: { contains: search, mode: 'insensitive' } }
-            ];
+            // Check if search term looks like an ID (starts with 'c' for cuid)
+            const isIdSearch = search.match(/^c[a-z0-9]+$/i);
+            
+            if (isIdSearch) {
+                // If it looks like an ID, search by exact ID match first, then fallback to text search
+                whereClause.OR = [
+                    { id: { equals: search } },
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { phone: { contains: search, mode: 'insensitive' } },
+                    { tableName: { contains: search, mode: 'insensitive' } }
+                ];
+            } else {
+                // Regular text search including partial ID search
+                whereClause.OR = [
+                    { id: { contains: search, mode: 'insensitive' } },
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { phone: { contains: search, mode: 'insensitive' } },
+                    { tableName: { contains: search, mode: 'insensitive' } }
+                ];
+            }
         }
 
         // Add date range filtering
@@ -184,7 +200,7 @@ export async function GET(req) {
 
         // If user can't see passwords, remove them from the response
         if (!decoded.permissions.canSeePasswords) {
-            responseData.customers = customers.map(customer => {
+            responseData.customers = responseData.customers.map(customer => {
                 return {
                     ...customer,
                     password: "", // Set password to empty string

@@ -48,6 +48,12 @@ model Customer {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Indexes for better search performance
+  @@index([name])
+  @@index([email])
+  @@index([phone])
+  @@index([createdAt])
 }
 
 model Service {
@@ -75,6 +81,21 @@ model Service {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Indexes for better search and filtering performance
+  @@index([name])
+  @@index([category])
+  @@index([companyName])
+  @@index([customerID])
+  @@index([active])
+  @@index([startingDate])
+  @@index([endingDate])
+  @@index([createdAt])
+  @@index([paymentType])
+  // Composite indexes for common query patterns
+  @@index([customerID, active])
+  @@index([category, active])
+  @@index([startingDate, endingDate])
 }
 
 model Reminder {
