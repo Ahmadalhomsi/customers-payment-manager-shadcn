@@ -151,23 +151,23 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     });
   };
 
-  const validateForm = () => {
+  const validateForm = (dataToValidate = formData) => {
     const newErrors = {};
 
-    if (!formData.name.trim()) {
+    if (!dataToValidate.name.trim()) {
       newErrors.name = "İsim gereklidir";
     }
 
     // Email is now optional
-    if (formData.email.trim() && customers.some(c => c.email === formData.email && c.id !== selectedCustomer?.id)) {
+    if (dataToValidate.email.trim() && customers.some(c => c.email === dataToValidate.email && c.id !== selectedCustomer?.id)) {
       newErrors.email = "Bu email adresi zaten kullanımda";
     }
 
     // Password validation for new customers or when updating password
-    if (!selectedCustomer && !formData.password.trim()) {
+    if (!selectedCustomer && !dataToValidate.password.trim()) {
       newErrors.password = "Şifre gereklidir";
-    } else if (formData.password.trim()) {
-      const passwordValid = validatePassword(formData.password);
+    } else if (dataToValidate.password.trim()) {
+      const passwordValid = validatePassword(dataToValidate.password);
       if (!passwordValid.allValid) {
         newErrors.password = "Şifre en az 8 karakterden oluşmalı ve en az bir büyük harf, bir küçük harf, bir sayı ve bir özel karakter içermelidir";
       }
@@ -178,8 +178,27 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
   };
 
   const handleSubmit = () => {
-    if (validateForm()) {
-      onSubmit(formData);
+    // Auto-generate password if empty for new customers
+    let finalFormData = { ...formData };
+    
+    if (!selectedCustomer && !formData.password.trim()) {
+      const newPassword = generateRandomPassword();
+      finalFormData.password = newPassword;
+      setFormData(prev => ({
+        ...prev,
+        password: newPassword
+      }));
+      setPasswordValidation(validatePassword(newPassword));
+      setShowPassword(true); // Show the generated password
+      
+      toast({
+        title: "Şifre Otomatik Oluşturuldu",
+        description: "Şifre alanı boş olduğu için güçlü bir şifre oluşturuldu.",
+      });
+    }
+    
+    if (validateForm(finalFormData)) {
+      onSubmit(finalFormData);
       onClose();
     } else {
       toast({

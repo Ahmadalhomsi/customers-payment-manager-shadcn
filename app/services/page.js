@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ServiceTable } from '@/components/servicesPage/ServicesTable'
 import { ServiceModal2 } from '@/components/servicesPage/ServiceModal2'
+import { BulkServiceModal } from '@/components/servicesPage/BulkServiceModal'
 import { DeleteConfirmModal } from '@/components/mainPage/DeleteConfirmModal'
 import { Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react'
 import { RenewHistoryModal } from '@/components/RenewHistoryModal'
@@ -17,6 +18,7 @@ import { toast } from 'sonner'
 export default function ServicesPage() {
   const [services, setServices] = useState([])
   const [serviceModalVisible, setServiceModalVisible] = useState(false)
+  const [bulkServiceModalVisible, setBulkServiceModalVisible] = useState(false)
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false)
   const [selectedService, setSelectedService] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -46,11 +48,7 @@ export default function ServicesPage() {
   const [endDateRangeFilter, setEndDateRangeFilter] = useState();
 
   useEffect(() => {
-    fetchServices()
-    fetchCustomers()
-    fetchAdminData();
-
-    // Global keyboard shortcuts
+    // Global keyboard shortcuts setup only
     const handleKeyDown = (event) => {
       // Ctrl+F or Cmd+F to focus search
       if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
@@ -60,7 +58,8 @@ export default function ServicesPage() {
       // Ctrl+Enter or Cmd+Enter to search
       if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
         event.preventDefault();
-        handleSearch();
+        // Use a simple function call here instead of handleSearch
+        document.querySelector('input[placeholder*="Hizmet ara"] + button')?.click();
       }
     };
 
@@ -90,7 +89,7 @@ export default function ServicesPage() {
     }
   };
 
-  const fetchServices = async (page = 1, search = '', sortField = sortBy, order = sortOrder, limit = pageSize) => {
+  const fetchServices = useCallback(async (page = 1, search = '', sortField = sortBy, order = sortOrder, limit = pageSize) => {
     try {
       setLoading(true)
       
@@ -152,7 +151,70 @@ export default function ServicesPage() {
         toast.error('Yasak: Hizmet görüntüleme izniniz yok')
     }
     setLoading(false)
-  }
+  }, [sortBy, sortOrder, pageSize, statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter])
+
+  // Enhanced search handlers - now server-side with button/enter trigger
+  const handleSearch = useCallback(() => {
+    // Always use server-side search with current filters
+    fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
+  }, [fetchServices, searchTerm, sortBy, sortOrder, pageSize]);
+
+  // Initial data loading - run once on mount
+  useEffect(() => {
+    const initialLoad = async () => {
+      try {
+        setLoading(true)
+        
+        const params = new URLSearchParams({
+          page: '1',
+          limit: '20', // Use default page size for initial load
+          search: '',
+          sortBy: 'createdAt',
+          sortOrder: 'desc'
+        });
+        
+        const response = await axios.get(`/api/services?${params}`)
+        setServices(response.data.services || [])
+        setPagination(response.data.pagination || {
+          page: 1,
+          limit: 20,
+          total: 0,
+          totalPages: 0
+        })
+        
+        setLoading(false)
+      } catch (error) {
+        console.error('Error loading initial services:', error)
+        setLoading(false)
+      }
+    }
+    
+    initialLoad()
+    fetchCustomers()
+    fetchAdminData();
+  }, [])
+
+  // Setup keyboard shortcuts after functions are defined
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Ctrl+F or Cmd+F to focus search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        event.preventDefault();
+        document.querySelector('input[placeholder*="Hizmet ara"]')?.focus();
+      }
+      // Ctrl+Enter or Cmd+Enter to search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        handleSearch();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleSearch])
 
   const fetchCustomers = async () => {
     try {
@@ -211,11 +273,21 @@ export default function ServicesPage() {
     }
   }
 
-  // Enhanced search handlers - now server-side with button/enter trigger
-  const handleSearch = () => {
-    // Always use server-side search with current filters
-    fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
-  };
+  const handleBulkSubmit = async (servicesData) => {
+    try {
+      // Use the bulk API endpoint for better performance and transaction safety
+      const response = await axios.post('/api/services/bulk', { services: servicesData })
+      
+      // Refresh the services list
+      await fetchServices(pagination.page, searchTerm, sortBy, sortOrder)
+      setBulkServiceModalVisible(false)
+      
+      return response.data
+    } catch (error) {
+      console.error('Error in bulk service creation:', error)
+      throw error // Re-throw to be handled by the modal
+    }
+  }
 
   const handleFilterChange = () => {
     // Apply filters on server-side - user needs to click search or press enter for search
@@ -403,12 +475,22 @@ export default function ServicesPage() {
       <div className="flex flex-col gap-4 mb-4 px-4">
         <div className="flex gap-2">
           {permissions?.canEditServices && (
-            <Button onClick={() => {
-              setSelectedService(null)
-              setServiceModalVisible(true)
-            }}>
-              <Plus className="mr-2 h-4 w-4" /> Hizmet Ekle
-            </Button>
+            <>
+              <Button onClick={() => {
+                setSelectedService(null)
+                setServiceModalVisible(true)
+              }}>
+                <Plus className="mr-2 h-4 w-4" /> Hizmet Ekle
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setBulkServiceModalVisible(true)
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Toplu Hizmet Tanımla
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -527,6 +609,13 @@ export default function ServicesPage() {
         selectedService={selectedService}
         customers={customers}
         onRefreshCustomers={fetchCustomers}
+      />
+
+      <BulkServiceModal
+        visible={bulkServiceModalVisible}
+        onClose={() => setBulkServiceModalVisible(false)}
+        onSubmit={handleBulkSubmit}
+        customers={customers}
       />
 
       <DeleteConfirmModal
