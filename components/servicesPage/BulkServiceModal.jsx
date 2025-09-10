@@ -121,30 +121,96 @@ const QUICK_SELECT_GROUPS = {
 export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] }) {
   const [selectedCustomer, setSelectedCustomer] = useState('')
   const [selectedCategories, setSelectedCategories] = useState([])
-  const [paymentType, setPaymentType] = useState('1year')
   const [currency, setCurrency] = useState('TL')
   const [startingDate, setStartingDate] = useState(new Date())
-  const [endingDate, setEndingDate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() + 1)))
   const [companyName, setCompanyName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [servicePaymentTypes, setServicePaymentTypes] = useState({})
 
   // Reset form when modal opens/closes
   useEffect(() => {
     if (!visible) {
       setSelectedCustomer('')
       setSelectedCategories([])
-      setPaymentType('1year')
       setCurrency('TL')
       setStartingDate(new Date())
-      setEndingDate(new Date(new Date().setFullYear(new Date().getFullYear() + 1)))
       setCompanyName('')
       setIsSubmitting(false)
+      setServicePaymentTypes({})
     }
   }, [visible])
 
-  // Update ending date when payment type changes
+  // Reset form when modal opens/closes
   useEffect(() => {
-    const start = new Date(startingDate)
+    if (!visible) {
+      setSelectedCustomer('')
+      setSelectedCategories([])
+      setCurrency('TL')
+      setStartingDate(new Date())
+      setCompanyName('')
+      setIsSubmitting(false)
+      setServicePaymentTypes({})
+    }
+  }, [visible])
+
+  const handleQuickSelect = (groupKey) => {
+    const group = QUICK_SELECT_GROUPS[groupKey]
+    // Filter out locked categories from quick selection
+    const availableCategories = group.categories.filter(cat => !SERVICE_CATEGORIES[cat].locked)
+    
+    // Set categories and initialize their payment types
+    const newServicePaymentTypes = {}
+    availableCategories.forEach(categoryKey => {
+      newServicePaymentTypes[categoryKey] = '1year' // Default to yearly
+    })
+    
+    setServicePaymentTypes(newServicePaymentTypes)
+    setSelectedCategories(availableCategories)
+  }
+
+  const handleCategoryToggle = (categoryKey) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(categoryKey)) {
+        // Remove category and its payment type
+        const newServicePaymentTypes = { ...servicePaymentTypes }
+        delete newServicePaymentTypes[categoryKey]
+        setServicePaymentTypes(newServicePaymentTypes)
+        return prev.filter(cat => cat !== categoryKey)
+      } else {
+        // Add category with default payment type
+        setServicePaymentTypes(prev => ({
+          ...prev,
+          [categoryKey]: '1year' // Default to yearly
+        }))
+        return [...prev, categoryKey]
+      }
+    })
+  }
+
+  const calculateTotalPrice = () => {
+    return selectedCategories.reduce((total, categoryKey) => {
+      const category = SERVICE_CATEGORIES[categoryKey]
+      const paymentType = servicePaymentTypes[categoryKey] || '1year'
+      
+      let price = category.defaultPrice
+      // Use unlimited price if payment type is unlimited and category supports it
+      if (paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited) {
+        price = category.unlimitedPrice
+      }
+      
+      return total + price
+    }, 0)
+  }
+
+  const handlePaymentTypeChange = (categoryKey, newPaymentType) => {
+    setServicePaymentTypes(prev => ({
+      ...prev,
+      [categoryKey]: newPaymentType
+    }))
+  }
+
+  const getEndDateForService = (paymentType, startDate) => {
+    const start = new Date(startDate)
     let end = new Date(start)
 
     switch (paymentType) {
@@ -170,38 +236,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
         end.setFullYear(end.getFullYear() + 1)
     }
 
-    setEndingDate(end)
-  }, [paymentType, startingDate])
-
-  const handleQuickSelect = (groupKey) => {
-    const group = QUICK_SELECT_GROUPS[groupKey]
-    // Filter out locked categories from quick selection
-    const availableCategories = group.categories.filter(cat => !SERVICE_CATEGORIES[cat].locked)
-    setSelectedCategories(availableCategories)
-  }
-
-  const handleCategoryToggle = (categoryKey) => {
-    setSelectedCategories(prev => {
-      if (prev.includes(categoryKey)) {
-        return prev.filter(cat => cat !== categoryKey)
-      } else {
-        return [...prev, categoryKey]
-      }
-    })
-  }
-
-  const calculateTotalPrice = () => {
-    return selectedCategories.reduce((total, categoryKey) => {
-      const category = SERVICE_CATEGORIES[categoryKey]
-      let price = category.defaultPrice
-      
-      // Use unlimited price if payment type is unlimited and category supports it
-      if (paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited) {
-        price = category.unlimitedPrice
-      }
-      
-      return total + price
-    }, 0)
+    return end
   }
 
   const handleSubmit = async (e) => {
@@ -226,12 +261,15 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
       // Create services for each selected category
       const servicePromises = selectedCategories.map(categoryKey => {
         const category = SERVICE_CATEGORIES[categoryKey]
-        let price = category.defaultPrice
+        const paymentType = servicePaymentTypes[categoryKey] || '1year'
         
+        let price = category.defaultPrice
         // Use unlimited price if payment type is unlimited and category supports it
         if (paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited) {
           price = category.unlimitedPrice
         }
+
+        const endDate = getEndDateForService(paymentType, startingDate)
         
         return {
           name: category.name,
@@ -243,7 +281,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
           currency,
           customerID: selectedCustomer,
           startingDate: startingDate.toISOString(),
-          endingDate: endingDate.toISOString(),
+          endingDate: endDate.toISOString(),
           active: true
         }
       })
@@ -353,9 +391,10 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
               {Object.entries(SERVICE_CATEGORIES).map(([key, category]) => {
                 const isLocked = category.locked
                 const isSelected = selectedCategories.includes(key)
+                const paymentType = servicePaymentTypes[key] || '1year'
                 let displayPrice = category.defaultPrice
                 
-                // Calculate display price based on payment type
+                // Calculate display price based on individual payment type
                 if (paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited) {
                   displayPrice = category.unlimitedPrice
                 }
@@ -394,11 +433,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
                             <div className="text-sm text-muted-foreground">
                               {category.description}
                             </div>
-                            {paymentType === 'unlimited' && category.noUnlimited && (
-                              <div className="text-xs text-yellow-600 font-medium">
-                                Sınırsız plan mevcut değil
-                              </div>
-                            )}
                           </div>
                         </div>
                         <div className="text-right">
@@ -413,11 +447,9 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
                             ) : (
                               <div className="text-center">
                                 <div>₺{displayPrice}</div>
-                                {paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited ? (
-                                  <div className="text-xs text-muted-foreground">Süresiz Lisans</div>
-                                ) : (
-                                  <div className="text-xs text-muted-foreground">Yıllık</div>
-                                )}
+                                <div className="text-xs text-muted-foreground">
+                                  {paymentType === 'unlimited' ? 'Süresiz Lisans' : 'Yıllık'}
+                                </div>
                               </div>
                             )}
                           </div>
@@ -437,152 +469,138 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
           {selectedCategories.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Seçilen Hizmetler</CardTitle>
+                <CardTitle className="text-lg">Seçilen Hizmetler ve Ödeme Tipleri</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-2">
+                <div className="space-y-4">
+                  <div className="grid gap-3">
                     {selectedCategories.map(categoryKey => {
                       const category = SERVICE_CATEGORIES[categoryKey]
-                      let displayPrice = category.defaultPrice
+                      const paymentType = servicePaymentTypes[categoryKey] || '1year'
                       
-                      // Calculate display price based on payment type
+                      let currentPrice = category.defaultPrice
                       if (paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited) {
-                        displayPrice = category.unlimitedPrice
+                        currentPrice = category.unlimitedPrice
                       }
                       
                       return (
-                        <Badge key={categoryKey} className={category.color}>
-                          {category.name} - ₺{displayPrice}
-                          {!category.locked && (
-                            <X 
-                              className="ml-1 h-3 w-3 cursor-pointer" 
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleCategoryToggle(categoryKey)
-                              }}
-                            />
-                          )}
-                        </Badge>
+                        <div key={categoryKey} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Badge className={category.color}>
+                              {category.name}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {category.description}
+                            </span>
+                            <div className="text-sm font-medium">
+                              ₺{currentPrice}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Select
+                              value={paymentType}
+                              onValueChange={(value) => handlePaymentTypeChange(categoryKey, value)}
+                            >
+                              <SelectTrigger className="w-36 h-8 text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1month">1 Ay</SelectItem>
+                                <SelectItem value="6months">6 Ay</SelectItem>
+                                <SelectItem value="1year">1 Yıl</SelectItem>
+                                <SelectItem value="2years">2 Yıl</SelectItem>
+                                <SelectItem value="3years">3 Yıl</SelectItem>
+                                {!category.noUnlimited && (
+                                  <SelectItem value="unlimited">Sınırsız</SelectItem>
+                                )}
+                                <SelectItem value="custom">Özel</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {!category.locked && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCategoryToggle(categoryKey)}
+                                className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
                       )
                     })}
                   </div>
-                  <div className="text-xl font-bold text-primary">
-                    Toplam: ₺{calculateTotalPrice()}
-                    {paymentType === 'unlimited' && (
-                      <span className="text-sm text-muted-foreground ml-2">(Sınırsız paket dahil)</span>
-                    )}
+                  <div className="pt-3 border-t">
+                    <div className="text-xl font-bold text-primary flex items-center justify-between">
+                      <span>Toplam Fiyat:</span>
+                      <span>₺{calculateTotalPrice().toFixed(2)}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      Fiyatlar seçilen ödeme tiplerine göre hesaplanmıştır
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Payment and Date Settings */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="paymentType">Ödeme Tipi</Label>
-              <Select value={paymentType} onValueChange={setPaymentType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1month">1 Ay</SelectItem>
-                  <SelectItem value="6months">6 Ay</SelectItem>
-                  <SelectItem value="1year">1 Yıl</SelectItem>
-                  <SelectItem value="2years">2 Yıl</SelectItem>
-                  <SelectItem value="3years">3 Yıl</SelectItem>
-                  <SelectItem 
-                    value="unlimited"
-                    disabled={selectedCategories.some(cat => SERVICE_CATEGORIES[cat].noUnlimited)}
-                  >
-                    Sınırsız
-                    {selectedCategories.some(cat => SERVICE_CATEGORIES[cat].noUnlimited) && (
-                      <span className="text-xs text-muted-foreground ml-1">
-                        (Seçili hizmetlerle uyumlu değil)
-                      </span>
-                    )}
-                  </SelectItem>
-                  <SelectItem value="custom">Özel</SelectItem>
-                </SelectContent>
-              </Select>
-              {paymentType === 'unlimited' && selectedCategories.some(cat => SERVICE_CATEGORIES[cat].noUnlimited) && (
-                <div className="text-sm text-yellow-600">
-                  Uyarı: Bazı seçili hizmetler sınırsız planı desteklemiyor. Bu hizmetler yıllık fiyatlandırma ile oluşturulacak.
+          {/* Shared Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Ortak Ayarlar (Tüm Hizmetler İçin)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currency">Para Birimi</Label>
+                  <Select value={currency} onValueChange={setCurrency}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TL">₺ (TL)</SelectItem>
+                      <SelectItem value="USD">$ (USD)</SelectItem>
+                      <SelectItem value="EUR">€ (EUR)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="currency">Para Birimi</Label>
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TL">₺ (TL)</SelectItem>
-                  <SelectItem value="USD">$ (USD)</SelectItem>
-                  <SelectItem value="EUR">€ (EUR)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Başlangıç Tarihi</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !startingDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startingDate ? format(startingDate, "dd MMMM yyyy", { locale: tr }) : "Tarih seçin"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startingDate}
-                    onSelect={setStartingDate}
-                    initialFocus
-                    locale={tr}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Bitiş Tarihi</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !endingDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endingDate ? format(endingDate, "dd MMMM yyyy", { locale: tr }) : "Tarih seçin"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endingDate}
-                    onSelect={setEndingDate}
-                    initialFocus
-                    locale={tr}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
+                <div className="space-y-2">
+                  <Label>Başlangıç Tarihi</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !startingDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {startingDate ? format(startingDate, "dd MMMM yyyy", { locale: tr }) : "Tarih seçin"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={startingDate}
+                        onSelect={setStartingDate}
+                        initialFocus
+                        locale={tr}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-gray-50 border rounded-lg dark:bg-gray-950/20 dark:border-gray-800">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <strong>Not:</strong> Bitiş tarihleri her hizmetin kendi ödeme tipine göre otomatik olarak hesaplanacaktır.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Submit Buttons */}
           <div className="flex justify-end space-x-2 pt-4">
