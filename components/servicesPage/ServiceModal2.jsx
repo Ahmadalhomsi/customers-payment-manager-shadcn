@@ -58,9 +58,12 @@ const DURATIONS = [
 
 const SERVICE_CATEGORIES = [
     { value: "Adisyon Programı", label: "Adisyon Programı", color: "text-blue-600" },
-    { value: "QR Menu", label: "QR Menu", color: "text-green-600" },
-    { value: "Kurye Uygulaması", label: "Kurye Uygulaması", color: "text-cyan-600" },
-    { value: "Patron Uygulaması", label: "Patron Uygulaması", color: "text-purple-600" },
+    { value: "Digital Menü", label: "Digital Menü", color: "text-green-600" },
+    { value: "Kurye Sipariş Uygulaması", label: "Kurye Sipariş Uygulaması", color: "text-cyan-600" },
+    { value: "Patron Takip Uygulaması", label: "Patron Takip Uygulaması", color: "text-purple-600" },
+    { value: "Garson Sipariş Uygulaması", label: "Garson Sipariş Uygulaması", color: "text-indigo-600" },
+    { value: "Android Caller ID Uygulaması", label: "Android Caller ID Uygulaması", color: "text-teal-600" },
+    { value: "Yazarkasa Pos Entegrasyonu", label: "Yazarkasa Pos Entegrasyonu", color: "text-slate-600" },
     { value: "Yemek Sepeti", label: "Yemek Sepeti", color: "text-red-600" },
     { value: "Migros Yemek", label: "Migros Yemek", color: "text-orange-600" },
     { value: "Trendyol Yemek", label: "Trendyol Yemek", color: "text-orange-600" },

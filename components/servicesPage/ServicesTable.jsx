@@ -56,9 +56,15 @@ const paymentTypeLabels = {
 
 const categoryColors = {
     'Adisyon Programı': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-    'QR Menu': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-    'Kurye Uygulaması': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
-    'Patron Uygulaması': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+    'Digital Menü': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    'QR Menu': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300', // Legacy support
+    'Kurye Sipariş Uygulaması': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
+    'Kurye Uygulaması': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300', // Legacy support
+    'Patron Takip Uygulaması': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+    'Patron Uygulaması': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300', // Legacy support
+    'Garson Sipariş Uygulaması': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
+    'Android Caller ID Uygulaması': 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
+    'Yazarkasa Pos Entegrasyonu': 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300',
     'Yemek Sepeti': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
     'Migros Yemek': 'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400',
     'Trendyol Yemek': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
@@ -102,9 +108,15 @@ export function ServiceTable({
     const getCategoryTextColor = (category) => {
         const colorMap = {
             'Adisyon Programı': 'text-blue-600',
-            'QR Menu': 'text-green-600',
-            'Kurye Uygulaması': 'text-cyan-600',
-            'Patron Uygulaması': 'text-purple-600',
+            'Digital Menü': 'text-green-600',
+            'QR Menu': 'text-green-600', // Legacy support
+            'Kurye Sipariş Uygulaması': 'text-cyan-600',
+            'Kurye Uygulaması': 'text-cyan-600', // Legacy support
+            'Patron Takip Uygulaması': 'text-purple-600',
+            'Patron Uygulaması': 'text-purple-600', // Legacy support
+            'Garson Sipariş Uygulaması': 'text-indigo-600',
+            'Android Caller ID Uygulaması': 'text-teal-600',
+            'Yazarkasa Pos Entegrasyonu': 'text-slate-600',
             'Yemek Sepeti': 'text-red-600',
             'Migros Yemek': 'text-orange-600',
             'Trendyol Yemek': 'text-orange-600',
