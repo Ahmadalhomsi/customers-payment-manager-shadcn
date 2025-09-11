@@ -99,10 +99,15 @@ export function ServicesViewModal({
   return (
     <TooltipProvider>
       <Dialog open={visible} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl">
+        <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {selectedCustomer?.name} için Hizmetler
+              {services.length > 0 && (
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  ({services.length} hizmet)
+                </span>
+              )}
             </DialogTitle>
           </DialogHeader>
 
@@ -116,129 +121,131 @@ export function ServicesViewModal({
           </Button>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              {hasDeviceTokens && <TableHead>Device Token</TableHead>}
-              <TableHead>İsim</TableHead>
-              <TableHead>Açıklama</TableHead>
-              <TableHead>İşletme Adı</TableHead>
-              <TableHead>Kategori</TableHead>
-              <TableHead>Ödeme Türü</TableHead>
-              <TableHead>Fiyat</TableHead>
-              <TableHead>Durum</TableHead>
-              <TableHead>Başlangıç Tarihi</TableHead>
-              <TableHead>Bitiş Tarihi</TableHead>
-              <TableHead>İşlemler</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loadingOnModal ? (
+        <div className="flex-1 overflow-auto">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={hasDeviceTokens ? 12 : 11} className="text-center py-8">
-                  <div className="flex justify-center">
-                    <BeatLoader color="#f26000" />
-                  </div>
-                </TableCell>
+                <TableHead>ID</TableHead>
+                {hasDeviceTokens && <TableHead>Device Token</TableHead>}
+                <TableHead>İsim</TableHead>
+                <TableHead>Açıklama</TableHead>
+                <TableHead>İşletme Adı</TableHead>
+                <TableHead>Kategori</TableHead>
+                <TableHead>Ödeme Türü</TableHead>
+                <TableHead>Fiyat</TableHead>
+                <TableHead>Durum</TableHead>
+                <TableHead>Başlangıç Tarihi</TableHead>
+                <TableHead>Bitiş Tarihi</TableHead>
+                <TableHead>İşlemler</TableHead>
               </TableRow>
-            ) : services.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={hasDeviceTokens ? 12 : 11} className="text-center">
-                  Hizmet bulunamadı.
-                </TableCell>
-              </TableRow>
-            ) : (
-              services.map((service) => {
-                const statusInfo = getServiceStatus(service);
-                return (
-                  <TableRow key={service.id}>
-                    <TableCell>{service.id}</TableCell>
-                    {hasDeviceTokens && (
+            </TableHeader>
+            <TableBody>
+              {loadingOnModal ? (
+                <TableRow>
+                  <TableCell colSpan={hasDeviceTokens ? 12 : 11} className="text-center py-8">
+                    <div className="flex justify-center">
+                      <BeatLoader color="#f26000" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : services.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={hasDeviceTokens ? 12 : 11} className="text-center">
+                    Hizmet bulunamadı.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                services.map((service) => {
+                  const statusInfo = getServiceStatus(service);
+                  return (
+                    <TableRow key={service.id}>
+                      <TableCell>{service.id}</TableCell>
+                      {hasDeviceTokens && (
+                        <TableCell>
+                          {service.deviceToken ? (
+                              <div className="flex items-center gap-2">
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className="flex items-center gap-1">
+                                      <Key className="h-4 w-4 text-emerald-500" />
+                                      <span className="font-mono text-xs truncate max-w-[120px]">
+                                        {service.deviceToken.substring(0, 8)}...
+                                      </span>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="font-mono text-xs break-all max-w-[300px]">{service.deviceToken}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(service.deviceToken, "Device token kopyalandı!")}
+                                  className="h-6 w-6 p-0 hover:bg-gray-100"
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                          ) : '-'}
+                        </TableCell>
+                      )}
+                      <TableCell>{service.name}</TableCell>
+                      <TableCell>{service.description}</TableCell>
+                      <TableCell>{service.companyName || '-'}</TableCell>
                       <TableCell>
-                        {service.deviceToken ? (
-                            <div className="flex items-center gap-2">
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <div className="flex items-center gap-1">
-                                    <Key className="h-4 w-4 text-emerald-500" />
-                                    <span className="font-mono text-xs truncate max-w-[120px]">
-                                      {service.deviceToken.substring(0, 8)}...
-                                    </span>
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="font-mono text-xs break-all max-w-[300px]">{service.deviceToken}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => copyToClipboard(service.deviceToken, "Device token kopyalandı!")}
-                                className="h-6 w-6 p-0 hover:bg-gray-100"
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </div>
-                        ) : '-'}
+                        <Badge 
+                          className={`text-xs font-medium ${categoryColors[service.category] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'}`}
+                        >
+                          {service.category || 'Adisyon Programı'}
+                        </Badge>
                       </TableCell>
-                    )}
-                    <TableCell>{service.name}</TableCell>
-                    <TableCell>{service.description}</TableCell>
-                    <TableCell>{service.companyName || '-'}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        className={`text-xs font-medium ${categoryColors[service.category] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'}`}
-                      >
-                        {service.category || 'Adisyon Programı'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{getPaymentTypeLabel(service.paymentType)}</TableCell>
-                    <TableCell>
-                      {service.periodPrice} {service.currency}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={statusInfo.variant}>
-                        {statusInfo.text}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {formatDate(service.startingDate)}
-                    </TableCell>
-                    <TableCell>
-                      {formatDate(service.endingDate)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onEditService(service)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onDeleteService(service)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onViewReminders(service)}
-                        >
-                          <CalendarCheck2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                      <TableCell>{getPaymentTypeLabel(service.paymentType)}</TableCell>
+                      <TableCell>
+                        {service.periodPrice} {service.currency}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={statusInfo.variant}>
+                          {statusInfo.text}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {formatDate(service.startingDate)}
+                      </TableCell>
+                      <TableCell>
+                        {formatDate(service.endingDate)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEditService(service)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onDeleteService(service)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onViewReminders(service)}
+                          >
+                            <CalendarCheck2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </DialogContent>
     </Dialog>
     </TooltipProvider>
