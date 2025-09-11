@@ -30,6 +30,8 @@ model Admin {
   canViewAdmins    Boolean @default(false)
   canEditAdmins    Boolean @default(false)
   canSeePasswords  Boolean @default(false)
+  canViewPhysicalProducts Boolean @default(false)
+  canEditPhysicalProducts Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -45,6 +47,7 @@ model Customer {
 
   // Relations
   services Service[] @relation("CustomerToService")
+  physicalProducts PhysicalProduct[] @relation("CustomerToPhysicalProduct")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -155,6 +158,62 @@ model RenewHistory {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model PhysicalProduct {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  category    String  @default("Bilgisayar") // PC, Yazarkasa, Termal Printer, Tartı, Mini Ekran, POS
+  brand       String? // Beko, Inpos, Hugin, Paycell, etc.
+  model       String?
+  serialNumber String? @unique
+  
+  // Purchase information
+  purchasePrice Float?
+  purchaseDate  DateTime?
+  supplier      String?
+  
+  // Status and condition
+  status        ProductStatus @default(AVAILABLE) // AVAILABLE, SOLD, RENTED, MAINTENANCE, DAMAGED
+  condition     String        @default("Yeni") // Yeni, İkinci El, Yenilenmiş
+  
+  // Physical details
+  specifications String? // JSON string for technical specs
+  warranty      String? // Warranty information
+  notes         String? // Additional notes
+  
+  // Location and assignment
+  location      String? // Where the product is stored/located
+  assignedTo    String? // Customer ID if assigned/sold/rented
+  
+  // Relations
+  customerID    String?
+  customer      Customer? @relation("CustomerToPhysicalProduct", fields: [customerID], references: [id], onDelete: SetNull)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Indexes for better search and filtering performance
+  @@index([name])
+  @@index([category])
+  @@index([brand])
+  @@index([status])
+  @@index([customerID])
+  @@index([createdAt])
+  @@index([purchaseDate])
+  // Composite indexes for common query patterns
+  @@index([category, status])
+  @@index([status, customerID])
+}
+
+enum ProductStatus {
+  AVAILABLE   // Available for sale/rent
+  SOLD        // Sold to customer
+  RENTED      // Rented to customer
+  MAINTENANCE // Under maintenance
+  DAMAGED     // Damaged/needs repair
+  RESERVED    // Reserved for customer
 }
 
 model ApiLog {

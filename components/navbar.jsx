@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { Menu, Home, Briefcase, LogOut, User, FileText } from "lucide-react";
+import { Menu, Home, Briefcase, LogOut, User, FileText, Package } from "lucide-react";
 import { BadgeNotification } from "@/components/BadgeNotification";
 import { authManager } from "@/lib/auth";
 import { simpleAuthenticatedGet } from "@/lib/simple-auth";
@@ -46,20 +46,20 @@ export function Navbar() {
   useEffect(() => {
     const fetchAdminData = async () => {
       if (isLoginPage) return;
-      
+
       try {
         setError(null);
         console.log("[Navbar] Fetching admin data...");
-        
+
         const data = await simpleAuthenticatedGet("/api/auth/me");
         console.log("[Navbar] Admin data fetched successfully:", data);
-        
+
         setAdminName(data.name || "");
         setPermissions(data.permissions || null);
-        
+
       } catch (error) {
         console.error("[Navbar] Error fetching admin data:", error);
-        
+
         // Don't show error for authentication issues - let auth manager handle
         if (error.message === 'Authentication required') {
           // Clear any existing state when authentication fails
@@ -67,7 +67,7 @@ export function Navbar() {
           setPermissions(null);
           return;
         }
-        
+
         // For other errors, just log them but don't show to user in the navbar
         console.log("[Navbar] Non-auth error:", error.message);
       }
@@ -84,11 +84,11 @@ export function Navbar() {
         {/* Left Section */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center gap-2 font-bold">
-            <Image 
-              src="/MAPOS_LOGO.png" 
-              alt="MAPOS Logo" 
-              width={32} 
-              height={32} 
+            <Image
+              src="/MAPOS_LOGO.png"
+              alt="MAPOS Logo"
+              width={32}
+              height={32}
               className="rounded-lg"
             />
             <span className="text-primary">MAPOS</span>
@@ -115,6 +115,16 @@ export function Navbar() {
               Hizmetler
             </Link>
           )}
+
+
+          <Link
+            href="/products"
+            className={`flex items-center text-sm font-medium ${pathname.startsWith("/products") ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+          >
+            <Package className="mr-2 h-4 w-4" />
+            Fiziksel Ürünler
+          </Link>
+
 
           <Link
             href="/log"
@@ -168,6 +178,15 @@ export function Navbar() {
                   <Link href="/services">
                     <Briefcase className="mr-2 h-4 w-4" />
                     Hizmetler
+                  </Link>
+                </DropdownMenuItem>
+              )}
+
+              {permissions?.canViewPhysicalProducts && (
+                <DropdownMenuItem asChild className={pathname.startsWith("/products") ? "text-primary" : ""}>
+                  <Link href="/products">
+                    <Package className="mr-2 h-4 w-4" />
+                    Fiziksel Ürünler
                   </Link>
                 </DropdownMenuItem>
               )}

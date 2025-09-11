@@ -56,7 +56,7 @@ export function DeleteConfirmModal({ visible, onClose, onConfirm, itemName, item
         <AlertDialogHeader>
           <AlertDialogTitle>Silmeyi Onayla</AlertDialogTitle>
           <AlertDialogDescription>
-            {itemType} {itemName} silmek istediğinize emin misiniz?
+            {itemType === 'product' ? 'Ürün' : itemType} {itemName} silmek istediğinize emin misiniz?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

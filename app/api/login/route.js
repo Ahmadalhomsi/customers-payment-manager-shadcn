@@ -50,7 +50,7 @@ export async function POST(req) {
     const {
       canViewCustomers, canEditCustomers, canViewServices, canEditServices,
       canViewReminders, canEditReminders, canViewAdmins, canEditAdmins,
-      canSeePasswords
+      canSeePasswords, canViewPhysicalProducts, canEditPhysicalProducts
     } = admin;
 
     // Create a JWT token with permissions
@@ -62,7 +62,7 @@ export async function POST(req) {
         permissions: {
           canViewCustomers, canEditCustomers, canViewServices, canEditServices,
           canViewReminders, canEditReminders, canViewAdmins, canEditAdmins,
-          canSeePasswords
+          canSeePasswords, canViewPhysicalProducts, canEditPhysicalProducts
         }
       },
       JWT_SECRET,

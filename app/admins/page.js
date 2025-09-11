@@ -44,6 +44,8 @@ export default function AdminsPage() {
             canViewAdmins: false,
             canEditAdmins: false,
             canSeePasswords: false,
+            canViewPhysicalProducts: false,
+            canEditPhysicalProducts: false,
         },
     });
 
@@ -57,6 +59,8 @@ export default function AdminsPage() {
         canViewAdmins: "Yöneticileri Görüntüleme",
         canEditAdmins: "Yöneticileri Düzenleme",
         canSeePasswords: "Şifreleri Görüntüleme",
+        canViewPhysicalProducts: "Fiziksel Ürünleri Görüntüleme",
+        canEditPhysicalProducts: "Fiziksel Ürünleri Düzenleme",
     };
 
     const fetchAdmins = async () => {
@@ -160,6 +164,8 @@ export default function AdminsPage() {
                 canViewAdmins: false,
                 canEditAdmins: false,
                 canSeePasswords: false,
+                canViewPhysicalProducts: false,
+                canEditPhysicalProducts: false,
             },
         });
         setShowPassword(false);
@@ -183,6 +189,8 @@ export default function AdminsPage() {
                 canViewAdmins: admin.canViewAdmins,
                 canEditAdmins: admin.canEditAdmins,
                 canSeePasswords: admin.canSeePasswords,
+                canViewPhysicalProducts: admin.canViewPhysicalProducts,
+                canEditPhysicalProducts: admin.canEditPhysicalProducts,
             },
         });
         setShowPassword(false);
