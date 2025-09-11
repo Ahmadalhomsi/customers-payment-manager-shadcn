@@ -468,6 +468,7 @@ export function ServiceModal2({
                                         onChange={(e) => handleCustomerFormChange("phone", e.target.value)}
                                         placeholder="+90 XXX XXX XX XX"
                                         className="sm:col-span-3"
+                                        autoComplete="new-phone"
                                     />
                                 </div>
                                 
@@ -479,6 +480,7 @@ export function ServiceModal2({
                                             value={customerFormData.password}
                                             onChange={(e) => handleCustomerFormChange("password", e.target.value)}
                                             placeholder="Boş bırakırsanız otomatik oluşturulur"
+                                            autoComplete="new-password"
                                         />
                                         <p className="text-xs text-muted-foreground mt-1">
                                             Şifre boş bırakılırsa güvenli bir şifre otomatik olarak oluşturulacaktır

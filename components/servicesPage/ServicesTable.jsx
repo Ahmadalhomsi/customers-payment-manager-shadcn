@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy, X, Search } from 'lucide-react'
+import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy, X, Search, Plus } from 'lucide-react'
 import { format } from "date-fns"
 import { useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -94,7 +94,9 @@ export function ServiceTable({
     endDateRangeFilter,
     onEndDateRangeChange,
     // Add clear filters prop
-    onClearFilters
+    onClearFilters,
+    // Add bulk service modal prop
+    onOpenBulkService
 }) {
     // Remove client-side filter states - they'll come from props now
 
@@ -461,7 +463,22 @@ export function ServiceTable({
                                                 {service.category || 'Adisyon Programı'}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>{customer?.name || 'Bilinmeyen Müşteri'}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <span>{customer?.name || 'Bilinmeyen Müşteri'}</span>
+                                                {customer && onOpenBulkService && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => onOpenBulkService(customer)}
+                                                        className="h-6 w-6 p-0 hover:bg-green-100 hover:text-green-600"
+                                                        title="Bu müşteri için toplu hizmet tanımla"
+                                                    >
+                                                        <Plus className="h-3 w-3" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <Badge className={paymentTypeColors[service.paymentType]}>

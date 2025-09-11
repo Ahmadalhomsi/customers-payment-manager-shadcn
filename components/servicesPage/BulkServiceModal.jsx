@@ -118,8 +118,8 @@ const QUICK_SELECT_GROUPS = {
   }
 }
 
-export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] }) {
-  const [selectedCustomer, setSelectedCustomer] = useState('')
+export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], selectedCustomer = null }) {
+  const [selectedCustomerId, setSelectedCustomerId] = useState('')
   const [selectedCategories, setSelectedCategories] = useState([])
   const [currency, setCurrency] = useState('TL')
   const [startingDate, setStartingDate] = useState(new Date())
@@ -127,31 +127,29 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [servicePaymentTypes, setServicePaymentTypes] = useState({})
 
-  // Reset form when modal opens/closes
+  // Set selected customer when prop changes
   useEffect(() => {
-    if (!visible) {
-      setSelectedCustomer('')
-      setSelectedCategories([])
-      setCurrency('TL')
-      setStartingDate(new Date())
-      setCompanyName('')
-      setIsSubmitting(false)
-      setServicePaymentTypes({})
+    if (selectedCustomer && visible) {
+      setSelectedCustomerId(String(selectedCustomer.id))
+      setCompanyName(selectedCustomer.name || '')
     }
-  }, [visible])
+  }, [selectedCustomer, visible])
 
   // Reset form when modal opens/closes
   useEffect(() => {
     if (!visible) {
-      setSelectedCustomer('')
+      // Only reset if no selectedCustomer prop is provided
+      if (!selectedCustomer) {
+        setSelectedCustomerId('')
+        setCompanyName('')
+      }
       setSelectedCategories([])
       setCurrency('TL')
       setStartingDate(new Date())
-      setCompanyName('')
       setIsSubmitting(false)
       setServicePaymentTypes({})
     }
-  }, [visible])
+  }, [visible, selectedCustomer])
 
   const handleQuickSelect = (groupKey) => {
     const group = QUICK_SELECT_GROUPS[groupKey]
@@ -242,7 +240,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!selectedCustomer) {
+    if (!selectedCustomerId) {
       toast.error('Lütfen bir müşteri seçin')
       return
     }
@@ -255,7 +253,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
     setIsSubmitting(true)
 
     try {
-      const customer = customers.find(c => c.id === selectedCustomer)
+      const customer = customers.find(c => c.id === parseInt(selectedCustomerId))
       const customerCompanyName = companyName || customer?.name || 'Belirtilmemiş'
 
       // Create services for each selected category
@@ -279,7 +277,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
           paymentType,
           periodPrice: price,
           currency,
-          customerID: selectedCustomer,
+          customerID: parseInt(selectedCustomerId),
           startingDate: startingDate.toISOString(),
           endingDate: endDate.toISOString(),
           active: true
@@ -301,7 +299,8 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
 
   // Debug log to check customers data
   console.log('Customers data:', customers)
-  console.log('Selected customer:', selectedCustomer)
+  console.log('Selected customer ID:', selectedCustomerId)
+  console.log('Selected customer prop:', selectedCustomer)
 
   if (!visible) return null
 
@@ -322,10 +321,10 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [] })
               </div>
             ) : (
               <Select 
-                value={selectedCustomer} 
+                value={selectedCustomerId} 
                 onValueChange={(value) => {
                   console.log('Customer selected:', value)
-                  setSelectedCustomer(value)
+                  setSelectedCustomerId(value)
                 }}
               >
                 <SelectTrigger>
