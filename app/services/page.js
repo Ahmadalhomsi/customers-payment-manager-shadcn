@@ -29,6 +29,7 @@ export default function ServicesPage() {
   const [renewHistory, setRenewHistory] = useState([])
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [permissions, setPermissions] = useState(null);
+  const [selectedCustomerForBulk, setSelectedCustomerForBulk] = useState(null);
 
   // Pagination states
   const [pagination, setPagination] = useState({
@@ -281,12 +282,18 @@ export default function ServicesPage() {
       // Refresh the services list
       await fetchServices(pagination.page, searchTerm, sortBy, sortOrder)
       setBulkServiceModalVisible(false)
+      setSelectedCustomerForBulk(null) // Reset selected customer
       
       return response.data
     } catch (error) {
       console.error('Error in bulk service creation:', error)
       throw error // Re-throw to be handled by the modal
     }
+  }
+
+  const handleOpenBulkServiceForCustomer = (customer) => {
+    setSelectedCustomerForBulk(customer)
+    setBulkServiceModalVisible(true)
   }
 
   const handleFilterChange = () => {
@@ -485,6 +492,7 @@ export default function ServicesPage() {
               <Button 
                 variant="outline"
                 onClick={() => {
+                  setSelectedCustomerForBulk(null) // Reset any pre-selected customer
                   setBulkServiceModalVisible(true)
                 }}
               >
@@ -528,6 +536,7 @@ export default function ServicesPage() {
             fetchRenewHistory(service.id)
             setRenewHistoryOpen(true)
           }}
+          onOpenBulkService={handleOpenBulkServiceForCustomer}
         />
 
         {/* Pagination Controls - Fixed with working algorithm from logs page */}
@@ -613,9 +622,13 @@ export default function ServicesPage() {
 
       <BulkServiceModal
         visible={bulkServiceModalVisible}
-        onClose={() => setBulkServiceModalVisible(false)}
+        onClose={() => {
+          setBulkServiceModalVisible(false)
+          setSelectedCustomerForBulk(null) // Reset selected customer when closing
+        }}
         onSubmit={handleBulkSubmit}
         customers={customers}
+        selectedCustomer={selectedCustomerForBulk}
       />
 
       <DeleteConfirmModal
