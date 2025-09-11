@@ -18,16 +18,15 @@ import { toast } from 'sonner'
 import axios from 'axios'
 
 const productCategories = [
-    { value: 'Bilgisayar', label: '💻 Bilgisayar', color: 'bg-blue-50 border-blue-200 text-blue-800' },
-    { value: 'Yazarkasa', label: '🧾 Yazarkasa', color: 'bg-green-50 border-green-200 text-green-800' },
-    { value: 'Termal Printer', label: '🖨️ Termal Printer', color: 'bg-purple-50 border-purple-200 text-purple-800' },
-    { value: 'Tartı', label: '⚖️ Tartı', color: 'bg-orange-50 border-orange-200 text-orange-800' },
-    { value: 'Mini Ekran', label: '📟 Mini Ekran', color: 'bg-indigo-50 border-indigo-200 text-indigo-800' },
-    { value: 'POS Terminal', label: '💳 POS Terminal', color: 'bg-red-50 border-red-200 text-red-800' },
-    { value: 'Scanner', label: '📷 Scanner', color: 'bg-cyan-50 border-cyan-200 text-cyan-800' },
-    { value: 'Tablet', label: '📱 Tablet', color: 'bg-pink-50 border-pink-200 text-pink-800' },
-    { value: 'Kasa Çekmecesi', label: '💰 Kasa Çekmecesi', color: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
-    { value: 'Diğer', label: '📦 Diğer', color: 'bg-gray-50 border-gray-200 text-gray-800' }
+    { value: 'Bilgisayar', label: '💻 Bilgisayar', color: 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200' },
+    { value: 'Termal Printer', label: '🖨️ Termal Printer', color: 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800 text-purple-800 dark:text-purple-200' },
+    { value: 'Tartı', label: '⚖️ Tartı', color: 'bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200' },
+    { value: 'Mini Ekran', label: '📟 Mini Ekran', color: 'bg-indigo-50 dark:bg-indigo-950 border-indigo-200 dark:border-indigo-800 text-indigo-800 dark:text-indigo-200' },
+    { value: 'POS Terminal', label: '💳 POS Terminal', color: 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200' },
+    { value: 'Scanner', label: '📷 Scanner', color: 'bg-cyan-50 dark:bg-cyan-950 border-cyan-200 dark:border-cyan-800 text-cyan-800 dark:text-cyan-200' },
+    { value: 'El Terminali', label: '📱 El Terminali', color: 'bg-pink-50 dark:bg-pink-950 border-pink-200 dark:border-pink-800 text-pink-800 dark:text-pink-200' },
+    { value: 'Kasa Çekmecesi', label: '💰 Kasa Çekmecesi', color: 'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200' },
+    { value: 'Diğer', label: '📦 Diğer', color: 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200' }
 ]
 
 const productStatuses = [
@@ -130,6 +129,11 @@ export function ProductModal({
             return
         }
 
+        if (!formData.customerID) {
+            toast.error('Müşteri seçimi zorunludur')
+            return
+        }
+
         setIsSubmitting(true)
         
         try {
@@ -168,6 +172,44 @@ export function ProductModal({
                     </DialogHeader>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Customer Selection - Required and at the top */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold border-b pb-2 text-primary">👤 Müşteri Bilgisi (Zorunlu)</h3>
+                            
+                            <div>
+                                <Label htmlFor="customer" className="text-base font-semibold">Müşteri *</Label>
+                                <div className="flex gap-2">
+                                    <Select 
+                                        value={formData.customerID || "none"} 
+                                        onValueChange={(value) => handleInputChange('customerID', value === "none" ? "" : value)}
+                                    >
+                                        <SelectTrigger className="flex-1 h-12 text-lg border-2 focus:border-primary">
+                                            <SelectValue placeholder="Müşteri seçin (zorunlu)" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">Müşteri seçin</SelectItem>
+                                            {customers.map((customer) => (
+                                                <SelectItem key={customer.id} value={customer.id}>
+                                                    {customer.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setCustomerModalVisible(true)}
+                                        className="h-12 px-4"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                {!formData.customerID && (
+                                    <p className="text-xs text-red-500 mt-1">Bu alan zorunludur</p>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Product Category - Primary Focus */}
                             <div className="space-y-4 md:col-span-2">
@@ -296,15 +338,27 @@ export function ProductModal({
                                 </div>
                                 
                                 <div>
-                                    <Label htmlFor="purchasePrice">Alış Fiyatı (₺)</Label>
-                                    <Input
-                                        id="purchasePrice"
-                                        type="number"
-                                        step="0.01"
-                                        value={formData.purchasePrice}
-                                        onChange={(e) => handleInputChange('purchasePrice', e.target.value)}
-                                        placeholder="0.00"
-                                    />
+                                    <Label htmlFor="purchasePrice" className="text-base font-medium">Satış Fiyatı (₺)</Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="purchasePrice"
+                                            type="number"
+                                            step="0.01"
+                                            value={formData.purchasePrice}
+                                            onChange={(e) => handleInputChange('purchasePrice', e.target.value)}
+                                            placeholder="0,00"
+                                            className="h-10 text-right pr-8"
+                                        />
+                                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">₺</span>
+                                    </div>
+                                    {formData.purchasePrice && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {new Intl.NumberFormat('tr-TR', { 
+                                                style: 'currency', 
+                                                currency: 'TRY' 
+                                            }).format(parseFloat(formData.purchasePrice) || 0)}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -364,32 +418,6 @@ export function ProductModal({
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold border-b pb-2">📋 Ek Bilgiler</h3>
                             
-                            <div>
-                                <Label htmlFor="customer">Müşteri</Label>
-                                <div className="flex gap-2">
-                                    <Select value={formData.customerID || "none"} onValueChange={(value) => handleInputChange('customerID', value === "none" ? "" : value)}>
-                                        <SelectTrigger className="flex-1">
-                                            <SelectValue placeholder="Müşteri seçin (opsiyonel)" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">Müşteri seçilmedi</SelectItem>
-                                            {customers.map((customer) => (
-                                                <SelectItem key={customer.id} value={customer.id}>
-                                                    {customer.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setCustomerModalVisible(true)}
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-
                             <div>
                                 <Label htmlFor="specifications">Teknik Özellikler</Label>
                                 <Textarea
