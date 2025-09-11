@@ -126,6 +126,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
   const [companyName, setCompanyName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [servicePaymentTypes, setServicePaymentTypes] = useState({})
+  const [serviceCounts, setServiceCounts] = useState({})
 
   // Set selected customer when prop changes
   useEffect(() => {
@@ -148,6 +149,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
       setStartingDate(new Date())
       setIsSubmitting(false)
       setServicePaymentTypes({})
+      setServiceCounts({})
     }
   }, [visible, selectedCustomer])
 
@@ -158,11 +160,14 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
     
     // Set categories and initialize their payment types
     const newServicePaymentTypes = {}
+    const newServiceCounts = {}
     availableCategories.forEach(categoryKey => {
       newServicePaymentTypes[categoryKey] = '1year' // Default to yearly
+      newServiceCounts[categoryKey] = 1 // Default to 1 service
     })
     
     setServicePaymentTypes(newServicePaymentTypes)
+    setServiceCounts(newServiceCounts)
     setSelectedCategories(availableCategories)
   }
 
@@ -171,14 +176,21 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
       if (prev.includes(categoryKey)) {
         // Remove category and its payment type
         const newServicePaymentTypes = { ...servicePaymentTypes }
+        const newServiceCounts = { ...serviceCounts }
         delete newServicePaymentTypes[categoryKey]
+        delete newServiceCounts[categoryKey]
         setServicePaymentTypes(newServicePaymentTypes)
+        setServiceCounts(newServiceCounts)
         return prev.filter(cat => cat !== categoryKey)
       } else {
-        // Add category with default payment type
+        // Add category with default payment type and count
         setServicePaymentTypes(prev => ({
           ...prev,
           [categoryKey]: '1year' // Default to yearly
+        }))
+        setServiceCounts(prev => ({
+          ...prev,
+          [categoryKey]: 1 // Default to 1 service
         }))
         return [...prev, categoryKey]
       }
@@ -189,6 +201,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
     return selectedCategories.reduce((total, categoryKey) => {
       const category = SERVICE_CATEGORIES[categoryKey]
       const paymentType = servicePaymentTypes[categoryKey] || '1year'
+      const count = serviceCounts[categoryKey] || 1
       
       let price = category.defaultPrice
       // Use unlimited price if payment type is unlimited and category supports it
@@ -196,7 +209,14 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
         price = category.unlimitedPrice
       }
       
-      return total + price
+      return total + (price * count)
+    }, 0)
+  }
+
+  const calculateTotalServiceCount = () => {
+    return selectedCategories.reduce((total, categoryKey) => {
+      const count = serviceCounts[categoryKey] || 1
+      return total + count
     }, 0)
   }
 
@@ -204,6 +224,14 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
     setServicePaymentTypes(prev => ({
       ...prev,
       [categoryKey]: newPaymentType
+    }))
+  }
+
+  const handleCountChange = (categoryKey, newCount) => {
+    const count = Math.max(1, parseInt(newCount) || 1) // Ensure minimum 1
+    setServiceCounts(prev => ({
+      ...prev,
+      [categoryKey]: count
     }))
   }
 
@@ -260,10 +288,13 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
       console.log('Debug - found customer:', customer)
       console.log('Debug - all customers:', customers.map(c => ({ id: c.id, name: c.name })))
 
-      // Create services for each selected category
-      const servicePromises = selectedCategories.map(categoryKey => {
+      // Create services for each selected category with their counts
+      const servicePromises = []
+      
+      selectedCategories.forEach(categoryKey => {
         const category = SERVICE_CATEGORIES[categoryKey]
         const paymentType = servicePaymentTypes[categoryKey] || '1year'
+        const count = serviceCounts[categoryKey] || 1
         
         let price = category.defaultPrice
         // Use unlimited price if payment type is unlimited and category supports it
@@ -273,18 +304,21 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
 
         const endDate = getEndDateForService(paymentType, startingDate)
         
-        return {
-          name: category.name,
-          description: category.description,
-          companyName: customerCompanyName,
-          category: categoryKey,
-          paymentType,
-          periodPrice: price,
-          currency,
-          customerID: selectedCustomerId, // Keep as string, don't parse to int
-          startingDate: startingDate.toISOString(),
-          endingDate: endDate.toISOString(),
-          active: true
+        // Create multiple services based on count
+        for (let i = 0; i < count; i++) {
+          servicePromises.push({
+            name: count > 1 ? `${category.name} ${i + 1}` : category.name, // Add number if multiple
+            description: category.description,
+            companyName: customerCompanyName,
+            category: categoryKey,
+            paymentType,
+            periodPrice: price,
+            currency,
+            customerID: selectedCustomerId, // Keep as string, don't parse to int
+            startingDate: startingDate.toISOString(),
+            endingDate: endDate.toISOString(),
+            active: true
+          })
         }
       })
 
@@ -293,7 +327,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
       // Submit all services
       await onSubmit(servicePromises)
       
-      toast.success(`${selectedCategories.length} hizmet başarıyla oluşturuldu`)
+      toast.success(`${servicePromises.length} hizmet başarıyla oluşturuldu`)
       onClose()
     } catch (error) {
       console.error('Bulk service creation error:', error)
@@ -326,7 +360,14 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
     <Dialog open={visible} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Toplu Hizmet Tanımla</DialogTitle>
+          <DialogTitle>
+            Toplu Hizmet Tanımla
+            {selectedCategories.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                ({calculateTotalServiceCount()} hizmet oluşturulacak)
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -494,6 +535,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                     {selectedCategories.map(categoryKey => {
                       const category = SERVICE_CATEGORIES[categoryKey]
                       const paymentType = servicePaymentTypes[categoryKey] || '1year'
+                      const count = serviceCounts[categoryKey] || 1
                       
                       let currentPrice = category.defaultPrice
                       if (paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited) {
@@ -510,10 +552,22 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                               {category.description}
                             </span>
                             <div className="text-sm font-medium">
-                              ₺{currentPrice}
+                              ₺{currentPrice} × {count} = ₺{(currentPrice * count).toFixed(2)}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                              <Label htmlFor={`count-${categoryKey}`} className="text-xs">Adet:</Label>
+                              <Input
+                                id={`count-${categoryKey}`}
+                                type="number"
+                                min="1"
+                                max="99"
+                                value={count}
+                                onChange={(e) => handleCountChange(categoryKey, e.target.value)}
+                                className="w-16 h-8 text-sm text-center"
+                              />
+                            </div>
                             <Select
                               value={paymentType}
                               onValueChange={(value) => handlePaymentTypeChange(categoryKey, value)}
@@ -554,7 +608,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                       <span>₺{calculateTotalPrice().toFixed(2)}</span>
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      Fiyatlar seçilen ödeme tiplerine göre hesaplanmıştır
+                      {calculateTotalServiceCount()} hizmet oluşturulacak - Fiyatlar seçilen ödeme tiplerine ve adetlere göre hesaplanmıştır
                     </div>
                   </div>
                 </div>
@@ -631,10 +685,14 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
             </Button>
             <Button 
               type="button" 
-              disabled={isSubmitting || customers.length === 0}
+              disabled={isSubmitting || customers.length === 0 || selectedCategories.length === 0}
               onClick={handleSubmit}
             >
-              {isSubmitting ? 'Oluşturuluyor...' : `${selectedCategories.length} Hizmet Oluştur`}
+              {isSubmitting ? 'Oluşturuluyor...' : 
+                selectedCategories.length > 0 
+                  ? `${calculateTotalServiceCount()} Hizmet Oluştur (₺${calculateTotalPrice().toFixed(2)})` 
+                  : 'Hizmet Seç'
+              }
             </Button>
           </div>
         </div>
