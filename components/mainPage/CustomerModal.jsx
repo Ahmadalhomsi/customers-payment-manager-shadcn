@@ -89,10 +89,16 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
 
   useEffect(() => {
     if (visible) {
-      // Pre-fill the form with the selected customer's data, including the actual password
+      // Pre-fill the form with the selected customer's data, converting null values to empty strings
       setFormData(
         selectedCustomer
-          ? { ...selectedCustomer, tableName: selectedCustomer.tableName || "" } // Include the actual password and tableName
+          ? { 
+              name: selectedCustomer.name || "",
+              email: selectedCustomer.email || "",
+              phone: selectedCustomer.phone || "",
+              password: selectedCustomer.password || "",
+              tableName: selectedCustomer.tableName || ""
+            }
           : { name: "", email: "", phone: "", password: "", tableName: "" }
       );
       setPasswordValidation({
@@ -154,20 +160,22 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
   const validateForm = (dataToValidate = formData) => {
     const newErrors = {};
 
-    if (!dataToValidate.name.trim()) {
+    if (!(dataToValidate.name || "").trim()) {
       newErrors.name = "İsim gereklidir";
     }
 
-    // Email is now optional
-    if (dataToValidate.email.trim() && customers.some(c => c.email === dataToValidate.email && c.id !== selectedCustomer?.id)) {
+    // Email is now optional, but if provided, check for duplicates
+    const email = (dataToValidate.email || "").trim();
+    if (email && customers.some(c => c.email === email && c.id !== selectedCustomer?.id)) {
       newErrors.email = "Bu email adresi zaten kullanımda";
     }
 
     // Password validation for new customers or when updating password
-    if (!selectedCustomer && !dataToValidate.password.trim()) {
+    const password = (dataToValidate.password || "").trim();
+    if (!selectedCustomer && !password) {
       newErrors.password = "Şifre gereklidir";
-    } else if (dataToValidate.password.trim()) {
-      const passwordValid = validatePassword(dataToValidate.password);
+    } else if (password) {
+      const passwordValid = validatePassword(password);
       if (!passwordValid.allValid) {
         newErrors.password = "Şifre en az 8 karakterden oluşmalı ve en az bir büyük harf, bir küçük harf, bir sayı ve bir özel karakter içermelidir";
       }
@@ -181,7 +189,7 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     // Auto-generate password if empty for new customers
     let finalFormData = { ...formData };
     
-    if (!selectedCustomer && !formData.password.trim()) {
+    if (!selectedCustomer && !(formData.password || "").trim()) {
       const newPassword = generateRandomPassword();
       finalFormData.password = newPassword;
       setFormData(prev => ({
@@ -198,7 +206,16 @@ export function CustomerModal({ visible, onClose, onSubmit, selectedCustomer, cu
     }
     
     if (validateForm(finalFormData)) {
-      onSubmit(finalFormData);
+      // Ensure all fields are strings, not null
+      const cleanedData = {
+        name: (finalFormData.name || "").trim(),
+        email: (finalFormData.email || "").trim() || null, // Keep null for empty email
+        phone: (finalFormData.phone || "").trim() || null, // Keep null for empty phone
+        password: (finalFormData.password || "").trim(),
+        tableName: (finalFormData.tableName || "").trim() || null // Keep null for empty tableName
+      };
+      
+      onSubmit(cleanedData);
       onClose();
     } else {
       toast({

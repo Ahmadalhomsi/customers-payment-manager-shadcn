@@ -14,13 +14,22 @@ export async function PUT(req, { params }) {
     }
 
     try {
+        // Validate that the customer exists first
+        const existingCustomer = await prisma.customer.findUnique({
+            where: { id: id }
+        });
+
+        if (!existingCustomer) {
+            return NextResponse.json({ error: 'Müşteri bulunamadı' }, { status: 404 });
+        }
+
         const customer = await prisma.customer.update({
             where: { id: id },
             data: { name, tableName, email, phone, password },
         });
         return NextResponse.json(customer, { status: 200 });
     } catch (error) {
-        console.log(error);
+        console.error('Error updating customer:', error);
         return NextResponse.json({ error: 'Failed to update customer' }, { status: 500 });
     }
 }

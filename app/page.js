@@ -110,9 +110,9 @@ export default function CustomersPage() {
         fetchCustomers(pagination.page, searchTerm, sortBy, sortOrder);
         setDeleteCustomerConfirmVisible(false);
       } catch (error) {
-        if (error.status === 403) {
+        if (error.response?.status === 403) {
           toast.error('Yasak: Müşteri silme izniniz yok')
-        } else if (error.status === 400) {
+        } else if (error.response?.status === 400) {
           // This case should not occur now since we handle it in the modal
           const errorData = error.response?.data;
           toast.error(errorData?.error || 'Bu müşteriyi silmeden önce tüm hizmetlerini silmelisiniz');
@@ -223,7 +223,7 @@ export default function CustomersPage() {
       
       setPagination(newPagination)
     } catch (error) {
-      if (error.status === 403) {
+      if (error.response?.status === 403) {
         toast.error('Yasak: Müşterileri görüntüleme izniniz yok')
       }
       else
@@ -243,7 +243,7 @@ export default function CustomersPage() {
       })
       setServices(sortedServices);
     } catch (error) {
-      if (error.status === 403) {
+      if (error.response?.status === 403) {
         toast.error('Yasak: Hizmetleri görüntüleme izniniz yok')
       }
       else
@@ -260,23 +260,31 @@ export default function CustomersPage() {
       if (selectedCustomer) {
         try {
           await axios.put(`/api/customers/${selectedCustomer.id}`, formData);
+          toast.success('Müşteri başarıyla güncellendi');
           fetchCustomers(pagination.page, searchTerm);
         } catch (error) {
-          if (error.status === 403) {
+          if (error.response?.status === 403) {
             toast.error('Yasak: Müşteri güncelleme izniniz yok')
-          }
-          else
+          } else if (error.response?.status === 404) {
+            toast.error('Müşteri bulunamadı')
+          } else {
+            toast.error('Müşteri güncellenirken bir hata oluştu')
             console.log('Error updating customer:', error)
+          }
+          return; // Don't close modal on error
         }
       } else {
         try {
           await axios.post('/api/customers', formData);
+          toast.success('Müşteri başarıyla eklendi');
         } catch (error) {
-          if (error.status === 403) {
+          if (error.response?.status === 403) {
             toast.error('Yasak: Müşteri ekleme izniniz yok')
-          }
-          else
+          } else {
+            toast.error('Müşteri eklenirken bir hata oluştu')
             console.log('Error adding customer:', error)
+          }
+          return; // Don't close modal on error
         }
       }
       setCustomerModalVisible(false);
@@ -285,6 +293,7 @@ export default function CustomersPage() {
       fetchCustomers(pagination.page, searchTerm);
     } catch (error) {
       console.log('Error submitting customer:', error);
+      toast.error('Beklenmeyen bir hata oluştu');
     }
   };
 
@@ -492,9 +501,9 @@ export default function CustomersPage() {
                     showPages.push('...');
                   }
                   
-                  // Add pages in the middle range
+                  // Add pages in the middle range (avoid duplicating first and last)
                   for (let i = rangeStart; i <= rangeEnd; i++) {
-                    if (i !== 1 && i !== total) { // Don't duplicate first or last page
+                    if (i !== 1 && i !== total && !showPages.includes(i)) {
                       showPages.push(i);
                     }
                   }
@@ -504,19 +513,19 @@ export default function CustomersPage() {
                     showPages.push('...');
                   }
                   
-                  // Always add last page if it's different from first page
-                  if (total > 1) {
+                  // Always add last page if it's different from first page and not already added
+                  if (total > 1 && !showPages.includes(total)) {
                     showPages.push(total);
                   }
                 }
                 
                 return showPages.map((page, index) => {
                   if (page === '...') {
-                    return <span key={index} className="px-2 text-muted-foreground">...</span>;
+                    return <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">...</span>;
                   }
                   return (
                     <Button
-                      key={page}
+                      key={`page-${page}`}
                       variant={page === current ? "default" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(page)}
@@ -659,7 +668,7 @@ export default function CustomersPage() {
             const serviceRes = await axios.get(`/api/services/${selectedService.id}?includeReminders=true`)
             setSelectedService(serviceRes.data)
           } catch (error) {
-            if (error.status === 403) {
+            if (error.response?.status === 403) {
               toast.error('Yasak: Hatırlatıcı silme izniniz yok')
             }
             else
@@ -678,7 +687,7 @@ export default function CustomersPage() {
               try {
                 await axios.put(`/api/reminders/${selectedReminder.id}`, reminderData)
               } catch (error) {
-                if (error.status === 403) {
+                if (error.response?.status === 403) {
                   toast.error('Yasak: Hatırlatıcı güncelleme izniniz yok')
                 }
                 else
@@ -691,7 +700,7 @@ export default function CustomersPage() {
                   serviceID: selectedService.id
                 })
               } catch (error) {
-                if (error.status === 403) {
+                if (error.response?.status === 403) {
                   toast.error('Yasak: Hatırlatıcı oluşturma izniniz yok')
                 }
                 else
