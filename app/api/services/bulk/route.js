@@ -29,7 +29,19 @@ export async function POST(req) {
 
             if (!name || !customerID) {
                 return NextResponse.json(
-                    { error: `Missing required fields for service at index ${i}` },
+                    { error: `Missing required fields for service at index ${i}. Name: ${name}, CustomerID: ${customerID}` },
+                    { status: 400 }
+                );
+            }
+
+            // Check if customer exists
+            const customerExists = await prisma.customer.findUnique({
+                where: { id: customerID }
+            });
+
+            if (!customerExists) {
+                return NextResponse.json(
+                    { error: `Customer with ID ${customerID} not found for service at index ${i}` },
                     { status: 400 }
                 );
             }

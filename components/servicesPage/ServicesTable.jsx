@@ -413,6 +413,13 @@ export function ServiceTable({
                                         </div>
                                     </TableHead>
                                 )}
+                                {onOpenBulkService && (
+                                    <TableHead className="w-[60px]">
+                                        <div className="flex items-center justify-center">
+                                            Toplu
+                                        </div>
+                                    </TableHead>
+                                )}
                                 <TableHead className="text-right">İşlemler</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -463,22 +470,7 @@ export function ServiceTable({
                                                 {service.category || 'Adisyon Programı'}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <span>{customer?.name || 'Bilinmeyen Müşteri'}</span>
-                                                {customer && onOpenBulkService && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => onOpenBulkService(customer)}
-                                                        className="h-6 w-6 p-0 hover:bg-green-100 hover:text-green-600"
-                                                        title="Bu müşteri için toplu hizmet tanımla"
-                                                    >
-                                                        <Plus className="h-3 w-3" />
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </TableCell>
+                                        <TableCell>{customer?.name || 'Bilinmeyen Müşteri'}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <Badge className={paymentTypeColors[service.paymentType]}>
@@ -540,6 +532,21 @@ export function ServiceTable({
                                                         </Button>
                                                     </div>
                                                 ) : '-'}
+                                            </TableCell>
+                                        )}
+                                        {onOpenBulkService && (
+                                            <TableCell className="text-center">
+                                                {customer && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => onOpenBulkService(customer)}
+                                                        className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
+                                                        title="Bu müşteri için toplu hizmet tanımla"
+                                                    >
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </TableCell>
                                         )}
                                         <TableCell className="text-right">

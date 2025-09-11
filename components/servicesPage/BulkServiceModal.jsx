@@ -253,8 +253,12 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
     setIsSubmitting(true)
 
     try {
-      const customer = customers.find(c => c.id === parseInt(selectedCustomerId))
+      const customer = customers.find(c => c.id === selectedCustomerId)
       const customerCompanyName = companyName || customer?.name || 'Belirtilmemiş'
+
+      console.log('Debug - selectedCustomerId:', selectedCustomerId)
+      console.log('Debug - found customer:', customer)
+      console.log('Debug - all customers:', customers.map(c => ({ id: c.id, name: c.name })))
 
       // Create services for each selected category
       const servicePromises = selectedCategories.map(categoryKey => {
@@ -277,12 +281,14 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
           paymentType,
           periodPrice: price,
           currency,
-          customerID: parseInt(selectedCustomerId),
+          customerID: selectedCustomerId, // Keep as string, don't parse to int
           startingDate: startingDate.toISOString(),
           endingDate: endDate.toISOString(),
           active: true
         }
       })
+
+      console.log('Debug - services to create:', servicePromises)
 
       // Submit all services
       await onSubmit(servicePromises)
@@ -291,7 +297,19 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
       onClose()
     } catch (error) {
       console.error('Bulk service creation error:', error)
-      toast.error('Hizmetler oluşturulurken hata oluştu')
+      
+      // Extract more specific error message from response
+      let errorMessage = 'Hizmetler oluşturulurken hata oluştu'
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error
+      } else if (error.response?.data?.details) {
+        errorMessage = error.response.data.details
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -590,6 +608,11 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                       />
                     </PopoverContent>
                   </Popover>
+                  {startingDate && (
+                    <div className="text-sm text-muted-foreground">
+                      Seçilen tarih: {format(startingDate, "dd/MM/yyyy", { locale: tr })}
+                    </div>
+                  )}
                 </div>
               </div>
               
