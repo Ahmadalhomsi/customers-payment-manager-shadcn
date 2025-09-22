@@ -2,6 +2,7 @@ import { verifyJWT } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 import { subWeeks } from 'date-fns';
 import { NextResponse } from 'next/server';
+import { createTurkishSearchConditions, createTurkishNestedSearchConditions } from '@/lib/turkish-utils';
 
 export async function POST(req) {
     try {
@@ -153,28 +154,27 @@ export async function GET(req) {
             
             if (isIdSearch) {
                 // If it looks like an ID, search by exact ID match first, then fallback to text search
+                const textSearchConditions = createTurkishSearchConditions(search, ['name', 'description', 'companyName', 'category']);
+                const customerSearchConditions = includeCustomer ? createTurkishNestedSearchConditions(search, 'customer.name') : [];
+                
                 whereClause.OR = [
                     { id: { equals: search } },
-                    { name: { contains: search, mode: 'insensitive' } },
-                    { description: { contains: search, mode: 'insensitive' } },
-                    { companyName: { contains: search, mode: 'insensitive' } },
-                    { category: { contains: search, mode: 'insensitive' } },
+                    ...textSearchConditions,
                     ...(includeCustomer ? [
                         { customer: { id: { equals: search } } },
-                        { customer: { name: { contains: search, mode: 'insensitive' } } }
+                        ...customerSearchConditions
                     ] : [])
                 ];
             } else {
-                // Regular text search
+                // Regular text search with Turkish character support
+                const textSearchConditions = createTurkishSearchConditions(search, ['id', 'name', 'description', 'companyName', 'category']);
+                const customerSearchConditions = includeCustomer ? createTurkishNestedSearchConditions(search, 'customer.name') : [];
+                
                 whereClause.OR = [
-                    { id: { contains: search, mode: 'insensitive' } },
-                    { name: { contains: search, mode: 'insensitive' } },
-                    { description: { contains: search, mode: 'insensitive' } },
-                    { companyName: { contains: search, mode: 'insensitive' } },
-                    { category: { contains: search, mode: 'insensitive' } },
+                    ...textSearchConditions,
                     ...(includeCustomer ? [
                         { customer: { id: { contains: search, mode: 'insensitive' } } },
-                        { customer: { name: { contains: search, mode: 'insensitive' } } }
+                        ...customerSearchConditions
                     ] : [])
                 ];
             }
