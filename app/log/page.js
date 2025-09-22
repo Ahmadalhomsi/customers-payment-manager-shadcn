@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -36,7 +36,7 @@ export default function LogsPage() {
   const [sortOrder, setSortOrder] = useState('desc'); // New sorting order state
   const [pageSize, setPageSize] = useState(20); // New page size state
   const [isClearing, setIsClearing] = useState(false); // State for clear operation
-  
+
   // Column-specific filters
   const [columnFilters, setColumnFilters] = useState({
     ipAddress: '',
@@ -56,7 +56,7 @@ export default function LogsPage() {
     const handleKeyDown = (event) => {
       // Only add shortcuts if authenticated
       if (!authenticated) return;
-      
+
       // Ctrl+F or Cmd+F to focus search
       if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
         event.preventDefault();
@@ -70,11 +70,11 @@ export default function LogsPage() {
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated]);
 
   const checkAuthentication = async () => {
@@ -110,7 +110,7 @@ export default function LogsPage() {
     try {
       // Validate page parameter
       const validPage = Math.max(1, parseInt(page) || 1);
-      
+
       const params = new URLSearchParams({
         page: validPage.toString(),
         limit: limit.toString(),
@@ -131,13 +131,13 @@ export default function LogsPage() {
       if (response.ok) {
         setLogs(data.logs);
         const newPagination = data.pagination;
-        
+
         // Check if current page exceeds total pages and redirect to last page
         if (newPagination.totalPages > 0 && validPage > newPagination.totalPages) {
           // Recursively fetch the last valid page
           return fetchLogs(newPagination.totalPages, search, validationType, sortField, order, limit);
         }
-        
+
         setPagination(newPagination);
       } else {
         console.error('Failed to fetch logs:', data.error);
@@ -250,18 +250,18 @@ export default function LogsPage() {
   };
 
   const hasActiveFilters = () => {
-    return Object.values(columnFilters).some(Boolean) || 
-           validationTypeFilter !== 'all';
+    return Object.values(columnFilters).some(Boolean) ||
+      validationTypeFilter !== 'all';
   };
 
   const handleSort = (field) => {
     const newOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
     setSortBy(field);
     setSortOrder(newOrder);
-    
+
     // Check if we have active column filters
     const hasColumnFilters = Object.values(columnFilters).some(Boolean);
-    
+
     if (hasColumnFilters) {
       // Use column search with new sort order
       handleColumnSearch();
@@ -272,7 +272,7 @@ export default function LogsPage() {
   };
 
   const SortableHeader = ({ field, children }) => (
-    <TableHead 
+    <TableHead
       className="cursor-pointer hover:bg-muted/50 select-none"
       onClick={() => handleSort(field)}
     >
@@ -288,10 +288,10 @@ export default function LogsPage() {
   const handlePageChange = (newPage) => {
     // Validate page number
     if (newPage < 1 || newPage > pagination.totalPages) return;
-    
+
     // Check if we have active column filters
     const hasColumnFilters = Object.values(columnFilters).some(Boolean);
-    
+
     if (hasColumnFilters) {
       // Build parameters for column search with new page
       const params = new URLSearchParams({
@@ -335,10 +335,10 @@ export default function LogsPage() {
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
     setPagination(prev => ({ ...prev, page: 1, limit: newPageSize })); // Reset to first page and update limit
-    
+
     // Check if we have active column filters
     const hasColumnFilters = Object.values(columnFilters).some(Boolean);
-    
+
     if (hasColumnFilters) {
       // Build parameters for column search with new page size
       const params = new URLSearchParams({
@@ -396,7 +396,7 @@ export default function LogsPage() {
         // Refresh the logs after clearing
         // Check if we have active column filters
         const hasColumnFilters = Object.values(columnFilters).some(Boolean);
-        
+
         if (hasColumnFilters) {
           // Use column search to maintain current filters
           handleColumnSearch();
@@ -504,7 +504,7 @@ export default function LogsPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h4 className="font-semibold mb-2">İstek İçeriği</h4>
@@ -561,346 +561,346 @@ export default function LogsPage() {
             </AlertDialog>
           </div>
 
-      <Card className="">
-        <CardHeader className="">
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              External Validation API Logları
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Ctrl+F: İlk filtreye odaklan | Ctrl+Enter: Filtreleri temizle
-            </div>
-          </CardTitle>
-          
-          {/* Column-specific search filters */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-2">
-              <Input
-                placeholder="IP Adresi ara..."
-                value={columnFilters.ipAddress}
-                onChange={(e) => setColumnFilters(prev => ({ ...prev, ipAddress: e.target.value }))}
-                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
-                className="text-sm"
-              />
-              <Input
-                placeholder="Servis adı ara..."
-                value={columnFilters.serviceName}
-                onChange={(e) => setColumnFilters(prev => ({ ...prev, serviceName: e.target.value }))}
-                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
-                className="text-sm"
-              />
-              <Input
-                placeholder="İşletme adı ara..."
-                value={columnFilters.companyName}
-                onChange={(e) => setColumnFilters(prev => ({ ...prev, companyName: e.target.value }))}
-                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
-                className="text-sm"
-              />
-              <Input
-                placeholder="Müşteri ara..."
-                value={columnFilters.customerName}
-                onChange={(e) => setColumnFilters(prev => ({ ...prev, customerName: e.target.value }))}
-                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
-                className="text-sm"
-              />
-              <Input
-                placeholder="Endpoint ara..."
-                value={columnFilters.endpoint}
-                onChange={(e) => setColumnFilters(prev => ({ ...prev, endpoint: e.target.value }))}
-                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
-                className="text-sm"
-              />
-              <Input
-                placeholder="Terminal ara..."
-                value={columnFilters.terminal}
-                onChange={(e) => setColumnFilters(prev => ({ ...prev, terminal: e.target.value }))}
-                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
-                className="text-sm"
-              />
-              <Input
-                placeholder="Servis ID ara..."
-                value={columnFilters.serviceId}
-                onChange={(e) => setColumnFilters(prev => ({ ...prev, serviceId: e.target.value }))}
-                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
-                className="text-sm"
-              />
-            </div>
-            
-            {/* Search and Clear buttons */}
-            <div className="flex gap-2 items-center">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleColumnSearch}
-                className="flex items-center gap-2"
-              >
-                <Search className="h-4 w-4" />
-                Ara
-              </Button>
-              {hasActiveFilters() && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={clearAllFilters}
-                  className="flex items-center gap-2"
-                >
-                  <X className="h-4 w-4" />
-                  Filtreleri Temizle
-                </Button>
-              )}
-            </div>
-            
-            <div className="flex gap-2 flex-wrap items-center">
-              <Select value={validationTypeFilter} onValueChange={setValidationTypeFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Doğrulama Tipi" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tümü</SelectItem>
-                  <SelectItem value="Sisteme Giriş">Sisteme Giriş</SelectItem>
-                  <SelectItem value="Trial">Trial</SelectItem>
-                  <SelectItem value="Existing Service">Existing Service</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {hasActiveFilters() && (
-                <Button 
-                  variant="outline" 
-                  onClick={clearAllFilters}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Tüm Filtreleri Temizle
-                </Button>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="">
-          {loading ? (
-            <div className="text-center py-8">Yükleniyor...</div>
-          ) : (
-            <>
-              <Table className="">
-                <TableHeader className="">
-                  <TableRow className="">
-                    <SortableHeader field="createdAt">Tarih</SortableHeader>
-                    <SortableHeader field="ipAddress">IP Adresi</SortableHeader>
-                    <SortableHeader field="serviceName">Servis Adı</SortableHeader>
-                    <TableHead className="">İşletme Adı</TableHead>
-                    <TableHead className="">Müşteri</TableHead>
-                    <TableHead className="">Terminal</TableHead>
-                    <TableHead className="">Servis ID</TableHead>
-                    <TableHead className="">Doğrulama Tipi</TableHead>
-                    <TableHead className="">Endpoint</TableHead>
-                    <SortableHeader field="responseStatus">Durum</SortableHeader>
-                    <TableHead className="">İşlemler</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="">
-                  {getFilteredLogs().map((log) => (
-                    <TableRow key={log.id} className="">
-                      <TableCell className="font-mono text-sm">
-                        {formatDate(log.createdAt)}
-                      </TableCell>
-                      <TableCell className="flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
-                        {log.ipAddress}
-                      </TableCell>
-                      <TableCell className="">{log.serviceName || '-'}</TableCell>
-                      <TableCell className="">{(() => {
-                        try {
-                          const requestData = JSON.parse(log.requestBody || '{}');
-                          return requestData.companyName || '-';
-                        } catch {
-                          return '-';
-                        }
-                      })()}</TableCell>
-                      <TableCell className="">{log.customer?.name || '-'}</TableCell>
-                      <TableCell className="">{(() => {
-                        try {
-                          const requestData = JSON.parse(log.requestBody || '{}');
-                          return requestData.terminal || '-';
-                        } catch {
-                          return '-';
-                        }
-                      })()}</TableCell>
-                      <TableCell className="">{(() => {
-                        // Display service ID if available
-                        if (log.serviceId) {
-                          return (
-                            <span className="font-mono text-xs">
-                              {log.serviceId.substring(0, 8)}...
-                            </span>
-                          );
-                        }
-                        return '-';
-                      })()}</TableCell>
-                      <TableCell className="">{getValidationTypeBadge(log.validationType)}</TableCell>
-                      <TableCell className="font-mono text-sm">
-                        <Badge variant="outline" className="">{log.method}</Badge> {log.endpoint}
-                      </TableCell>
-                      <TableCell className="">{getStatusBadge(log.responseStatus)}</TableCell>
-                      <TableCell className="">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setSelectedLog(log)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <LogDetailModal log={selectedLog} />
-                        </Dialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {getFilteredLogs().length === 0 && logs.length > 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  Filtre kriterlerinize uygun log bulunamadı.
+          <Card className="">
+            <CardHeader className="">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  External Validation API Logları
                 </div>
-              )}
-
-              {logs.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  Henüz log kaydı bulunmuyor.
+                <div className="text-xs text-muted-foreground">
+                  Ctrl+F: İlk filtreye odaklan | Ctrl+Enter: Filtreleri temizle
                 </div>
-              )}
+              </CardTitle>
 
-              {pagination.totalPages > 0 && (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm text-muted-foreground">
-                      {(getFilteredLogs().length !== logs.length || validationTypeFilter !== 'all' || Object.values(columnFilters).some(filter => filter.trim() !== ''))
-                        ? `${getFilteredLogs().length} / ${logs.length} kayıt gösteriliyor (${pagination.total} toplam)`
-                        : `Toplam ${pagination.total} kayıt, sayfa ${pagination.page} / ${pagination.totalPages}`
-                      }
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Sayfa başına:</span>
-                      <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
-                        <SelectTrigger className="w-20">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="20">20</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-1">
+              {/* Column-specific search filters */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-2">
+                  <Input
+                    placeholder="IP Adresi ara..."
+                    value={columnFilters.ipAddress}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, ipAddress: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Servis ID ara..."
+                    value={columnFilters.serviceId}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, serviceId: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Servis adı ara..."
+                    value={columnFilters.serviceName}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, serviceName: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="İşletme adı ara..."
+                    value={columnFilters.companyName}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, companyName: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Müşteri ara..."
+                    value={columnFilters.customerName}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, customerName: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Endpoint ara..."
+                    value={columnFilters.endpoint}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, endpoint: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Terminal ara..."
+                    value={columnFilters.terminal}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, terminal: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
+                    className="text-sm"
+                  />
+                </div>
+
+                {/* Search and Clear buttons */}
+                <div className="flex gap-2 items-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleColumnSearch}
+                    className="flex items-center gap-2"
+                  >
+                    <Search className="h-4 w-4" />
+                    Ara
+                  </Button>
+                  {hasActiveFilters() && (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handlePageChange(1)}
-                      disabled={pagination.page <= 1}
+                      onClick={clearAllFilters}
+                      className="flex items-center gap-2"
                     >
-                      <ChevronsLeft className="h-4 w-4" />
+                      <X className="h-4 w-4" />
+                      Filtreleri Temizle
                     </Button>
+                  )}
+                </div>
+
+                <div className="flex gap-2 flex-wrap items-center">
+                  <Select value={validationTypeFilter} onValueChange={setValidationTypeFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Doğrulama Tipi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tümü</SelectItem>
+                      <SelectItem value="Sisteme Giriş">Sisteme Giriş</SelectItem>
+                      <SelectItem value="Trial">Trial</SelectItem>
+                      <SelectItem value="Existing Service">Existing Service</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {hasActiveFilters() && (
                     <Button
                       variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.page - 1)}
-                      disabled={pagination.page <= 1}
+                      onClick={clearAllFilters}
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <X className="h-4 w-4 mr-2" />
+                      Tüm Filtreleri Temizle
                     </Button>
-                    
-                    {/* Page numbers */}
-                    {(() => {
-                      const showPages = [];
-                      const current = pagination.page;
-                      const total = pagination.totalPages;
-                      
-                      if (total <= 7) {
-                        // If 7 or fewer pages, show all
-                        for (let i = 1; i <= total; i++) {
-                          showPages.push(i);
-                        }
-                      } else {
-                        // Complex pagination logic for more than 7 pages
-                        const delta = 2; // Number of pages to show around current page
-                        
-                        // Always add first page
-                        showPages.push(1);
-                        
-                        // Calculate the range around current page
-                        const rangeStart = Math.max(2, current - delta);
-                        const rangeEnd = Math.min(total - 1, current + delta);
-                        
-                        // Add ellipsis after first page if needed
-                        if (rangeStart > 2) {
-                          showPages.push('...');
-                        }
-                        
-                        // Add pages in the middle range
-                        for (let i = rangeStart; i <= rangeEnd; i++) {
-                          if (i !== 1 && i !== total) { // Don't duplicate first or last page
-                            showPages.push(i);
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="">
+              {loading ? (
+                <div className="text-center py-8">Yükleniyor...</div>
+              ) : (
+                <>
+                  <Table className="">
+                    <TableHeader className="">
+                      <TableRow className="">
+                        <SortableHeader field="createdAt">Tarih</SortableHeader>
+                        <SortableHeader field="ipAddress">IP Adresi</SortableHeader>
+                        <TableHead className="">Servis ID</TableHead>
+                        <SortableHeader field="serviceName">Servis Adı</SortableHeader>
+                        <TableHead className="">İşletme Adı</TableHead>
+                        <TableHead className="">Terminal</TableHead>
+                        <TableHead className="">Müşteri</TableHead>
+                        <SortableHeader field="endpoint">Endpoint</SortableHeader>
+                        <TableHead className="">Doğrulama Tipi</TableHead>
+                        <SortableHeader field="responseStatus">Durum</SortableHeader>
+                        <TableHead className="">İşlemler</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="">
+                      {getFilteredLogs().map((log) => (
+                        <TableRow key={log.id} className="">
+                          <TableCell className="font-mono text-sm">
+                            {formatDate(log.createdAt)}
+                          </TableCell>
+                          <TableCell className="flex items-center gap-2">
+                            <Globe className="h-4 w-4" />
+                            {log.ipAddress}
+                          </TableCell>
+                          <TableCell className="">{(() => {
+                            // Display service ID if available
+                            if (log.serviceId) {
+                              return (
+                                <span className="font-mono text-xs">
+                                  {log.serviceId.substring(0, 8)}...
+                                </span>
+                              );
+                            }
+                            return '-';
+                          })()}</TableCell>
+                          <TableCell className="">{log.serviceName || '-'}</TableCell>
+                          <TableCell className="">{(() => {
+                            try {
+                              const requestData = JSON.parse(log.requestBody || '{}');
+                              return requestData.companyName || '-';
+                            } catch {
+                              return '-';
+                            }
+                          })()}</TableCell>
+                          <TableCell className="">{log.customer?.name || '-'}</TableCell>
+                          <TableCell className="font-mono text-sm">
+                            <Badge variant="outline" className="">{log.method}</Badge> {log.endpoint}
+                          </TableCell>
+                          <TableCell className="">{(() => {
+                            try {
+                              const requestData = JSON.parse(log.requestBody || '{}');
+                              return requestData.terminal || '-';
+                            } catch {
+                              return '-';
+                            }
+                          })()}</TableCell>
+                          <TableCell className="">{getValidationTypeBadge(log.validationType)}</TableCell>
+                          <TableCell className="">{getStatusBadge(log.responseStatus)}</TableCell>
+                          <TableCell className="">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedLog(log)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <LogDetailModal log={selectedLog} />
+                            </Dialog>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+
+                  {getFilteredLogs().length === 0 && logs.length > 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      Filtre kriterlerinize uygun log bulunamadı.
+                    </div>
+                  )}
+
+                  {logs.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      Henüz log kaydı bulunmuyor.
+                    </div>
+                  )}
+
+                  {pagination.totalPages > 0 && (
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
+                      <div className="flex items-center gap-4">
+                        <div className="text-sm text-muted-foreground">
+                          {(getFilteredLogs().length !== logs.length || validationTypeFilter !== 'all' || Object.values(columnFilters).some(filter => filter.trim() !== ''))
+                            ? `${getFilteredLogs().length} / ${logs.length} kayıt gösteriliyor (${pagination.total} toplam)`
+                            : `Toplam ${pagination.total} kayıt, sayfa ${pagination.page} / ${pagination.totalPages}`
                           }
-                        }
-                        
-                        // Add ellipsis before last page if needed
-                        if (rangeEnd < total - 1) {
-                          showPages.push('...');
-                        }
-                        
-                        // Always add last page if it's different from first page
-                        if (total > 1) {
-                          showPages.push(total);
-                        }
-                      }
-                      
-                      return showPages.map((page, index) => {
-                        if (page === '...') {
-                          return <span key={index} className="px-2 text-muted-foreground">...</span>;
-                        }
-                        return (
-                          <Button
-                            key={page}
-                            variant={page === current ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handlePageChange(page)}
-                            className="w-8 h-8 p-0"
-                          >
-                            {page}
-                          </Button>
-                        );
-                      });
-                    })()}
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.page + 1)}
-                      disabled={pagination.page >= pagination.totalPages}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.totalPages)}
-                      disabled={pagination.page >= pagination.totalPages}
-                    >
-                      <ChevronsRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Sayfa başına:</span>
+                          <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
+                            <SelectTrigger className="w-20">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="10">10</SelectItem>
+                              <SelectItem value="20">20</SelectItem>
+                              <SelectItem value="50">50</SelectItem>
+                              <SelectItem value="100">100</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(1)}
+                          disabled={pagination.page <= 1}
+                        >
+                          <ChevronsLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(pagination.page - 1)}
+                          disabled={pagination.page <= 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+
+                        {/* Page numbers */}
+                        {(() => {
+                          const showPages = [];
+                          const current = pagination.page;
+                          const total = pagination.totalPages;
+
+                          if (total <= 7) {
+                            // If 7 or fewer pages, show all
+                            for (let i = 1; i <= total; i++) {
+                              showPages.push(i);
+                            }
+                          } else {
+                            // Complex pagination logic for more than 7 pages
+                            const delta = 2; // Number of pages to show around current page
+
+                            // Always add first page
+                            showPages.push(1);
+
+                            // Calculate the range around current page
+                            const rangeStart = Math.max(2, current - delta);
+                            const rangeEnd = Math.min(total - 1, current + delta);
+
+                            // Add ellipsis after first page if needed
+                            if (rangeStart > 2) {
+                              showPages.push('...');
+                            }
+
+                            // Add pages in the middle range
+                            for (let i = rangeStart; i <= rangeEnd; i++) {
+                              if (i !== 1 && i !== total) { // Don't duplicate first or last page
+                                showPages.push(i);
+                              }
+                            }
+
+                            // Add ellipsis before last page if needed
+                            if (rangeEnd < total - 1) {
+                              showPages.push('...');
+                            }
+
+                            // Always add last page if it's different from first page
+                            if (total > 1) {
+                              showPages.push(total);
+                            }
+                          }
+
+                          return showPages.map((page, index) => {
+                            if (page === '...') {
+                              return <span key={index} className="px-2 text-muted-foreground">...</span>;
+                            }
+                            return (
+                              <Button
+                                key={page}
+                                variant={page === current ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handlePageChange(page)}
+                                className="w-8 h-8 p-0"
+                              >
+                                {page}
+                              </Button>
+                            );
+                          });
+                        })()}
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(pagination.page + 1)}
+                          disabled={pagination.page >= pagination.totalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(pagination.totalPages)}
+                          disabled={pagination.page >= pagination.totalPages}
+                        >
+                          <ChevronsRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
         </>
       )}
     </div>

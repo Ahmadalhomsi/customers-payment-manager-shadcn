@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { createTurkishSearchConditions } from '@/lib/turkish-utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -133,12 +134,27 @@ export async function GET(request: NextRequest) {
         });
         
         if (service) {
-          andConditions.push({
-            OR: [
-              ...(service.name ? [{ serviceName: service.name }] : []),
-              ...(service.deviceToken ? [{ deviceToken: service.deviceToken }] : [])
-            ]
-          });
+          // Create a specific match condition for this exact service
+          if (service.name && service.deviceToken) {
+            // Match logs that have BOTH the exact service name AND device token
+            andConditions.push({
+              AND: [
+                { serviceName: service.name },
+                { deviceToken: service.deviceToken }
+              ]
+            });
+          } else if (service.name) {
+            // If only service name is available, use that
+            andConditions.push({ serviceName: service.name });
+          } else if (service.deviceToken) {
+            // If only device token is available, use that
+            andConditions.push({ deviceToken: service.deviceToken });
+          } else {
+            // Service has no identifiable fields, return empty result
+            andConditions.push({
+              id: { equals: 'no-match' }
+            });
+          }
         } else {
           // No service found with this ID, return empty result
           andConditions.push({
@@ -155,19 +171,15 @@ export async function GET(request: NextRequest) {
     
     // For customer name, find matching customers first
     if (customerName) {
-      console.log('Searching for customer name:', customerName);
+      // Use Turkish character support for customer search
+      const customerSearchConditions = createTurkishSearchConditions(customerName, ['name', 'tableName']);
       
       const matchingCustomers = await prisma.customer.findMany({
         where: {
-          OR: [
-            { name: { contains: customerName, mode: 'insensitive' } },
-            { tableName: { contains: customerName, mode: 'insensitive' } }
-          ]
+          OR: customerSearchConditions
         },
         select: { id: true, name: true }
       });
-
-      console.log('Found matching customers:', matchingCustomers);
 
       if (matchingCustomers.length > 0) {
         // Get all services for these customers
@@ -177,8 +189,6 @@ export async function GET(request: NextRequest) {
           },
           select: { name: true, deviceToken: true }
         });
-
-        console.log('Found matching services:', matchingServices);
 
         // Create pairs of serviceName + deviceToken to ensure we only match logs from the specific customer's services
         const serviceMatches: any[] = [];
@@ -200,8 +210,6 @@ export async function GET(request: NextRequest) {
             serviceMatches.push({ deviceToken: service.deviceToken });
           }
         });
-        
-        console.log('Service matches (name+token pairs):', JSON.stringify(serviceMatches, null, 2));
         
         if (serviceMatches.length > 0) {
           andConditions.push({
@@ -229,9 +237,6 @@ export async function GET(request: NextRequest) {
     if (validationType) {
       where.validationType = validationType;
     }
-    
-    console.log('Final where clause:', JSON.stringify(where, null, 2));
-    console.log('andConditions length:', andConditions.length);
     
     // Build orderBy clause
     const orderBy: any = {};
