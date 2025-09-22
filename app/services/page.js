@@ -47,6 +47,7 @@ export default function ServicesPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [dateRangeFilter, setDateRangeFilter] = useState();
   const [endDateRangeFilter, setEndDateRangeFilter] = useState();
+  const [lastLoginDateRangeFilter, setLastLoginDateRangeFilter] = useState();
 
   useEffect(() => {
     // Global keyboard shortcuts setup only
@@ -75,7 +76,7 @@ export default function ServicesPage() {
   useEffect(() => {
     handleFilterChange();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter]);
+  }, [statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter, lastLoginDateRangeFilter]);
 
   const fetchAdminData = async () => {
     try {
@@ -129,6 +130,14 @@ export default function ServicesPage() {
         params.append('endDateTo', endDateRangeFilter.to.toISOString());
       }
       
+      // Add last login date filters if set
+      if (lastLoginDateRangeFilter?.from) {
+        params.append('lastLoginDateFrom', lastLoginDateRangeFilter.from.toISOString());
+      }
+      if (lastLoginDateRangeFilter?.to) {
+        params.append('lastLoginDateTo', lastLoginDateRangeFilter.to.toISOString());
+      }
+      
       const response = await axios.get(`/api/services?${params}`)
       
       // Update services and pagination
@@ -152,7 +161,7 @@ export default function ServicesPage() {
         toast.error('Yasak: Hizmet görüntüleme izniniz yok')
     }
     setLoading(false)
-  }, [sortBy, sortOrder, pageSize, statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter])
+  }, [sortBy, sortOrder, pageSize, statusFilter, categoryFilter, dateRangeFilter, endDateRangeFilter, lastLoginDateRangeFilter])
 
   // Enhanced search handlers - now server-side with button/enter trigger
   const handleSearch = useCallback(() => {
@@ -353,6 +362,27 @@ export default function ServicesPage() {
       });
     }
 
+    // Apply last login date filter (client-side for UI responsiveness)
+    if (lastLoginDateRangeFilter?.from || lastLoginDateRangeFilter?.to) {
+      filtered = filtered.filter(service => {
+        if (!service.lastLoginDate) {
+          // If service has no last login date, it should only be included if we're filtering for services with no login
+          return false;
+        }
+        
+        const serviceLastLogin = new Date(service.lastLoginDate);
+        
+        if (lastLoginDateRangeFilter?.from && lastLoginDateRangeFilter?.to) {
+          return serviceLastLogin >= lastLoginDateRangeFilter.from && serviceLastLogin <= lastLoginDateRangeFilter.to;
+        } else if (lastLoginDateRangeFilter?.from) {
+          return serviceLastLogin >= lastLoginDateRangeFilter.from;
+        } else if (lastLoginDateRangeFilter?.to) {
+          return serviceLastLogin <= lastLoginDateRangeFilter.to;
+        }
+        return true;
+      });
+    }
+
     return filtered;
   };
 
@@ -390,6 +420,7 @@ export default function ServicesPage() {
     setCategoryFilter('all');
     setDateRangeFilter(undefined);
     setEndDateRangeFilter(undefined);
+    setLastLoginDateRangeFilter(undefined);
     // Reset to normal pagination
     fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
   };
@@ -522,6 +553,8 @@ export default function ServicesPage() {
           onDateRangeChange={setDateRangeFilter}
           endDateRangeFilter={endDateRangeFilter}
           onEndDateRangeChange={setEndDateRangeFilter}
+          lastLoginDateRangeFilter={lastLoginDateRangeFilter}
+          onLastLoginDateRangeChange={setLastLoginDateRangeFilter}
           onClearFilters={handleClearFilters}
           onEdit={(service) => {
             setSelectedService(service)
@@ -544,7 +577,7 @@ export default function ServicesPage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
             <div className="flex items-center gap-4">
               <div className="text-sm text-muted-foreground">
-                {statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from ? (
+                {statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from || lastLoginDateRangeFilter?.from ? (
                   `${services.length} / ${pagination.total} kayıt gösteriliyor`
                 ) : (
                   `Toplam ${pagination.total} kayıt, sayfa ${pagination.page} / ${pagination.totalPages}`

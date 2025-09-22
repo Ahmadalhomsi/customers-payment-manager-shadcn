@@ -359,6 +359,10 @@ export async function POST(request) {
         const updateData = {};
         let needsUpdate = false;
         
+        // Always update lastLoginDate on successful validation
+        updateData.lastLoginDate = new Date();
+        needsUpdate = true;
+        
         if (serviceName && service.name !== serviceName) {
             updateData.name = serviceName;
             needsUpdate = true;

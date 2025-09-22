@@ -137,6 +137,8 @@ export async function GET(req) {
         const startDateTo = searchParams.get('startDateTo');
         const endDateFrom = searchParams.get('endDateFrom');
         const endDateTo = searchParams.get('endDateTo');
+        const lastLoginDateFrom = searchParams.get('lastLoginDateFrom');
+        const lastLoginDateTo = searchParams.get('lastLoginDateTo');
 
         // Calculate skip for pagination
         const skip = (page - 1) * limit;
@@ -202,6 +204,17 @@ export async function GET(req) {
             }
             if (endDateTo) {
                 whereClause.endingDate.lte = new Date(endDateTo);
+            }
+        }
+
+        // Add last login date range filtering
+        if (lastLoginDateFrom || lastLoginDateTo) {
+            whereClause.lastLoginDate = {};
+            if (lastLoginDateFrom) {
+                whereClause.lastLoginDate.gte = new Date(lastLoginDateFrom);
+            }
+            if (lastLoginDateTo) {
+                whereClause.lastLoginDate.lte = new Date(lastLoginDateTo);
             }
         }
 

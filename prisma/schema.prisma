@@ -75,6 +75,7 @@ model Service {
   // paid         Boolean  @default(false)
   deviceToken String?
   terminal    String? // Device name
+  lastLoginDate DateTime? // Son giriş tarihi - null if never logged in
 
   // Relations
   customerID     String
@@ -95,6 +96,7 @@ model Service {
   @@index([endingDate])
   @@index([createdAt])
   @@index([paymentType])
+  @@index([lastLoginDate])
   // Composite indexes for common query patterns
   @@index([customerID, active])
   @@index([category, active])

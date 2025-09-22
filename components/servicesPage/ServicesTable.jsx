@@ -93,6 +93,8 @@ export function ServiceTable({
     onDateRangeChange,
     endDateRangeFilter,
     onEndDateRangeChange,
+    lastLoginDateRangeFilter,
+    onLastLoginDateRangeChange,
     // Add clear filters prop
     onClearFilters,
     // Add bulk service modal prop
@@ -298,8 +300,45 @@ export function ServiceTable({
                         </PopoverContent>
                     </Popover>
 
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-[240px] justify-start text-left font-normal",
+                                    !lastLoginDateRangeFilter?.from && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {lastLoginDateRangeFilter?.from ? (
+                                    lastLoginDateRangeFilter.to ? (
+                                        <>
+                                            {format(lastLoginDateRangeFilter.from, "dd MMMM yyyy", { locale: tr })} -{" "}
+                                            {format(lastLoginDateRangeFilter.to, "dd MMMM yyyy", { locale: tr })}
+                                        </>
+                                    ) : (
+                                        format(lastLoginDateRangeFilter.from, "dd MMMM yyyy", { locale: tr })
+                                    )
+                                ) : (
+                                    <span>Son giriş tarihine göre filtrele</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={lastLoginDateRangeFilter?.from}
+                                selected={lastLoginDateRangeFilter}
+                                onSelect={onLastLoginDateRangeChange}
+                                numberOfMonths={2}
+                                locale={tr}
+                            />
+                        </PopoverContent>
+                    </Popover>
+
                     {/* Clear Filters Button */}
-                    {(statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from) && (
+                    {(statusFilter !== 'all' || categoryFilter !== 'all' || dateRangeFilter?.from || endDateRangeFilter?.from || lastLoginDateRangeFilter?.from) && (
                       <Button 
                         variant="outline" 
                         onClick={onClearFilters}
@@ -400,6 +439,15 @@ export function ServiceTable({
                                     <div className="flex items-center gap-1">
                                         Durum
                                         <SortIcon column="endingDate" />
+                                    </div>
+                                </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('lastLoginDate')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Son Giriş Tarihi
+                                        <SortIcon column="lastLoginDate" />
                                     </div>
                                 </TableHead>
                                 {hasDeviceTokens && (
@@ -504,6 +552,20 @@ export function ServiceTable({
                                                  status === 'inactive' ? 'Pasif' : 
                                                  status === 'notStarted' ? 'Başlamadı' : status}
                                             </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {service.lastLoginDate ? (
+                                                <div className="flex flex-col">
+                                                    <time className="text-sm">
+                                                        {format(new Date(service.lastLoginDate), 'dd/MM/yyyy')}
+                                                    </time>
+                                                    <time className="text-xs text-muted-foreground">
+                                                        {format(new Date(service.lastLoginDate), 'HH:mm')}
+                                                    </time>
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground">Hiç giriş yapılmamış</span>
+                                            )}
                                         </TableCell>
                                         {hasDeviceTokens && (
                                             <TableCell>
