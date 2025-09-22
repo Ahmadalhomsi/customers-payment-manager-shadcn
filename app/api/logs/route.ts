@@ -21,13 +21,14 @@ export async function GET(request: NextRequest) {
     const customerName = searchParams.get('customerName');
     const endpoint = searchParams.get('endpoint');
     const terminal = searchParams.get('terminal');
+    const serviceId = searchParams.get('serviceId');
     
     // Build where clause
     const where: any = {};
     const andConditions: any[] = [];
     
     // Handle general search (when no specific fields are provided)
-    if (search && !ipAddress && !serviceName && !companyName && !customerName && !endpoint && !terminal) {
+    if (search && !ipAddress && !serviceName && !companyName && !customerName && !endpoint && !terminal && !serviceId) {
       // First, find customer IDs that match the search term
       const matchingCustomers = await prisma.customer.findMany({
         where: {
@@ -123,8 +124,39 @@ export async function GET(request: NextRequest) {
       });
     }
     
+    // For service ID search, find services by ID and match their names/deviceTokens
+    if (serviceId) {
+      try {
+        const service = await prisma.service.findUnique({
+          where: { id: serviceId },
+          select: { name: true, deviceToken: true }
+        });
+        
+        if (service) {
+          andConditions.push({
+            OR: [
+              ...(service.name ? [{ serviceName: service.name }] : []),
+              ...(service.deviceToken ? [{ deviceToken: service.deviceToken }] : [])
+            ]
+          });
+        } else {
+          // No service found with this ID, return empty result
+          andConditions.push({
+            id: { equals: 'no-match' }
+          });
+        }
+      } catch (error) {
+        // Invalid service ID format, return empty result
+        andConditions.push({
+          id: { equals: 'no-match' }
+        });
+      }
+    }
+    
     // For customer name, find matching customers first
     if (customerName) {
+      console.log('Searching for customer name:', customerName);
+      
       const matchingCustomers = await prisma.customer.findMany({
         where: {
           OR: [
@@ -132,26 +164,59 @@ export async function GET(request: NextRequest) {
             { tableName: { contains: customerName, mode: 'insensitive' } }
           ]
         },
-        select: { id: true }
+        select: { id: true, name: true }
       });
 
-      const matchingServices = await prisma.service.findMany({
-        where: {
-          customerID: { in: matchingCustomers.map(c => c.id) }
-        },
-        select: { name: true }
-      });
+      console.log('Found matching customers:', matchingCustomers);
 
-      const serviceNames = matchingServices.map(s => s.name);
-      
-      if (serviceNames.length > 0) {
-        andConditions.push({
-          serviceName: { in: serviceNames }
+      if (matchingCustomers.length > 0) {
+        // Get all services for these customers
+        const matchingServices = await prisma.service.findMany({
+          where: {
+            customerID: { in: matchingCustomers.map(c => c.id) }
+          },
+          select: { name: true, deviceToken: true }
         });
+
+        console.log('Found matching services:', matchingServices);
+
+        // Create pairs of serviceName + deviceToken to ensure we only match logs from the specific customer's services
+        const serviceMatches: any[] = [];
+        
+        matchingServices.forEach(service => {
+          if (service.name && service.deviceToken) {
+            // Match logs that have BOTH the exact service name AND device token
+            serviceMatches.push({
+              AND: [
+                { serviceName: service.name },
+                { deviceToken: service.deviceToken }
+              ]
+            });
+          } else if (service.name) {
+            // If only service name is available, use that
+            serviceMatches.push({ serviceName: service.name });
+          } else if (service.deviceToken) {
+            // If only device token is available, use that
+            serviceMatches.push({ deviceToken: service.deviceToken });
+          }
+        });
+        
+        console.log('Service matches (name+token pairs):', JSON.stringify(serviceMatches, null, 2));
+        
+        if (serviceMatches.length > 0) {
+          andConditions.push({
+            OR: serviceMatches
+          });
+        } else {
+          // No matching services, return empty result
+          andConditions.push({
+            id: { equals: 'no-match' } // This will match no records
+          });
+        }
       } else {
         // No matching customers, return empty result
         andConditions.push({
-          id: { equals: -1 } // This will match no records
+          id: { equals: 'no-match' } // This will match no records
         });
       }
     }
@@ -164,6 +229,9 @@ export async function GET(request: NextRequest) {
     if (validationType) {
       where.validationType = validationType;
     }
+    
+    console.log('Final where clause:', JSON.stringify(where, null, 2));
+    console.log('andConditions length:', andConditions.length);
     
     // Build orderBy clause
     const orderBy: any = {};
@@ -184,6 +252,7 @@ export async function GET(request: NextRequest) {
     const enhancedLogs = await Promise.all(
       logs.map(async (log) => {
         let customerInfo = null;
+        let serviceInfo = null;
         
         // If we have a serviceName, try to find the corresponding service and customer
         if (log.serviceName) {
@@ -225,8 +294,11 @@ export async function GET(request: NextRequest) {
               }
             });
 
-            if (service?.customer) {
-              customerInfo = service.customer;
+            if (service) {
+              serviceInfo = { id: service.id, name: service.name };
+              if (service.customer) {
+                customerInfo = service.customer;
+              }
             }
           } catch (error) {
             console.error('Error fetching customer for log:', error);
@@ -235,7 +307,8 @@ export async function GET(request: NextRequest) {
 
         return {
           ...log,
-          customer: customerInfo
+          customer: customerInfo,
+          serviceId: serviceInfo?.id || null
         };
       })
     );

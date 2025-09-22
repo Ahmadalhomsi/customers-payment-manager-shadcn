@@ -44,7 +44,8 @@ export default function LogsPage() {
     companyName: '',
     customerName: '',
     endpoint: '',
-    terminal: ''
+    terminal: '',
+    serviceId: ''
   });
 
   // Check authentication on component mount
@@ -73,6 +74,7 @@ export default function LogsPage() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated]);
 
   const checkAuthentication = async () => {
@@ -193,6 +195,9 @@ export default function LogsPage() {
     if (columnFilters.terminal?.trim()) {
       params.append('terminal', columnFilters.terminal.trim());
     }
+    if (columnFilters.serviceId?.trim()) {
+      params.append('serviceId', columnFilters.serviceId.trim());
+    }
 
     // Fetch with individual parameters
     fetchLogsWithParams(params);
@@ -236,7 +241,8 @@ export default function LogsPage() {
       companyName: '',
       customerName: '',
       endpoint: '',
-      terminal: ''
+      terminal: '',
+      serviceId: ''
     });
     setValidationTypeFilter('all');
     // Fetch with normal pagination when all filters are cleared
@@ -315,6 +321,9 @@ export default function LogsPage() {
       if (columnFilters.terminal?.trim()) {
         params.append('terminal', columnFilters.terminal.trim());
       }
+      if (columnFilters.serviceId?.trim()) {
+        params.append('serviceId', columnFilters.serviceId.trim());
+      }
 
       fetchLogsWithParams(params);
     } else {
@@ -358,6 +367,9 @@ export default function LogsPage() {
       }
       if (columnFilters.terminal?.trim()) {
         params.append('terminal', columnFilters.terminal.trim());
+      }
+      if (columnFilters.serviceId?.trim()) {
+        params.append('serviceId', columnFilters.serviceId.trim());
       }
 
       fetchLogsWithParams(params);
@@ -563,7 +575,7 @@ export default function LogsPage() {
           
           {/* Column-specific search filters */}
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-2">
               <Input
                 placeholder="IP Adresi ara..."
                 value={columnFilters.ipAddress}
@@ -603,6 +615,13 @@ export default function LogsPage() {
                 placeholder="Terminal ara..."
                 value={columnFilters.terminal}
                 onChange={(e) => setColumnFilters(prev => ({ ...prev, terminal: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
+                className="text-sm"
+              />
+              <Input
+                placeholder="Servis ID ara..."
+                value={columnFilters.serviceId}
+                onChange={(e) => setColumnFilters(prev => ({ ...prev, serviceId: e.target.value }))}
                 onKeyDown={(e) => e.key === 'Enter' && handleColumnSearch()}
                 className="text-sm"
               />
@@ -671,6 +690,7 @@ export default function LogsPage() {
                     <TableHead className="">İşletme Adı</TableHead>
                     <TableHead className="">Müşteri</TableHead>
                     <TableHead className="">Terminal</TableHead>
+                    <TableHead className="">Servis ID</TableHead>
                     <TableHead className="">Doğrulama Tipi</TableHead>
                     <TableHead className="">Endpoint</TableHead>
                     <SortableHeader field="responseStatus">Durum</SortableHeader>
@@ -704,6 +724,17 @@ export default function LogsPage() {
                         } catch {
                           return '-';
                         }
+                      })()}</TableCell>
+                      <TableCell className="">{(() => {
+                        // Display service ID if available
+                        if (log.serviceId) {
+                          return (
+                            <span className="font-mono text-xs">
+                              {log.serviceId.substring(0, 8)}...
+                            </span>
+                          );
+                        }
+                        return '-';
                       })()}</TableCell>
                       <TableCell className="">{getValidationTypeBadge(log.validationType)}</TableCell>
                       <TableCell className="font-mono text-sm">
