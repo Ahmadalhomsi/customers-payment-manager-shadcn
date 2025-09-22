@@ -118,7 +118,7 @@ const QUICK_SELECT_GROUPS = {
   }
 }
 
-export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], selectedCustomer = null }) {
+export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], selectedCustomer = null, selectedService = null }) {
   const [selectedCustomerId, setSelectedCustomerId] = useState('')
   const [selectedCategories, setSelectedCategories] = useState([])
   const [currency, setCurrency] = useState('TL')
@@ -132,9 +132,19 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
   useEffect(() => {
     if (selectedCustomer && visible) {
       setSelectedCustomerId(String(selectedCustomer.id))
-      setCompanyName(selectedCustomer.name || '')
+      
+      // If we have a selected service, use its company name and starting date
+      if (selectedService) {
+        setCompanyName(selectedService.companyName || '')
+        if (selectedService.startingDate) {
+          setStartingDate(new Date(selectedService.startingDate))
+        }
+      } else {
+        // Fallback to customer name if no service is selected
+        setCompanyName(selectedCustomer.name || '')
+      }
     }
-  }, [selectedCustomer, visible])
+  }, [selectedCustomer, selectedService, visible])
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -638,7 +648,18 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Başlangıç Tarihi</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Başlangıç Tarihi</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setStartingDate(new Date())}
+                      className="text-xs h-6 px-2"
+                    >
+                      Bugün
+                    </Button>
+                  </div>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button

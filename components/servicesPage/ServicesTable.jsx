@@ -602,7 +602,7 @@ export function ServiceTable({
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        onClick={() => onOpenBulkService(customer)}
+                                                        onClick={() => onOpenBulkService(customer, service)}
                                                         className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
                                                         title="Bu müşteri için toplu hizmet tanımla"
                                                     >

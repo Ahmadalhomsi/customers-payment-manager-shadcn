@@ -30,6 +30,7 @@ export default function ServicesPage() {
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [permissions, setPermissions] = useState(null);
   const [selectedCustomerForBulk, setSelectedCustomerForBulk] = useState(null);
+  const [selectedServiceForBulk, setSelectedServiceForBulk] = useState(null);
 
   // Pagination states
   const [pagination, setPagination] = useState({
@@ -300,8 +301,9 @@ export default function ServicesPage() {
     }
   }
 
-  const handleOpenBulkServiceForCustomer = (customer) => {
+  const handleOpenBulkServiceForCustomer = (customer, service = null) => {
     setSelectedCustomerForBulk(customer)
+    setSelectedServiceForBulk(service)
     setBulkServiceModalVisible(true)
   }
 
@@ -658,10 +660,12 @@ export default function ServicesPage() {
         onClose={() => {
           setBulkServiceModalVisible(false)
           setSelectedCustomerForBulk(null) // Reset selected customer when closing
+          setSelectedServiceForBulk(null) // Reset selected service when closing
         }}
         onSubmit={handleBulkSubmit}
         customers={customers}
         selectedCustomer={selectedCustomerForBulk}
+        selectedService={selectedServiceForBulk}
       />
 
       <DeleteConfirmModal
