@@ -1,7 +1,7 @@
 // app\api\admins\route.js
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { verifyJWT } from "@/lib/jwt";
 
 // Add this to your existing route.js file
