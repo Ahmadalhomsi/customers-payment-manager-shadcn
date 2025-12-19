@@ -40,17 +40,10 @@ export async function POST(req) {
             customerID
         } = data;
 
-        // Validate required fields - category and customer are required now
+        // Validate required fields - only category is required now
         if (!category) {
             return NextResponse.json(
                 { error: 'Product category is required' },
-                { status: 400 }
-            );
-        }
-
-        if (!customerID) {
-            return NextResponse.json(
-                { error: 'Customer selection is required' },
                 { status: 400 }
             );
         }

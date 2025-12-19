@@ -48,7 +48,6 @@ const categoryColors = {
 
 export function ProductsTable({
     products,
-    customers,
     onEdit,
     onDelete,
     isLoading = false,
@@ -230,15 +229,6 @@ export function ProductsTable({
                                 </TableHead>
                                 <TableHead
                                     className="cursor-pointer hover:bg-muted/50"
-                                    onClick={() => handleSort('customerID')}
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Müşteri
-                                        <SortIcon column="customerID" />
-                                    </div>
-                                </TableHead>
-                                <TableHead
-                                    className="cursor-pointer hover:bg-muted/50"
                                     onClick={() => handleSort('status')}
                                 >
                                     <div className="flex items-center gap-1">
@@ -261,8 +251,6 @@ export function ProductsTable({
 
                         <TableBody>
                             {products.map((product) => {
-                                const customer = product.customer || customers.find(c => c.id === product.customerID)
-
                                 return (
                                     <TableRow key={product.id} className="hover:bg-muted/50 transition-colors">
                                         <TableCell className="font-mono text-xs">
@@ -336,7 +324,6 @@ export function ProductsTable({
                                                 </span>
                                             ) : '-'}
                                         </TableCell>
-                                        <TableCell>{customer?.name || (product.customerID ? 'Bilinmeyen Müşteri' : '-')}</TableCell>
                                         <TableCell>
                                             <Badge className={`${statusColors[product.status]} rounded-md px-2 py-1 text-xs font-medium`}>
                                                 {statusLabels[product.status] || product.status}

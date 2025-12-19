@@ -16,7 +16,6 @@ export default function ProductsPage() {
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [customers, setCustomers] = useState([])
   const [permissions, setPermissions] = useState(null)
 
   // Pagination states
@@ -170,7 +169,6 @@ export default function ProductsPage() {
     }
     
     initialLoad()
-    fetchCustomers()
     fetchAdminData()
   }, [])
 
@@ -195,19 +193,6 @@ export default function ProductsPage() {
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [handleSearch])
-
-  const fetchCustomers = async () => {
-    try {
-      // Fetch all customers without pagination limit for the modal
-      const response = await axios.get('/api/customers?limit=1000')
-      setCustomers(response.data.customers || response.data || [])
-    } catch (error) {
-      if (error.response?.status === 403)
-        toast.error('Yasak: Müşterileri görüntüleme izniniz yok')
-      else
-        console.log('Error fetching customers:', error)
-    }
-  }
 
   const handleDelete = async () => {
     if (selectedProduct) {
@@ -329,13 +314,17 @@ export default function ProductsPage() {
   return (
     <div className="w-full min-h-full pt-6 pb-6">
       <div className="flex flex-col gap-4 mb-4 px-4">
-        <div className="flex gap-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Envanter Yönetimi</h1>
+            <p className="text-muted-foreground">Fiziksel ürünlerinizi yönetin ve takip edin</p>
+          </div>
           {permissions?.canEditPhysicalProducts && (
             <Button onClick={() => {
               setSelectedProduct(null)
               setProductModalVisible(true)
             }}>
-              <Plus className="mr-2 h-4 w-4" /> Fiziksel Ürün Ekle
+              <Plus className="mr-2 h-4 w-4" /> Ürün Ekle
             </Button>
           )}
         </div>
@@ -344,7 +333,6 @@ export default function ProductsPage() {
       <div className="px-4">
         <ProductsTable
           products={products}
-          customers={customers}
           isLoading={loading}
           sortBy={sortBy}
           sortOrder={sortOrder}
@@ -445,8 +433,6 @@ export default function ProductsPage() {
         }}
         onSubmit={handleSubmit}
         selectedProduct={selectedProduct}
-        customers={customers}
-        onRefreshCustomers={fetchCustomers}
       />
 
       <DeleteConfirmModal

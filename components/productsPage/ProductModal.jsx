@@ -7,15 +7,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { CalendarIcon, Plus } from 'lucide-react'
+import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { CustomerModal } from '@/components/mainPage/CustomerModal'
 import { toast } from 'sonner'
-import axios from 'axios'
 
 const productCategories = [
     { value: 'Bilgisayar', label: '💻 Bilgisayar', color: 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200' },
@@ -49,9 +47,7 @@ export function ProductModal({
     visible, 
     onClose, 
     onSubmit, 
-    selectedProduct, 
-    customers, 
-    onRefreshCustomers 
+    selectedProduct
 }) {
     const [formData, setFormData] = useState({
         name: '',
@@ -68,11 +64,9 @@ export function ProductModal({
         specifications: '',
         warranty: '',
         notes: '',
-        location: '',
-        customerID: ''
+        location: ''
     })
 
-    const [customerModalVisible, setCustomerModalVisible] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     useEffect(() => {
@@ -92,8 +86,7 @@ export function ProductModal({
                 specifications: selectedProduct.specifications || '',
                 warranty: selectedProduct.warranty || '',
                 notes: selectedProduct.notes || '',
-                location: selectedProduct.location || '',
-                customerID: selectedProduct.customerID || ''
+                location: selectedProduct.location || ''
             })
         } else {
             setFormData({
@@ -111,8 +104,7 @@ export function ProductModal({
                 specifications: '',
                 warranty: '',
                 notes: '',
-                location: '',
-                customerID: ''
+                location: ''
             })
         }
     }, [selectedProduct, visible])
@@ -129,11 +121,6 @@ export function ProductModal({
             return
         }
 
-        if (!formData.customerID) {
-            toast.error('Müşteri seçimi zorunludur')
-            return
-        }
-
         setIsSubmitting(true)
         
         try {
@@ -145,71 +132,18 @@ export function ProductModal({
         }
     }
 
-    const handleCustomerSubmit = async (customerData) => {
-        try {
-            const response = await axios.post('/api/customers', customerData)
-            await onRefreshCustomers()
-            setCustomerModalVisible(false)
-            // Auto-select the newly created customer
-            setFormData(prev => ({ ...prev, customerID: response.data.id }))
-            toast.success('Müşteri başarıyla eklendi ve seçildi')
-        } catch (error) {
-            console.error('Error creating customer:', error)
-            toast.error('Müşteri eklenirken hata oluştu')
-        }
-    }
-
     if (!visible) return null
 
     return (
-        <>
             <Dialog open={visible} onOpenChange={onClose}>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
-                            {selectedProduct ? 'Fiziksel Ürünü Düzenle' : 'Yeni Fiziksel Ürün Ekle'}
+                            {selectedProduct ? 'Ürünü Düzenle' : 'Yeni Ürün Ekle'}
                         </DialogTitle>
                     </DialogHeader>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Customer Selection - Required and at the top */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold border-b pb-2 text-primary">👤 Müşteri Bilgisi (Zorunlu)</h3>
-                            
-                            <div>
-                                <Label htmlFor="customer" className="text-base font-semibold">Müşteri *</Label>
-                                <div className="flex gap-2">
-                                    <Select 
-                                        value={formData.customerID || "none"} 
-                                        onValueChange={(value) => handleInputChange('customerID', value === "none" ? "" : value)}
-                                    >
-                                        <SelectTrigger className="flex-1 h-12 text-lg border-2 focus:border-primary">
-                                            <SelectValue placeholder="Müşteri seçin (zorunlu)" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">Müşteri seçin</SelectItem>
-                                            {customers.map((customer) => (
-                                                <SelectItem key={customer.id} value={customer.id}>
-                                                    {customer.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setCustomerModalVisible(true)}
-                                        className="h-12 px-4"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                                {!formData.customerID && (
-                                    <p className="text-xs text-red-500 mt-1">Bu alan zorunludur</p>
-                                )}
-                            </div>
-                        </div>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Product Category - Primary Focus */}
                             <div className="space-y-4 md:col-span-2">
@@ -462,13 +396,5 @@ export function ProductModal({
                     </form>
                 </DialogContent>
             </Dialog>
-
-            <CustomerModal
-                visible={customerModalVisible}
-                onClose={() => setCustomerModalVisible(false)}
-                onSubmit={handleCustomerSubmit}
-                selectedCustomer={null}
-            />
-        </>
     )
 }
