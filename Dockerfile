@@ -1,62 +1,65 @@
-# Use the official Node.js 18 Alpine image as base
-FROM node:18-alpine AS base
+# Use Node 20 for better compatibility with modern packages
+FROM node:20-alpine AS base
 
-# Install dependencies only when needed
+# 1. Install pnpm manually (Bypasses Corepack KeyID errors)
+# ENV PNPM_HOME="/pnpm"
+# ENV PATH="$PNPM_HOME:$PATH"
+RUN npm install -g pnpm
+
+# --- Dependencies stage ---
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
+# Copy lockfile and manifest
+COPY package.json pnpm-lock.yaml* ./
+
+# Install ALL dependencies (needed for build and prisma)
 RUN \
-  if [ -f package-lock.json ]; then npm ci --only=production; \
-  else echo "Lockfile not found." && exit 1; \
+  if [ -f pnpm-lock.yaml ]; then pnpm i --frozen-lockfile; \
+  else echo "pnpm-lock.yaml not found." && exit 1; \
   fi
 
-# Rebuild the source code only when needed
+# --- Builder stage ---
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generate Prisma Client
-RUN npx prisma generate
+RUN pnpm prisma generate
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
-# Production image, copy all the files and run next
+# --- Production runner stage ---
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install curl for healthchecks
 RUN apk add --no-cache curl
 
 # Create a non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
 # Copy the public folder
 COPY --from=builder /app/public ./public
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+# Set permissions for the .next folder
+RUN mkdir .next && chown nextjs:nodejs .next
 
-# Automatically leverage output traces to reduce image size
+# IMPORTANT: Leverage Next.js standalone output
+# Standalone mode traces Prisma and bundles it into the standalone folder
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma schema and generated client
+# Copy Prisma schema (required for migrations or runtime checks)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
 USER nextjs
 
@@ -65,5 +68,8 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Start the Next.js application directly
+# Healthcheck for Coolify stability
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
 CMD ["node", "server.js"]
