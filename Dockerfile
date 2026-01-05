@@ -72,4 +72,5 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:3000/api/health || exit 1
 
-CMD ["node", "server.js"]
+# Start the Next.js application with migrations
+CMD sh -c "pnpm prisma migrate deploy && node server.js"
