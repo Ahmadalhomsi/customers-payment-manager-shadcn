@@ -1,76 +1,73 @@
-# Use Node 20 for better compatibility with modern packages
-FROM node:20-alpine AS base
+# Use the official Node.js 20 Alpine image as base
+FROM node:20.14.0-alpine AS base
 
-# 1. Install pnpm manually (Bypasses Corepack KeyID errors)
-# ENV PNPM_HOME="/pnpm"
-# ENV PATH="$PNPM_HOME:$PATH"
+# Install pnpm globally
 RUN npm install -g pnpm
 
-# --- Dependencies stage ---
+# Install dependencies only when needed
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy lockfile and manifest
+# Copy only lockfile and manifest for better caching
 COPY package.json pnpm-lock.yaml* ./
 
-# Install ALL dependencies (needed for build and prisma)
-RUN \
-  if [ -f pnpm-lock.yaml ]; then pnpm i --frozen-lockfile; \
-  else echo "pnpm-lock.yaml not found." && exit 1; \
-  fi
+# Install all dependencies including dev dependencies for Prisma
+RUN pnpm install --frozen-lockfile
 
-# --- Builder stage ---
+# Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Disable Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Generate Prisma Client
+# Create the generated directory with proper permissions
+RUN mkdir -p app/generated && chmod -R 777 app/generated
+
+# Generate Prisma Client before building
 RUN pnpm prisma generate
 
 # Build the application
-RUN pnpm run build
+RUN pnpm build
 
-# --- Production runner stage ---
+# Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN apk add --no-cache curl
-
 # Create a non-root user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
 
-# Copy the public folder
+# Copy necessary files including node_modules for Prisma
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/app/generated ./app/generated
 
-# Set permissions for the .next folder
-RUN mkdir .next && chown nextjs:nodejs .next
+# Fix permissions for the generated directory
+RUN mkdir -p app/generated && chown -R nextjs:nodejs app/generated && chmod -R 755 app/generated
 
-# IMPORTANT: Leverage Next.js standalone output
-# Standalone mode traces Prisma and bundles it into the standalone folder
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Copy Prisma schema (required for migrations or runtime checks)
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+# Permissions for .next directory
+RUN mkdir -p .next && chown nextjs:nodejs .next
 
 USER nextjs
 
-EXPOSE 3000
+# Healthcheck using Node.js (no curl needed)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
+EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-
-# Healthcheck for Coolify stability
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Start the Next.js application with migrations
 CMD sh -c "pnpm prisma migrate deploy && node server.js"
