@@ -53,6 +53,8 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/app/generated ./app/generated
 
+RUN apk add --no-cache curl
+
 # Fix permissions for the generated directory
 RUN mkdir -p app/generated && chown -R nextjs:nodejs app/generated && chmod -R 755 app/generated
 
