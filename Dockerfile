@@ -63,10 +63,6 @@ RUN mkdir -p .next && chown nextjs:nodejs .next
 
 USER nextjs
 
-# Healthcheck using Node.js (no curl needed)
-# HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
-#   CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
-
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
