@@ -579,7 +579,7 @@ export function ServiceTable({
                                         <TableCell>
                                             {service.version ? (
                                                 <Badge variant="outline" className="font-mono text-xs">
-                                                    v{service.version}
+                                                    {service.version}
                                                 </Badge>
                                             ) : (
                                                 <span className="text-xs text-muted-foreground">-</span>

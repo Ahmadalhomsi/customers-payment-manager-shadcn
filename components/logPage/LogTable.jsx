@@ -141,7 +141,7 @@ export function LogTable({
                   if (requestData.version) {
                     return (
                       <Badge variant="outline" className="font-mono text-xs">
-                        v{requestData.version}
+                        {requestData.version}
                       </Badge>
                     );
                   }
