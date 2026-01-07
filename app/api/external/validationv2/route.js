@@ -39,7 +39,7 @@ function createStandardResponse(success, valid = null, message, data = null, err
 /**
  * Creates a trial service for external applications
  */
-async function createTrialService(deviceToken, serviceName, companyName, terminal, logData = null) {
+async function createTrialService(deviceToken, serviceName, companyName, terminal, version, logData = null) {
     // Validate required fields
     if (!deviceToken || !serviceName) {
         const { body, response } = createStandardResponse(
@@ -201,6 +201,7 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
             endingDate: endingDate,
             deviceToken: deviceToken,
             terminal: terminal || null,
+            version: version || null,
             customerID: trialCustomer.id
         }
     });
@@ -249,7 +250,7 @@ async function createTrialService(deviceToken, serviceName, companyName, termina
 
 export async function POST(request) {
     const data = await request.json();
-    const { deviceToken, serviceName, companyName, terminal } = data;
+    const { deviceToken, serviceName, companyName, terminal, version } = data;
 
     // Validate that deviceToken is provided
     if (!deviceToken) {
@@ -277,7 +278,8 @@ export async function POST(request) {
         requestBody: JSON.stringify(data),
         serviceName: serviceName || null,
         deviceToken: deviceToken || null,
-        validationType: 'Device Token Based' // Will be updated based on response
+        validationType: 'Device Token Based', // Will be updated based on response
+        version: version || null
     };
 
     try {
@@ -289,7 +291,7 @@ export async function POST(request) {
         if (!service) {
             // No service found with this device token, create a trial service
             logData.validationType = 'Trial';
-            return await createTrialService(deviceToken, serviceName, companyName, terminal, logData);
+            return await createTrialService(deviceToken, serviceName, companyName, terminal, version, logData);
         }
 
         // Service found, perform system login validation (Sisteme Giriş)
@@ -362,6 +364,12 @@ export async function POST(request) {
         // Always update lastLoginDate on successful validation
         updateData.lastLoginDate = new Date();
         needsUpdate = true;
+        
+        // Update version if provided
+        if (version && service.version !== version) {
+            updateData.version = version;
+            needsUpdate = true;
+        }
         
         if (serviceName && service.name !== serviceName) {
             updateData.name = serviceName;

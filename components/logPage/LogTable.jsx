@@ -81,6 +81,7 @@ export function LogTable({
             <TableHead className="">İşletme Adı</TableHead>
             <TableHead className="">Müşteri</TableHead>
             <TableHead className="">Terminal</TableHead>
+            <TableHead className="">Versiyon</TableHead>
             <SortableHeader field="endpoint">Endpoint</SortableHeader>
             <TableHead className="">Doğrulama Tipi</TableHead>
             <SortableHeader field="responseStatus">Durum</SortableHeader>
@@ -125,6 +126,29 @@ export function LogTable({
                 } catch {
                   return '-';
                 }
+              })()}</TableCell>
+              <TableCell className="">{(() => {
+                if (log.version) {
+                  return (
+                    <Badge variant="outline" className="font-mono text-xs">
+                      v{log.version}
+                    </Badge>
+                  );
+                }
+                // Try to get version from request body if not in log
+                try {
+                  const requestData = JSON.parse(log.requestBody || '{}');
+                  if (requestData.version) {
+                    return (
+                      <Badge variant="outline" className="font-mono text-xs">
+                        v{requestData.version}
+                      </Badge>
+                    );
+                  }
+                } catch {
+                  // Do nothing
+                }
+                return '-';
               })()}</TableCell>
               <TableCell className="font-mono text-sm">
                 <Badge variant="outline" className="">{log.method}</Badge> {log.endpoint}

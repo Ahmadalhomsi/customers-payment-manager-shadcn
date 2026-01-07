@@ -76,6 +76,7 @@ model Service {
   deviceToken String?
   terminal    String? // Device name
   lastLoginDate DateTime? // Son giriş tarihi - null if never logged in
+  version     String? // Application version - updated on each validation
 
   // Relations
   customerID     String
@@ -230,6 +231,7 @@ model ApiLog {
   serviceName String? // Service name if available
   deviceToken String? // Device token if available
   validationType String? // Type of validation: 'Main' or 'Trial'
+  version String? // Application version sent by the client
   
   createdAt DateTime @default(now())
   

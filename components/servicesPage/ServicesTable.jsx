@@ -450,6 +450,15 @@ export function ServiceTable({
                                         <SortIcon column="lastLoginDate" />
                                     </div>
                                 </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleSort('version')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Versiyon
+                                        <SortIcon column="version" />
+                                    </div>
+                                </TableHead>
                                 {hasDeviceTokens && (
                                     <TableHead
                                         className="cursor-pointer hover:bg-muted/50"
@@ -565,6 +574,15 @@ export function ServiceTable({
                                                 </div>
                                             ) : (
                                                 <span className="text-xs text-muted-foreground">Hiç giriş yapılmamış</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {service.version ? (
+                                                <Badge variant="outline" className="font-mono text-xs">
+                                                    v{service.version}
+                                                </Badge>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground">-</span>
                                             )}
                                         </TableCell>
                                         {hasDeviceTokens && (
