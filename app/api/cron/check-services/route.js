@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { isBefore, differenceInDays, subDays, startOfDay, isSameDay } from 'date-fns';
+import { differenceInDays, startOfDay, isSameDay } from 'date-fns';
 
 export const dynamic = 'force-dynamic'; // Ensure this route is not cached
 
@@ -21,7 +21,7 @@ export async function GET(req) {
                 paymentType: {
                     not: 'unlimited' // Skip unlimited services
                 },
-                // Exclude "Demo" / "Trial" services as requested
+                // Keep explicit exclusions for safety, though the 16-day rule handles most trial logic
                 customer: {
                     name: {
                         not: 'Trial Customer'
@@ -53,42 +53,9 @@ export async function GET(req) {
             let status = 'active';
             let action = 'none';
 
-            // 1. Check for Expired Services (Yesterday or before)
-            if (isBefore(endDate, today)) {
-                status = 'expired';
-                
-                // Check if we already notified about expiration recently (last 30 days)
-                // Reduced from 60 to 30 to be more responsive if needed, but still prevent spam
-                const existingNotification = await prisma.notifications.findFirst({
-                    where: {
-                        title: {
-                            contains: `Hizmet Süresi Doldu`
-                        },
-                        message: {
-                            contains: service.name
-                        },
-                        createdAt: {
-                            gte: subDays(today, 30)
-                        }
-                    }
-                });
-
-                if (!existingNotification) {
-                    await prisma.notifications.create({
-                        data: {
-                            title: `Hizmet Süresi Doldu: ${service.name}`,
-                            message: `${service.customer.name} müşterisine ait ${service.name} hizmetinin süresi dolmuştur. Lütfen yenileyiniz.`,
-                            type: 'error',
-                        }
-                    });
-                    newNotifications++;
-                    action = 'created_expired_notification';
-                } else {
-                    action = 'skipped_already_notified_expired';
-                }
-            }
-            // 2. Check for Services Ending TODAY (Priority)
-            else if (isSameDay(endDate, today)) {
+            // 1. Check for Services Ending TODAY
+            // "only today ending date should be pushed"
+            if (isSameDay(endDate, today)) {
                 status = 'expires_today';
                 
                 // Check if we already notified TODAY about this
@@ -120,12 +87,12 @@ export async function GET(req) {
                     action = 'skipped_already_notified_today';
                 }
             }
-            // 3. Check for Upcoming Services (Tomorrow to 7 days)
-            else if (daysRemaining <= 7 && daysRemaining > 0) {
-                status = 'upcoming';
+            // 2. Check for Upcoming Services (Exactly 16 days left)
+            // "only 16 day left services should be pushed (to prevent pushing 15 day trial services)"
+            else if (daysRemaining === 16) {
+                status = 'upcoming_16_days';
                 
-                // Check if we notified about this recently (in the last 5 days)
-                // This ensures we notify roughly once a week, but resets if we enter the "today" zone
+                // Check if we already notified TODAY about this
                 const existingNotification = await prisma.notifications.findFirst({
                     where: {
                         title: {
@@ -135,7 +102,7 @@ export async function GET(req) {
                             contains: service.name
                         },
                         createdAt: {
-                            gte: subDays(today, 5)
+                            gte: today // Created today
                         }
                     }
                 });
@@ -144,19 +111,20 @@ export async function GET(req) {
                     await prisma.notifications.create({
                         data: {
                             title: `Yaklaşan Hizmet: ${service.name}`,
-                            message: `${service.customer.name} müşterisine ait ${service.name} hizmetinin süresi ${daysRemaining} gün içinde dolacaktır.`,
+                            message: `${service.customer.name} müşterisine ait ${service.name} hizmetinin süresi 16 gün içinde dolacaktır.`,
                             type: 'warning',
                         }
                     });
                     newNotifications++;
                     action = 'created_upcoming_notification';
                 } else {
-                    action = 'skipped_already_notified_upcoming';
+                    action = 'skipped_already_notified_today';
                 }
             }
+            // Note: We are NO LONGER checking for past expired services or services with < 16 days left.
 
-            // Log details for debugging/verification
-            if (status !== 'active' || action !== 'none') {
+            // Log details for debugging/verification if something happened or it matched our criteria
+            if (status !== 'active') {
                 results.push({
                     service: service.name,
                     customer: service.customer.name,
