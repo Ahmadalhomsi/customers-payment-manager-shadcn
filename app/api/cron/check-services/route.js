@@ -57,50 +57,15 @@ export async function GET(req) {
             // 2. Convert Service End Date to Istanbul Time
             const serviceEndDate = new Date(service.endingDate);
             
-            // Adjust for the specific case where dates are stored as T21:00:00.000Z (previous day in UTC)
-            // If a date is stored as 2026-02-26T21:00:00.000Z, it effectively means "End of 2026-02-26" in Turkey (UTC+3 -> 00:00 next day)
-            // But usually, humans mean "The night of Feb 26th".
-            // However, mathematically, 21:00 UTC IS 00:00 Istanbul (next day).
-            
-            // Fix: We should check if the time is close to midnight (e.g. > 20:00 UTC) and treat it as the "intended" day if needed.
-            // BUT, looking at your data: 
-            // "endDateRaw":"2026-02-26T21:00:00.000Z" -> "endDateLocal":"27.02.2026"
-            // "todayLocal":"25.02.2026"
-            // Days remaining: 2 (27 - 25 = 2)
-            
-            // If you WANT 2026-02-26T21:00:00.000Z to be treated as Feb 26th:
-            // We can subtract a few hours before converting to timezone to ensure it falls back to the previous day.
-            // OR we can just use the UTC date parts directly if your system treats dates as "Universal Date" regardless of time.
-            
-            // ADJUSTMENT: Subtract 3 hours from the date before converting to ensure 21:00 UTC (00:00 TRT) falls back to the previous day?
-            // actually, if the database stores 21:00 UTC, it means it was likely saved as "00:00 TRT" by a system that compensated for timezone.
-            // If the intention is that it expires "At the end of Feb 26th", then 00:00 Feb 27th is technically correct.
-            // BUT for notification purposes, if today is Feb 26th, and it expires at 00:00 Feb 27th, it expires "Today".
-            
-            // Let's stick to strict timezone conversion but ensure we handle "expires today" logic correctly.
-            // If today is 25th, and it expires 27th (00:00), that is indeed 2 days.
-            // If today is 26th, and it expires 27th (00:00), that is 1 day remaining (expires tomorrow at midnight).
-            // Wait, if it expires at 00:00:00 on the 27th, that effectively means it is valid for the ENTIRE 26th, and expires the moment 27th starts.
-            // So on the 26th, it should say "Expires Today" (meaning expires tonight).
-            
-            // LOGIC CHANGE:
-            // If the time is exactly 00:00:00 in Istanbul (which is 21:00 UTC previous day), 
-            // we should treat the "Effective End Date" as the PREVIOUS day for notification purposes.
-            // i.e., Expiring at Start of Feb 27 = Expiring at End of Feb 26.
-            
+            // Dates stored as T21:00:00.000Z represent midnight Istanbul time (UTC+3) for the NEXT day.
+            // e.g., "2026-02-26T21:00:00.000Z" = "2026-02-27 00:00:00" Istanbul = user intended Feb 27.
+            // We use the Istanbul date directly without shifting back.
             const endDateInIstanbul = toZonedTime(serviceEndDate, TIMEZONE);
             
-            // Check if it's exactly midnight (00:00:00)
-            const isMidnight = endDateInIstanbul.getHours() === 0 && endDateInIstanbul.getMinutes() === 0;
-            
-            let effectiveEndDate;
-            if (isMidnight) {
-                // If it ends at 00:00:00, subtract 1 millisecond to treat it as the previous day's end
-                const adjustedDate = new Date(endDateInIstanbul.getTime() - 1);
-                effectiveEndDate = new Date(adjustedDate.getFullYear(), adjustedDate.getMonth(), adjustedDate.getDate());
-            } else {
-                effectiveEndDate = new Date(endDateInIstanbul.getFullYear(), endDateInIstanbul.getMonth(), endDateInIstanbul.getDate());
-            }
+            // Use the Istanbul date directly without any midnight adjustment.
+            // When a user sets "Feb 27" as end date, it's stored as "2026-02-26T21:00:00.000Z" (midnight Istanbul = 21:00 UTC prev day).
+            // We should treat this as Feb 27, not shift it back to Feb 26.
+            const effectiveEndDate = new Date(endDateInIstanbul.getFullYear(), endDateInIstanbul.getMonth(), endDateInIstanbul.getDate());
 
             // 3. Calculate Days Remaining using Calendar Days
             const daysRemaining = differenceInCalendarDays(effectiveEndDate, today);
@@ -198,7 +163,7 @@ export async function GET(req) {
                         data: {
                             title: `Yaklaşan Hizmet: ${service.name}`,
                             message: `${service.customer.name} müşterisine ait ${service.name} hizmetinin süresi 16 gün içinde dolacaktır.`,
-                            type: 'warning',
+                            type: 'upcoming',
                         }
                     });
                     newNotifications++;
