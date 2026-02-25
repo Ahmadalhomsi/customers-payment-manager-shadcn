@@ -198,10 +198,15 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
         setSelectedService(fixedService);
         
         if (customers.length === 0) {
-             const customersRes = await fetch('/api/customers');
+             const customersRes = await fetch('/api/customers?limit=1000');
              if (customersRes.ok) {
                  const customersData = await customersRes.json();
-                 setCustomers(customersData);
+                 // Handle response format { customers: [], pagination: {} }
+                 if (customersData.customers && Array.isArray(customersData.customers)) {
+                     setCustomers(customersData.customers);
+                 } else if (Array.isArray(customersData)) {
+                     setCustomers(customersData);
+                 }
              }
         }
         
