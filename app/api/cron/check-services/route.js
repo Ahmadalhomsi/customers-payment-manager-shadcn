@@ -22,6 +22,8 @@ export async function GET(req) {
         // Normalize today to start of day (00:00:00) in Istanbul time
         // We create a new date using the year, month, day from the zoned time
         const today = new Date(todayInIstanbul.getFullYear(), todayInIstanbul.getMonth(), todayInIstanbul.getDate());
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
 
         const services = await prisma.service.findMany({
             where: {
@@ -220,6 +222,50 @@ export async function GET(req) {
             }
         }
 
+        // DEBUG: Find services ending within 3 days that may have been excluded by filters
+        // This helps identify services that are filtered out (inactive, unlimited, trial, etc.)
+        const allServicesEndingSoon = await prisma.service.findMany({
+            where: {
+                endingDate: {
+                    gte: new Date(today.getTime() - 24 * 60 * 60 * 1000), // from yesterday
+                    lte: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000), // to 3 days from now
+                }
+            },
+            include: {
+                customer: {
+                    select: { name: true }
+                }
+            }
+        });
+
+        const excludedServices = allServicesEndingSoon
+            .filter(s => {
+                // Check if this service was NOT in our processed list
+                return !services.some(ps => ps.id === s.id);
+            })
+            .map(s => {
+                const reasons = [];
+                if (!s.active) reasons.push('inactive');
+                if (s.paymentType === 'unlimited') reasons.push('unlimited');
+                if (s.customer.name === 'Trial Customer') reasons.push('trial_customer');
+                if (s.description?.startsWith('Trial service')) reasons.push('trial_description');
+                
+                const sEndDate = toZonedTime(new Date(s.endingDate), TIMEZONE);
+                const sEffective = new Date(sEndDate.getFullYear(), sEndDate.getMonth(), sEndDate.getDate());
+                
+                return {
+                    service: s.name,
+                    customer: s.customer.name,
+                    endDateRaw: s.endingDate,
+                    endDateIstanbul: sEffective.toLocaleDateString('tr-TR'),
+                    active: s.active,
+                    paymentType: s.paymentType,
+                    description: s.description?.substring(0, 50) || null,
+                    excludedReasons: reasons,
+                    daysRemaining: differenceInCalendarDays(sEffective, today),
+                };
+            });
+
         return NextResponse.json({
             success: true,
             timezone: TIMEZONE,
@@ -228,7 +274,11 @@ export async function GET(req) {
             processed: services.length,
             newNotifications,
             note: 'endDateRaw shows UTC time. Dates ending in T21:00:00Z = midnight Istanbul (next day). Check endDateIstanbul for the actual Turkey date.',
-            details: results
+            details: results,
+            ...(excludedServices.length > 0 && { 
+                excludedServicesEndingSoon: excludedServices,
+                excludedNote: 'These services end within 3 days but were excluded from notification processing by filters.'
+            })
         });
 
     } catch (error) {
