@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, X, Trash2, AlertTriangle, CheckCircle2, AlertCircle, Clock, CalendarClock } from "lucide-react";
+import { Bell, X, Trash2, AlertTriangle, CheckCircle2, AlertCircle, Clock, CalendarClock, Edit } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -12,6 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ServiceModal2 } from "@/components/servicesPage/ServiceModal2";
 
 // Type configuration
 const typeConfig = {
@@ -70,6 +71,12 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Service Edit State
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [customers, setCustomers] = useState([]);
+  const [isServiceLoading, setIsServiceLoading] = useState(false);
+
   // Fetch notifications on mount and when popover opens
   useEffect(() => {
     const fetchData = async () => {
@@ -86,6 +93,7 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
           type: notification.type || 'info',
           read: notification.read || false,
           createdAt: new Date(notification.createdAt),
+          serviceId: notification.serviceId,
         }));
 
         setNotifications(mappedData);
@@ -123,6 +131,7 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
         type: notification.type || 'info',
         read: notification.read || false,
         createdAt: new Date(notification.createdAt),
+        serviceId: notification.serviceId,
       }));
 
       setNotifications(mappedData);
@@ -172,9 +181,60 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
     }
   };
 
+  const handleEditService = async (serviceId, e) => {
+    e.stopPropagation();
+    setIsServiceLoading(true);
+    try {
+        const serviceRes = await fetch(`/api/services/${serviceId}`);
+        if (!serviceRes.ok) throw new Error("Failed to fetch service");
+        const serviceData = await serviceRes.json();
+        
+        const fixedService = {
+            ...serviceData,
+            startingDate: new Date(serviceData.startingDate),
+            endingDate: new Date(serviceData.endingDate),
+        };
+        
+        setSelectedService(fixedService);
+        
+        if (customers.length === 0) {
+             const customersRes = await fetch('/api/customers');
+             if (customersRes.ok) {
+                 const customersData = await customersRes.json();
+                 setCustomers(customersData);
+             }
+        }
+        
+        setIsServiceModalOpen(true);
+        setOpen(false);
+    } catch (err) {
+        console.error("Edit service error:", err);
+    } finally {
+        setIsServiceLoading(false);
+    }
+  };
+
+  const handleServiceUpdate = async (updatedService) => {
+      try {
+          const response = await fetch(`/api/services/${updatedService.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updatedService),
+          });
+          
+          if (response.ok) {
+              setIsServiceModalOpen(false);
+              fetchNotifications();
+          }
+      } catch (err) {
+          console.error("Update error:", err);
+      }
+  };
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
+    <>
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="relative cursor-pointer">
@@ -196,7 +256,7 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
         </div>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[480px] p-0" align="end">
+      <PopoverContent className="w-[600px] p-0" align="end">
         <div className="space-y-2">
           <div className="p-4 border-b flex justify-between items-center">
             <h4 className="font-medium">Notifications</h4>
@@ -274,12 +334,24 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
                     </p>
                   </button>
 
-                  <button
-                    onClick={() => handleDelete(notification.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 -mr-2 shrink-0"
-                  >
-                    <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                  </button>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity -mr-2 shrink-0">
+                      {notification.serviceId && (
+                        <button
+                            onClick={(e) => handleEditService(notification.serviceId, e)}
+                            className="p-1 hover:bg-white/50 rounded"
+                            title="Hizmeti Düzenle"
+                        >
+                            <Edit className="h-4 w-4 text-muted-foreground hover:text-blue-600" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(notification.id)}
+                        className="p-1 hover:bg-white/50 rounded"
+                        title="Bildirimi Sil"
+                      >
+                        <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                      </button>
+                  </div>
 
                   {!notification.read && (
                     <div className="absolute top-4 left-1">
@@ -297,5 +369,15 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
         </div>
       </PopoverContent>
     </Popover>
+    
+    <ServiceModal2 
+        visible={isServiceModalOpen}
+        onClose={() => setIsServiceModalOpen(false)}
+        onSubmit={handleServiceUpdate}
+        selectedService={selectedService}
+        customers={customers}
+        isLoading={isServiceLoading} 
+    />
+    </>
   );
 };

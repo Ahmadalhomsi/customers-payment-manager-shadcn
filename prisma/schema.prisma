@@ -145,6 +145,8 @@ model Notifications {
   message   String
   type      String   @default("info")
   read      Boolean  @default(false)
+  serviceId String?
+  customerId String?
   createdAt DateTime @default(now())
 }
 

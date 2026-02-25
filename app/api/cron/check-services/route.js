@@ -98,6 +98,8 @@ export async function GET(req) {
                             title: `Bugün Sona Eriyor: ${service.name}`,
                             message: `${service.customer.name} müşterisine ait ${service.name} hizmetinin süresi BUGÜN doluyor.`,
                             type: 'error', // High priority (Red)
+                            serviceId: service.id,
+                            customerId: service.customerID,
                         }
                     });
                     newNotifications++;
@@ -130,6 +132,8 @@ export async function GET(req) {
                             title: `Yarın Sona Eriyor: ${service.name}`,
                             message: `${service.customer.name} müşterisine ait ${service.name} hizmetinin süresi YARIN doluyor.`,
                             type: 'warning', // High priority warning
+                            serviceId: service.id,
+                            customerId: service.customerID,
                         }
                     });
                     newNotifications++;
@@ -194,6 +198,8 @@ export async function GET(req) {
                             title: `Yaklaşan Hizmet: ${service.name}`,
                             message: `${service.customer.name} müşterisine ait ${service.name} hizmetinin süresi 16 gün içinde dolacaktır.`,
                             type: 'upcoming',
+                            serviceId: service.id,
+                            customerId: service.customerID,
                         }
                     });
                     newNotifications++;

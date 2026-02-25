@@ -13,7 +13,8 @@ export async function GET() {
                 message: true,
                 type: true,
                 read: true,
-                createdAt: true
+                createdAt: true,
+                serviceId: true
             },
             orderBy: { createdAt: 'desc' }
         });
