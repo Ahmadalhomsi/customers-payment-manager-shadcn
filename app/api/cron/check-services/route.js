@@ -31,17 +31,7 @@ export async function GET(req) {
                 paymentType: {
                     not: 'unlimited' // Skip unlimited services
                 },
-                // Keep explicit exclusions for safety
-                customer: {
-                    name: {
-                        not: 'Trial Customer'
-                    }
-                },
-                description: {
-                    not: {
-                        startsWith: 'Trial service'
-                    }
-                }
+                // Trial Customer services are included so we can notify when they expire TODAY
             },
             include: {
                 customer: {
@@ -71,6 +61,12 @@ export async function GET(req) {
 
             // 3. Calculate Days Remaining using Calendar Days
             const daysRemaining = differenceInCalendarDays(effectiveEndDate, today);
+
+            const isTrialService = service.customer.name === 'Trial Customer' ||
+                (service.description && service.description.startsWith('Trial service'));
+
+            // Trial services only get notified if they end exactly TODAY
+            if (isTrialService && daysRemaining !== 0) continue;
 
             let status = 'active';
             let action = 'none';
