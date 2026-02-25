@@ -58,11 +58,20 @@ export async function GET(req) {
                 status = 'expires_today';
                 
                 // Check if we already notified TODAY about this
+                // We must look for ANY notification for this service created today
+                // because we want to prevent duplicate "expires today" notifications
+                // AND also prevent "Yaklaşan Hizmet" notifications from blocking this one if they were sent days ago.
                 const existingNotification = await prisma.notifications.findFirst({
                     where: {
-                        title: {
-                            contains: `Bugün Sona Eriyor`
-                        },
+                        OR: [
+                            {
+                                title: { contains: `Bugün Sona Eriyor` }
+                            },
+                            {
+                                // Also prevent duplicate "expired" notifications if we ran this script multiple times today
+                                title: { contains: `Hizmet Süresi Doldu` } 
+                            }
+                        ],
                         message: {
                             contains: service.name
                         },
@@ -90,7 +99,6 @@ export async function GET(req) {
             else if (daysRemaining === 1) {
                 status = 'expires_tomorrow';
                 
-                // Check if we already notified TODAY about this
                 const existingNotification = await prisma.notifications.findFirst({
                     where: {
                         title: {
@@ -123,7 +131,6 @@ export async function GET(req) {
             else if (daysRemaining === 16) {
                 status = 'upcoming_16_days';
                 
-                // Check if we already notified TODAY about this
                 const existingNotification = await prisma.notifications.findFirst({
                     where: {
                         title: {
