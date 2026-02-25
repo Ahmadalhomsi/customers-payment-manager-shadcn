@@ -52,6 +52,7 @@ function getEffectiveType(notification) {
   const title = notification.title || '';
   if (title.includes('Bugün Sona Eriyor') || title.includes('Süresi Doldu')) return 'error';
   if (title.includes('Yarın Sona Eriyor')) return 'warning';
+  if (title.includes('2 Gün Kaldı')) return 'warning';
   if (title.includes('Yaklaşan Hizmet')) return 'upcoming';
   return notification.type || 'info';
 }

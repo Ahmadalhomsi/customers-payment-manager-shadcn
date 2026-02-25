@@ -140,7 +140,39 @@ export async function GET(req) {
                     action = 'skipped_already_notified_today';
                 }
             }
-            // 3. Check for Upcoming Services (Exactly 16 days left)
+            // 3. Check for Services Ending in 2 DAYS
+            else if (daysRemaining === 2) {
+                status = 'expires_in_2_days';
+                
+                const existingNotification = await prisma.notifications.findFirst({
+                    where: {
+                        title: {
+                            contains: `2 Gün Kaldı`
+                        },
+                        message: {
+                            contains: service.name
+                        },
+                        createdAt: {
+                            gte: today
+                        }
+                    }
+                });
+
+                if (!existingNotification) {
+                    await prisma.notifications.create({
+                        data: {
+                            title: `2 Gün Kaldı: ${service.name}`,
+                            message: `${service.customer.name} müşterisine ait ${service.name} hizmetinin süresinin dolmasına 2 gün kaldı.`,
+                            type: 'warning',
+                        }
+                    });
+                    newNotifications++;
+                    action = 'created_2days_notification';
+                } else {
+                    action = 'skipped_already_notified_today';
+                }
+            }
+            // 4. Check for Upcoming Services (Exactly 16 days left)
             else if (daysRemaining === 16) {
                 status = 'upcoming_16_days';
                 
@@ -179,8 +211,8 @@ export async function GET(req) {
                     service: service.name,
                     customer: service.customer.name,
                     endDateRaw: service.endingDate,
-                    endDateLocal: effectiveEndDate.toLocaleDateString('tr-TR'),
-                    todayLocal: today.toLocaleDateString('tr-TR'),
+                    endDateIstanbul: effectiveEndDate.toLocaleDateString('tr-TR'),
+                    todayIstanbul: today.toLocaleDateString('tr-TR'),
                     daysRemaining,
                     status,
                     action
@@ -191,8 +223,11 @@ export async function GET(req) {
         return NextResponse.json({
             success: true,
             timezone: TIMEZONE,
+            serverTimeUTC: now.toISOString(),
+            todayIstanbul: today.toLocaleDateString('tr-TR'),
             processed: services.length,
             newNotifications,
+            note: 'endDateRaw shows UTC time. Dates ending in T21:00:00Z = midnight Istanbul (next day). Check endDateIstanbul for the actual Turkey date.',
             details: results
         });
 
