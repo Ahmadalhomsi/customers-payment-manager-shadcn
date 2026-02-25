@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { Eye, Globe, ChevronUp, ChevronDown } from 'lucide-react';
+import { Eye, Globe, ChevronUp, ChevronDown, Pencil } from 'lucide-react';
 import { LogDetailModal } from './LogDetailModal';
 
 export function LogTable({
@@ -20,7 +20,8 @@ export function LogTable({
   setSelectedLog,
   sortBy,
   sortOrder,
-  onSort
+  onSort,
+  onEditService
 }) {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString('tr-TR', {
@@ -155,7 +156,7 @@ export function LogTable({
               </TableCell>
               <TableCell className="">{getValidationTypeBadge(log.validationType)}</TableCell>
               <TableCell className="">{getStatusBadge(log.responseStatus)}</TableCell>
-              <TableCell className="">
+              <TableCell className="flex items-center gap-2">
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button
@@ -166,8 +167,19 @@ export function LogTable({
                       <Eye className="h-4 w-4" />
                     </Button>
                   </DialogTrigger>
-                  <LogDetailModal log={selectedLog} />
+                  <LogDetailModal log={selectedLog} onEditService={onEditService} />
                 </Dialog>
+                
+                {onEditService && log.serviceId && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEditService(log.serviceId)}
+                    title="Hizmeti Düzenle"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           ))}

@@ -24,7 +24,8 @@ export function LogsTable({
   onPageSizeChange,
   onSearch,
   onClearFilters,
-  hasActiveFilters
+  hasActiveFilters,
+  onEditService
 }) {
   return (
     <Card className="">
@@ -61,6 +62,7 @@ export function LogsTable({
               sortBy={sortBy}
               sortOrder={sortOrder}
               onSort={onSort}
+              onEditService={onEditService}
             />
 
             {logs.length === 0 && (

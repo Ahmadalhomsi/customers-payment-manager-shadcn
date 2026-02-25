@@ -2,9 +2,10 @@
 
 import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Server } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Server, Pencil } from 'lucide-react';
 
-export function LogDetailModal({ log }) {
+export function LogDetailModal({ log, onEditService }) {
   if (!log) return null;
 
   const formatDate = (dateString) => {
@@ -62,7 +63,20 @@ export function LogDetailModal({ log }) {
             </div>
           </div>
           <div>
-            <h4 className="font-semibold mb-2">Servis Bilgileri</h4>
+            <h4 className="font-semibold mb-2 flex items-center gap-2">
+              Servis Bilgileri
+              {onEditService && log.serviceId && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6" 
+                  onClick={() => onEditService(log.serviceId)}
+                  title="Hizmeti Düzenle"
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
+              )}
+            </h4>
             <div className="space-y-2 text-sm">
               <div><strong>Servis Adı:</strong> {log.serviceName || 'N/A'}</div>
               <div><strong>İşletme Adı:</strong> {(() => {

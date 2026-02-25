@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Server, Trash2 } from 'lucide-react';
 import { LogsTable } from '@/components/logPage';
+import { ServiceModal2 } from '@/components/servicesPage/ServiceModal2';
+import axios from 'axios';
+import { toast } from 'sonner';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState([]);
@@ -24,6 +27,12 @@ export default function LogsPage() {
   const [sortOrder, setSortOrder] = useState('desc'); // New sorting order state
   const [pageSize, setPageSize] = useState(20); // New page size state
   const [isClearing, setIsClearing] = useState(false); // State for clear operation
+
+  // Service Modal states
+  const [serviceModalVisible, setServiceModalVisible] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [customers, setCustomers] = useState([]);
+  const [isServiceLoading, setIsServiceLoading] = useState(false);
 
   // Column-specific filters
   const [columnFilters, setColumnFilters] = useState({
@@ -139,6 +148,7 @@ export default function LogsPage() {
 
   useEffect(() => {
     // Fetch logs is now called from checkAuthentication after auth is verified
+    fetchCustomers();
   }, []);
 
   // Trigger fetching when validation type filter changes (but not column filters - they need button/enter)
@@ -351,6 +361,50 @@ export default function LogsPage() {
     }
   };
 
+  const fetchCustomers = async () => {
+    try {
+      // Fetch all customers without pagination limit for the modal
+      const response = await axios.get('/api/customers?limit=1000');
+      // Handle the new pagination response structure
+      setCustomers(response.data.customers || response.data || []);
+    } catch (error) {
+      console.log('Error fetching customers:', error);
+    }
+  };
+
+  const handleEditServiceClick = async (serviceId) => {
+    if (!serviceId) return;
+    
+    setIsServiceLoading(true);
+    try {
+      const response = await axios.get(`/api/services/${serviceId}`);
+      setSelectedService(response.data);
+      setServiceModalVisible(true);
+    } catch (error) {
+      console.error('Error fetching service details:', error);
+      toast.error('Hizmet detayları alınamadı');
+    } finally {
+      setIsServiceLoading(false);
+    }
+  };
+
+  const handleServiceSubmit = async (formData) => {
+    try {
+      if (selectedService) {
+        await axios.put(`/api/services/${selectedService.id}`, formData);
+        toast.success('Hizmet başarıyla güncellendi');
+      } else {
+        // Should not happen in this context but keeping for completeness
+        await axios.post('/api/services', formData);
+      }
+      setServiceModalVisible(false);
+      setSelectedService(null);
+    } catch (error) {
+      console.error('Error submitting service:', error);
+      toast.error('Hizmet kaydedilirken hata oluştu');
+    }
+  };
+
   const handleClearLogs = async () => {
     setIsClearing(true);
     try {
@@ -446,6 +500,20 @@ export default function LogsPage() {
             onSearch={handleColumnSearch}
             onClearFilters={clearAllFilters}
             hasActiveFilters={hasActiveFilters}
+            onEditService={handleEditServiceClick}
+          />
+
+          <ServiceModal2
+            visible={serviceModalVisible}
+            onClose={() => {
+              setServiceModalVisible(false);
+              setSelectedService(null);
+            }}
+            onSubmit={handleServiceSubmit}
+            selectedService={selectedService}
+            customers={customers}
+            onRefreshCustomers={fetchCustomers}
+            isLoading={isServiceLoading}
           />
         </>
       )}
