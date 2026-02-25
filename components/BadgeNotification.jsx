@@ -47,6 +47,13 @@ const typeConfig = {
   },
 };
 
+// Extract customer name from message like "COŞKUN PASTANECİLİK müşterisine ait ..."
+function extractCustomerName(description) {
+  if (!description) return null;
+  const match = description.match(/^(.+?)\s+müşterisine/);
+  return match ? match[1] : null;
+}
+
 // Detect urgency from notification title
 function getEffectiveType(notification) {
   const title = notification.title || '';
@@ -189,7 +196,7 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
         </div>
       </PopoverTrigger>
 
-      <PopoverContent className="w-96 p-0" align="end">
+      <PopoverContent className="w-[480px] p-0" align="end">
         <div className="space-y-2">
           <div className="p-4 border-b flex justify-between items-center">
             <h4 className="font-medium">Notifications</h4>
@@ -243,7 +250,6 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
                   >
                     <div className="flex justify-between items-start gap-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <h4 className="font-medium truncate">{notification.title}</h4>
                         {config.badgeLabel && (
                           <span className={cn(
                             "text-[10px] px-1.5 py-0.5 rounded-full shrink-0 font-semibold",
@@ -252,12 +258,18 @@ export const BadgeNotification = ({ initialNotifications, onNotificationsChange 
                             {config.badgeLabel}
                           </span>
                         )}
+                        <h4 className="font-semibold truncate">{notification.title}</h4>
                       </div>
                       <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
                         {formatDistanceToNow(notification.createdAt, { addSuffix: true, locale: tr })}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-0.5">
+                    {extractCustomerName(notification.description) && (
+                      <p className="text-sm font-medium text-foreground mt-0.5">
+                        🏢 {extractCustomerName(notification.description)}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {notification.description}
                     </p>
                   </button>
