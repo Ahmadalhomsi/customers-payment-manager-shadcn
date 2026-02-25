@@ -21,7 +21,7 @@ export async function GET(req) {
                 paymentType: {
                     not: 'unlimited' // Skip unlimited services
                 },
-                // Keep explicit exclusions for safety, though the 16-day rule handles most trial logic
+                // Keep explicit exclusions for safety
                 customer: {
                     name: {
                         not: 'Trial Customer'
@@ -54,7 +54,6 @@ export async function GET(req) {
             let action = 'none';
 
             // 1. Check for Services Ending TODAY
-            // "only today ending date should be pushed"
             if (isSameDay(endDate, today)) {
                 status = 'expires_today';
                 
@@ -87,8 +86,40 @@ export async function GET(req) {
                     action = 'skipped_already_notified_today';
                 }
             }
-            // 2. Check for Upcoming Services (Exactly 16 days left)
-            // "only 16 day left services should be pushed (to prevent pushing 15 day trial services)"
+            // 2. Check for Services Ending TOMORROW (1 Day Left)
+            else if (daysRemaining === 1) {
+                status = 'expires_tomorrow';
+                
+                // Check if we already notified TODAY about this
+                const existingNotification = await prisma.notifications.findFirst({
+                    where: {
+                        title: {
+                            contains: `Yarın Sona Eriyor`
+                        },
+                        message: {
+                            contains: service.name
+                        },
+                        createdAt: {
+                            gte: today // Created today
+                        }
+                    }
+                });
+
+                if (!existingNotification) {
+                    await prisma.notifications.create({
+                        data: {
+                            title: `Yarın Sona Eriyor: ${service.name}`,
+                            message: `${service.customer.name} müşterisine ait ${service.name} hizmetinin süresi YARIN doluyor.`,
+                            type: 'warning', // High priority warning
+                        }
+                    });
+                    newNotifications++;
+                    action = 'created_tomorrow_notification';
+                } else {
+                    action = 'skipped_already_notified_today';
+                }
+            }
+            // 3. Check for Upcoming Services (Exactly 16 days left)
             else if (daysRemaining === 16) {
                 status = 'upcoming_16_days';
                 
@@ -121,7 +152,6 @@ export async function GET(req) {
                     action = 'skipped_already_notified_today';
                 }
             }
-            // Note: We are NO LONGER checking for past expired services or services with < 16 days left.
 
             // Log details for debugging/verification if something happened or it matched our criteria
             if (status !== 'active') {
