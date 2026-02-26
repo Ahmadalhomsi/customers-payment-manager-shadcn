@@ -408,6 +408,16 @@ export function ServiceTable({
                     <Table>
                         <TableHeader className="bg-background">
                             <TableRow>
+                                <TableHead className="w-[50px] text-center p-2">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span className="text-[10px] font-medium text-muted-foreground">Seçim</span>
+                                        <Checkbox 
+                                            checked={filteredServices.length > 0 && selectedServiceIds.length === filteredServices.length}
+                                            onCheckedChange={toggleSelectAll}
+                                            aria-label="Tümünü seç"
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead
                                     className="w-[100px] cursor-pointer hover:bg-muted/50"
                                     onClick={() => handleSort('id')}
