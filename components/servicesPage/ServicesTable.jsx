@@ -10,8 +10,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy, X, Search, Plus } from 'lucide-react'
+import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy, X, Search, Plus, RefreshCw } from 'lucide-react'
 import { format } from "date-fns"
 import { useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -98,9 +99,13 @@ export function ServiceTable({
     // Add clear filters prop
     onClearFilters,
     // Add bulk service modal prop
-    onOpenBulkService
+    onOpenBulkService,
+    // Add bulk convert prop
+    onBulkConvert
 }) {
     // Remove client-side filter states - they'll come from props now
+
+    const [selectedServiceIds, setSelectedServiceIds] = useState([]);
 
     // Check if any service has a deviceToken
     const hasDeviceTokens = services.some(service => service.deviceToken);
@@ -173,11 +178,54 @@ export function ServiceTable({
     // Remove client-side filtering - data is already filtered server-side
     const filteredServices = services;
 
+    const toggleSelectAll = () => {
+        if (selectedServiceIds.length === filteredServices.length) {
+            setSelectedServiceIds([]);
+        } else {
+            setSelectedServiceIds(filteredServices.map(s => s.id));
+        }
+    };
+
+    const toggleSelect = (id) => {
+        setSelectedServiceIds(prev => 
+            prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+        );
+    };
+
+    const handleBulkConvertClick = () => {
+        if (onBulkConvert) {
+            const selected = services.filter(s => selectedServiceIds.includes(s.id));
+            onBulkConvert(selected);
+        }
+    };
+
 
     return (
         <TooltipProvider>
             <div className="space-y-4 relative">
                 <div className="flex gap-2 flex-wrap items-center">
+                    {/* Bulk Actions */}
+                    {selectedServiceIds.length > 0 && (
+                        <div className="flex items-center gap-2 mr-2 bg-muted/50 p-1 rounded-md">
+                            <span className="text-sm font-medium px-2">{selectedServiceIds.length} seçildi</span>
+                            <Button 
+                                size="sm" 
+                                onClick={handleBulkConvertClick}
+                                className="bg-orange-600 hover:bg-orange-700 text-white"
+                            >
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Seçilenleri Dönüştür
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedServiceIds([])}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
+
                     <div className="flex gap-1 max-w-sm">
                         <Input
                             placeholder="Hizmet ara (ID, ad, açıklama...)..."
@@ -488,7 +536,14 @@ export function ServiceTable({
                                 const isActive = status === 'active'
 
                                 return (
-                                    <TableRow key={service.id} className="hover:bg-muted/50 transition-colors">
+                                    <TableRow key={service.id} className={`hover:bg-muted/50 transition-colors ${selectedServiceIds.includes(service.id) ? 'bg-muted/50' : ''}`}>
+                                        <TableCell>
+                                            <Checkbox 
+                                                checked={selectedServiceIds.includes(service.id)}
+                                                onCheckedChange={() => toggleSelect(service.id)}
+                                                aria-label={`Select service ${service.id}`}
+                                            />
+                                        </TableCell>
                                         <TableCell className="font-mono text-xs">
                                             <div className="flex items-center gap-2">
                                                 <span className="font-mono text-xs">

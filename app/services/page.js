@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ServiceTable } from '@/components/servicesPage/ServicesTable'
 import { ServiceModal2 } from '@/components/servicesPage/ServiceModal2'
 import { BulkServiceModal } from '@/components/servicesPage/BulkServiceModal'
+import { BulkConvertModal } from '@/components/servicesPage/BulkConvertModal'
 import { DeleteConfirmModal } from '@/components/mainPage/DeleteConfirmModal'
 import { Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react'
 import { RenewHistoryModal } from '@/components/RenewHistoryModal'
@@ -19,6 +20,7 @@ export default function ServicesPage() {
   const [services, setServices] = useState([])
   const [serviceModalVisible, setServiceModalVisible] = useState(false)
   const [bulkServiceModalVisible, setBulkServiceModalVisible] = useState(false)
+  const [bulkConvertModalVisible, setBulkConvertModalVisible] = useState(false)
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false)
   const [selectedService, setSelectedService] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -31,6 +33,7 @@ export default function ServicesPage() {
   const [permissions, setPermissions] = useState(null);
   const [selectedCustomerForBulk, setSelectedCustomerForBulk] = useState(null);
   const [selectedServiceForBulk, setSelectedServiceForBulk] = useState(null);
+  const [selectedServicesForConvert, setSelectedServicesForConvert] = useState([]);
 
   // Pagination states
   const [pagination, setPagination] = useState({
@@ -307,6 +310,11 @@ export default function ServicesPage() {
     setBulkServiceModalVisible(true)
   }
 
+  const handleBulkConvert = (selectedServices) => {
+    setSelectedServicesForConvert(selectedServices);
+    setBulkConvertModalVisible(true);
+  };
+
   const handleFilterChange = () => {
     // Apply filters on server-side - user needs to click search or press enter for search
     fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
@@ -572,6 +580,7 @@ export default function ServicesPage() {
             setRenewHistoryOpen(true)
           }}
           onOpenBulkService={handleOpenBulkServiceForCustomer}
+          onBulkConvert={handleBulkConvert}
         />
 
         {/* Pagination Controls - Fixed with working algorithm from logs page */}
@@ -666,6 +675,15 @@ export default function ServicesPage() {
         customers={customers}
         selectedCustomer={selectedCustomerForBulk}
         selectedService={selectedServiceForBulk}
+      />
+
+      <BulkConvertModal
+        visible={bulkConvertModalVisible}
+        onClose={() => setBulkConvertModalVisible(false)}
+        selectedServices={selectedServicesForConvert}
+        customers={customers}
+        onRefreshCustomers={fetchCustomers}
+        onSuccess={() => fetchServices(pagination.page, searchTerm, sortBy, sortOrder)}
       />
 
       <DeleteConfirmModal
