@@ -408,7 +408,7 @@ export function ServiceTable({
                     <Table>
                         <TableHeader className="bg-background">
                             <TableRow>
-                                <TableHead className="w-[50px] text-center p-2">
+                                <TableHead className="w-[50px] text-center p-2 pl-3">
                                     <div className="flex flex-col items-center gap-1">
                                         <span className="text-[10px] font-medium text-muted-foreground">Seçim</span>
                                         <Checkbox 
@@ -419,7 +419,7 @@ export function ServiceTable({
                                     </div>
                                 </TableHead>
                                 <TableHead
-                                    className="w-[100px] cursor-pointer hover:bg-muted/50"
+                                    className="w-[80px] cursor-pointer hover:bg-muted/50"
                                     onClick={() => handleSort('id')}
                                 >
                                     <div className="flex items-center gap-1">
@@ -547,7 +547,7 @@ export function ServiceTable({
 
                                 return (
                                     <TableRow key={service.id} className={`hover:bg-muted/50 transition-colors ${selectedServiceIds.includes(service.id) ? 'bg-muted/50' : ''}`}>
-                                        <TableCell>
+                                        <TableCell className="pl-4">
                                             <Checkbox 
                                                 checked={selectedServiceIds.includes(service.id)}
                                                 onCheckedChange={() => toggleSelect(service.id)}
@@ -556,9 +556,16 @@ export function ServiceTable({
                                         </TableCell>
                                         <TableCell className="font-mono text-xs">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-mono text-xs">
-                                                    {service.id}
-                                                </span>
+                                                <Tooltip>
+                                                    <TooltipTrigger>
+                                                        <span className="font-mono text-xs">
+                                                            {service.id.toString().substring(0, 3)}...
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>{service.id}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
