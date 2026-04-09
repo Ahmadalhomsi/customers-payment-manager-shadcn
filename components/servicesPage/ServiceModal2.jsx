@@ -376,13 +376,13 @@ export function ServiceModal2({
 
     const applyMainLicenseTemplate = () => {
         if (!selectedTemplateId || selectedTemplateId === 'none') {
-            toast.error('Lutfen once ana lisans secin');
+            toast.error('Lütfen önce ana lisans seçin');
             return;
         }
 
         const template = customerLicenseTemplates.find((service) => service.id === selectedTemplateId);
         if (!template) {
-            toast.error('Secilen lisans bulunamadi');
+            toast.error('Seçilen lisans bulunamadı');
             return;
         }
 
@@ -404,7 +404,7 @@ export function ServiceModal2({
         setStartDateMonth(startingDate);
         setEndDateMonth(endingDate);
 
-        toast.success('Ana PC lisans tarihleri ve odeme bilgileri kopyalandi');
+        toast.success('Ana PC lisans tarihleri ve ödeme bilgileri kopyalandı');
     };
 
     const selectedCustomer = customers.find((c) => c.id === formData.customerID);
@@ -500,7 +500,7 @@ export function ServiceModal2({
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                        <Label className="text-left sm:text-right">Ana PC Lisansi</Label>
+                        <Label className="text-left sm:text-right">Ana PC Lisansı</Label>
                         <div className="sm:col-span-3 flex flex-col sm:flex-row gap-2">
                             <Select
                                 value={selectedTemplateId}
@@ -511,17 +511,17 @@ export function ServiceModal2({
                                     <SelectValue
                                         placeholder={
                                             !formData.customerID
-                                                ? 'Once musteri secin'
+                                                ? 'Önce müşteri seçin'
                                                 : loadingLicenseTemplates
-                                                    ? 'Lisanslar yukleniyor...'
+                                                    ? 'Lisanslar yükleniyor...'
                                                     : customerLicenseTemplates.length === 0
                                                         ? 'Kopyalanacak aktif ana lisans yok'
-                                                        : 'Kopyalanacak lisans secin'
+                                                        : 'Kopyalanacak lisans seçin'
                                         }
                                     />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="none">Seciniz</SelectItem>
+                                    <SelectItem value="none">Seçiniz</SelectItem>
                                     {customerLicenseTemplates.map((service) => (
                                         <SelectItem key={service.id} value={service.id}>
                                             {service.name} | {format(new Date(service.startingDate), 'dd/MM/yyyy')} - {format(new Date(service.endingDate), 'dd/MM/yyyy')}
@@ -535,7 +535,7 @@ export function ServiceModal2({
                                 onClick={applyMainLicenseTemplate}
                                 disabled={!formData.customerID || loadingLicenseTemplates || selectedTemplateId === 'none'}
                             >
-                                Lisansi Kopyala
+                                Lisansı Kopyala
                             </Button>
                         </div>
                     </div>

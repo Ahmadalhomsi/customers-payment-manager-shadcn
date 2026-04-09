@@ -134,6 +134,8 @@ export async function GET(req) {
         const sortOrder = searchParams.get('sortOrder') || 'desc';
         const statusFilter = searchParams.get('status') || 'all';
         const categoryFilter = searchParams.get('category') || 'all';
+        const customerIdFilter = searchParams.get('customerId');
+        const archiveOnly = searchParams.get('archive') === 'true';
         const startDateFrom = searchParams.get('startDateFrom');
         const startDateTo = searchParams.get('startDateTo');
         const endDateFrom = searchParams.get('endDateFrom');
@@ -146,6 +148,7 @@ export async function GET(req) {
 
         // Build where clause for search and filtering
         const whereClause = {};
+        const andConditions = [];
         
         // Add search conditions
         if (search) {
@@ -182,40 +185,59 @@ export async function GET(req) {
 
         // Add category filtering
         if (categoryFilter !== 'all') {
-            whereClause.category = categoryFilter;
+            andConditions.push({ category: categoryFilter });
+        }
+
+        // Add customer filtering if provided
+        if (customerIdFilter) {
+            andConditions.push({ customerID: customerIdFilter });
         }
 
         // Add start date range filtering
         if (startDateFrom || startDateTo) {
-            whereClause.startingDate = {};
+            const startingDateCondition = {};
             if (startDateFrom) {
-                whereClause.startingDate.gte = new Date(startDateFrom);
+                startingDateCondition.gte = new Date(startDateFrom);
             }
             if (startDateTo) {
-                whereClause.startingDate.lte = new Date(startDateTo);
+                startingDateCondition.lte = new Date(startDateTo);
             }
+            andConditions.push({ startingDate: startingDateCondition });
         }
 
         // Add end date range filtering
         if (endDateFrom || endDateTo) {
-            whereClause.endingDate = {};
+            const endingDateCondition = {};
             if (endDateFrom) {
-                whereClause.endingDate.gte = new Date(endDateFrom);
+                endingDateCondition.gte = new Date(endDateFrom);
             }
             if (endDateTo) {
-                whereClause.endingDate.lte = new Date(endDateTo);
+                endingDateCondition.lte = new Date(endDateTo);
             }
+            andConditions.push({ endingDate: endingDateCondition });
         }
 
         // Add last login date range filtering
         if (lastLoginDateFrom || lastLoginDateTo) {
-            whereClause.lastLoginDate = {};
+            const lastLoginDateCondition = {};
             if (lastLoginDateFrom) {
-                whereClause.lastLoginDate.gte = new Date(lastLoginDateFrom);
+                lastLoginDateCondition.gte = new Date(lastLoginDateFrom);
             }
             if (lastLoginDateTo) {
-                whereClause.lastLoginDate.lte = new Date(lastLoginDateTo);
+                lastLoginDateCondition.lte = new Date(lastLoginDateTo);
             }
+            andConditions.push({ lastLoginDate: lastLoginDateCondition });
+        }
+
+        // Archive page shows manually archived services only.
+        if (archiveOnly) {
+            andConditions.push({ archived: true });
+        } else {
+            andConditions.push({ archived: false });
+        }
+
+        if (andConditions.length > 0) {
+            whereClause.AND = andConditions;
         }
 
         // For status filtering, we need to get all services first and then filter

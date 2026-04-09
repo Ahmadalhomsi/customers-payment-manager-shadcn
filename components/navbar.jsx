@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { Menu, Home, Briefcase, LogOut, User, FileText, Package } from "lucide-react";
+import { Menu, Home, Briefcase, Archive, LogOut, User, FileText, Package } from "lucide-react";
 import { BadgeNotification } from "@/components/BadgeNotification";
 import { authManager } from "@/lib/auth";
 import { simpleAuthenticatedGet } from "@/lib/simple-auth";
@@ -107,13 +107,22 @@ export function Navbar() {
           </Link>
 
           {permissions?.canViewServices && (
-            <Link
-              href="/services"
-              className={`flex items-center text-sm font-medium ${pathname.startsWith("/services") ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
-            >
-              <Briefcase className="mr-2 h-4 w-4" />
-              Hizmetler
-            </Link>
+            <>
+              <Link
+                href="/services"
+                className={`flex items-center text-sm font-medium ${pathname === "/services" ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+              >
+                <Briefcase className="mr-2 h-4 w-4" />
+                Hizmetler
+              </Link>
+              <Link
+                href="/services/archive"
+                className={`flex items-center text-sm font-medium ${pathname === "/services/archive" ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+              >
+                <Archive className="mr-2 h-4 w-4" />
+                Arşiv
+              </Link>
+            </>
           )}
 
 
@@ -174,10 +183,19 @@ export function Navbar() {
               </DropdownMenuItem>
 
               {permissions?.canViewServices && (
-                <DropdownMenuItem asChild className={pathname.startsWith("/services") ? "text-primary" : ""}>
+                <DropdownMenuItem asChild className={pathname === "/services" ? "text-primary" : ""}>
                   <Link href="/services">
                     <Briefcase className="mr-2 h-4 w-4" />
                     Hizmetler
+                  </Link>
+                </DropdownMenuItem>
+              )}
+
+              {permissions?.canViewServices && (
+                <DropdownMenuItem asChild className={pathname === "/services/archive" ? "text-primary" : ""}>
+                  <Link href="/services/archive">
+                    <Archive className="mr-2 h-4 w-4" />
+                    Arşiv
                   </Link>
                 </DropdownMenuItem>
               )}

@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy, X, Search, Plus, RefreshCw } from 'lucide-react'
+import { Edit, Trash2, Eye, ChevronDown, ChevronUp, Info, Key, Copy, X, Search, Plus, RefreshCw, Archive } from 'lucide-react'
 import { format } from "date-fns"
 import { useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -101,7 +101,9 @@ export function ServiceTable({
     // Add bulk service modal prop
     onOpenBulkService,
     // Add bulk convert prop
-    onBulkConvert
+    onBulkConvert,
+    onBulkArchive,
+    archiveActionLabel = 'Arşive taşı'
 }) {
     // Remove client-side filter states - they'll come from props now
 
@@ -199,6 +201,16 @@ export function ServiceTable({
         }
     };
 
+    const handleBulkArchiveClick = async () => {
+        if (!onBulkArchive) {
+            return;
+        }
+
+        const selected = services.filter((s) => selectedServiceIds.includes(s.id));
+        await onBulkArchive(selected);
+        setSelectedServiceIds([]);
+    };
+
 
     return (
         <TooltipProvider>
@@ -216,6 +228,16 @@ export function ServiceTable({
                                 <RefreshCw className="mr-2 h-4 w-4" />
                                 Seçilenleri Dönüştür
                             </Button>
+                            {onBulkArchive && (
+                                <Button
+                                    size="sm"
+                                    onClick={handleBulkArchiveClick}
+                                    className="bg-slate-700 hover:bg-slate-800 text-white"
+                                >
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    {archiveActionLabel}
+                                </Button>
+                            )}
                             <Button
                                 variant="ghost"
                                 size="sm"

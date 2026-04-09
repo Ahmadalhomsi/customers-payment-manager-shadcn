@@ -14,6 +14,7 @@ import { DeleteConfirmModal } from '@/components/mainPage/DeleteConfirmModal'
 import { Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react'
 import { RenewHistoryModal } from '@/components/RenewHistoryModal'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 
 export default function ServicesPage() {
@@ -315,6 +316,23 @@ export default function ServicesPage() {
     setBulkConvertModalVisible(true);
   };
 
+  const handleBulkArchive = async (selectedServices) => {
+    if (!selectedServices?.length) return;
+
+    try {
+      await axios.put('/api/services/archive', {
+        serviceIds: selectedServices.map((service) => service.id),
+        archived: true
+      });
+
+      toast.success(`${selectedServices.length} hizmet arşive taşındı`);
+      fetchServices(pagination.page, searchTerm, sortBy, sortOrder);
+    } catch (error) {
+      console.error('Error archiving services:', error);
+      toast.error('Hizmetler arşive taşınırken hata oluştu');
+    }
+  };
+
   const handleFilterChange = () => {
     // Apply filters on server-side - user needs to click search or press enter for search
     fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
@@ -522,6 +540,9 @@ export default function ServicesPage() {
     <div className="w-full min-h-full pt-6 pb-6">
       <div className="flex flex-col gap-4 mb-4 px-4">
         <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/services/archive">Arşiv</Link>
+          </Button>
           {permissions?.canEditServices && (
             <>
               <Button onClick={() => {
@@ -581,6 +602,8 @@ export default function ServicesPage() {
           }}
           onOpenBulkService={handleOpenBulkServiceForCustomer}
           onBulkConvert={handleBulkConvert}
+          onBulkArchive={handleBulkArchive}
+          archiveActionLabel="Arşive taşı"
         />
 
         {/* Pagination Controls - Fixed with working algorithm from logs page */}

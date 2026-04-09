@@ -77,6 +77,8 @@ model Service {
   terminal    String? // Device name
   lastLoginDate DateTime? // Son giriş tarihi - null if never logged in
   version     String? // Application version - updated on each validation
+  archived    Boolean @default(false)
+  archivedAt  DateTime?
 
   // Relations
   customerID     String
@@ -98,6 +100,8 @@ model Service {
   @@index([createdAt])
   @@index([paymentType])
   @@index([lastLoginDate])
+  @@index([archived])
+  @@index([archivedAt])
   // Composite indexes for common query patterns
   @@index([customerID, active])
   @@index([category, active])
