@@ -121,6 +121,9 @@ export function ServiceModal2({
     });
     const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
     const [generatedPassword, setGeneratedPassword] = useState(null);
+    const [customerLicenseTemplates, setCustomerLicenseTemplates] = useState([]);
+    const [loadingLicenseTemplates, setLoadingLicenseTemplates] = useState(false);
+    const [selectedTemplateId, setSelectedTemplateId] = useState('none');
 
     useEffect(() => {
         if (visible && selectedService) {
@@ -202,6 +205,47 @@ export function ServiceModal2({
             setEndDateMonth(end);
         }
     }, [selectedDuration, formData.startingDate]);
+
+    useEffect(() => {
+        const fetchCustomerLicenseTemplates = async () => {
+            if (!visible || !formData.customerID) {
+                setCustomerLicenseTemplates([]);
+                setSelectedTemplateId('none');
+                return;
+            }
+
+            try {
+                setLoadingLicenseTemplates(true);
+                const params = new URLSearchParams({
+                    customerId: formData.customerID,
+                    sortBy: 'endingDate',
+                    sortOrder: 'desc',
+                    limit: '100'
+                });
+
+                const response = await axios.get(`/api/services?${params}`);
+                const now = new Date();
+                const templates = (response.data.services || []).filter((service) => {
+                    if (!service?.id) return false;
+                    if (selectedService?.id && service.id === selectedService.id) return false;
+                    const endDate = new Date(service.endingDate);
+                    const category = service.category || '';
+                    // Main PC style services are prioritized for cloning new device licenses.
+                    return endDate > now && (category === 'Adisyon Programı' || category === 'Yazarkasa Pos Entegrasyonu');
+                });
+
+                setCustomerLicenseTemplates(templates);
+                setSelectedTemplateId('none');
+            } catch (error) {
+                console.error('Error fetching customer services for template:', error);
+                setCustomerLicenseTemplates([]);
+            } finally {
+                setLoadingLicenseTemplates(false);
+            }
+        };
+
+        fetchCustomerLicenseTemplates();
+    }, [visible, formData.customerID, selectedService?.id]);
 
     const handleExtendService = (extensionPeriod) => {
         const end = new Date(formData.endingDate);
@@ -330,6 +374,39 @@ export function ServiceModal2({
         setGeneratedPassword(null);
     };
 
+    const applyMainLicenseTemplate = () => {
+        if (!selectedTemplateId || selectedTemplateId === 'none') {
+            toast.error('Lutfen once ana lisans secin');
+            return;
+        }
+
+        const template = customerLicenseTemplates.find((service) => service.id === selectedTemplateId);
+        if (!template) {
+            toast.error('Secilen lisans bulunamadi');
+            return;
+        }
+
+        const startingDate = new Date(template.startingDate);
+        const endingDate = new Date(template.endingDate);
+        const paymentType = DURATIONS.some((d) => d.value === template.paymentType) ? template.paymentType : 'custom';
+
+        setFormData((prev) => ({
+            ...prev,
+            companyName: template.companyName || prev.companyName,
+            currency: template.currency || prev.currency,
+            periodPrice: template.periodPrice?.toString() || prev.periodPrice,
+            paymentType,
+            startingDate,
+            endingDate
+        }));
+
+        setSelectedDuration(paymentType);
+        setStartDateMonth(startingDate);
+        setEndDateMonth(endingDate);
+
+        toast.success('Ana PC lisans tarihleri ve odeme bilgileri kopyalandi');
+    };
+
     const selectedCustomer = customers.find((c) => c.id === formData.customerID);
 
     return (
@@ -418,6 +495,47 @@ export function ServiceModal2({
                             >
                                 <Plus className="h-4 w-4 mr-2" />
                                 Yeni Müşteri Oluştur
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                        <Label className="text-left sm:text-right">Ana PC Lisansi</Label>
+                        <div className="sm:col-span-3 flex flex-col sm:flex-row gap-2">
+                            <Select
+                                value={selectedTemplateId}
+                                onValueChange={setSelectedTemplateId}
+                                disabled={!formData.customerID || loadingLicenseTemplates || customerLicenseTemplates.length === 0}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue
+                                        placeholder={
+                                            !formData.customerID
+                                                ? 'Once musteri secin'
+                                                : loadingLicenseTemplates
+                                                    ? 'Lisanslar yukleniyor...'
+                                                    : customerLicenseTemplates.length === 0
+                                                        ? 'Kopyalanacak aktif ana lisans yok'
+                                                        : 'Kopyalanacak lisans secin'
+                                        }
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">Seciniz</SelectItem>
+                                    {customerLicenseTemplates.map((service) => (
+                                        <SelectItem key={service.id} value={service.id}>
+                                            {service.name} | {format(new Date(service.startingDate), 'dd/MM/yyyy')} - {format(new Date(service.endingDate), 'dd/MM/yyyy')}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={applyMainLicenseTemplate}
+                                disabled={!formData.customerID || loadingLicenseTemplates || selectedTemplateId === 'none'}
+                            >
+                                Lisansi Kopyala
                             </Button>
                         </div>
                     </div>
