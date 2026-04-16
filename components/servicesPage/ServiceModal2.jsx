@@ -40,12 +40,6 @@ const PAYMENT_TYPES = [
     { value: "Yearly", label: "Yıllık" },
 ];
 
-const CURRENCIES = [
-    { value: "TL", label: "₺" },
-    { value: "USD", label: "$" },
-    { value: "EUR", label: "€" },
-];
-
 const DURATIONS = [
     { value: "1month", label: "1 Ay" },
     { value: "6months", label: "6 Ay" },
@@ -59,6 +53,7 @@ const DURATIONS = [
 const SERVICE_CATEGORIES = [
     { value: "Adisyon Programı", label: "Adisyon Programı", color: "text-blue-600" },
     { value: "Digital Menü", label: "Digital Menü", color: "text-green-600" },
+    { value: "Platform Entegrasyon", label: "Platform Entegrasyon", color: "text-emerald-600" },
     { value: "Kurye Sipariş Uygulaması", label: "Kurye Sipariş Uygulaması", color: "text-cyan-600" },
     { value: "Patron Takip Uygulaması", label: "Patron Takip Uygulaması", color: "text-purple-600" },
     { value: "Garson Sipariş Uygulaması", label: "Garson Sipariş Uygulaması", color: "text-indigo-600" },
@@ -225,7 +220,7 @@ export function ServiceModal2({
 
                 const response = await axios.get(`/api/services?${params}`);
                 const now = new Date();
-                const templates = (response.data.services || []).filter((service) => {
+                const filteredTemplates = (response.data.services || []).filter((service) => {
                     if (!service?.id) return false;
                     if (selectedService?.id && service.id === selectedService.id) return false;
                     const endDate = new Date(service.endingDate);
@@ -233,6 +228,19 @@ export function ServiceModal2({
                     // Main PC style services are prioritized for cloning new device licenses.
                     return endDate > now && (category === 'Adisyon Programı' || category === 'Yazarkasa Pos Entegrasyonu');
                 });
+
+                const uniqueTemplatesMap = new Map();
+                filteredTemplates.forEach((service) => {
+                    const startLabel = format(new Date(service.startingDate), 'dd/MM/yyyy');
+                    const endLabel = format(new Date(service.endingDate), 'dd/MM/yyyy');
+                    const signature = `${service.name || ''}|${startLabel}|${endLabel}`;
+
+                    if (!uniqueTemplatesMap.has(signature)) {
+                        uniqueTemplatesMap.set(signature, service);
+                    }
+                });
+
+                const templates = Array.from(uniqueTemplatesMap.values());
 
                 setCustomerLicenseTemplates(templates);
                 setSelectedTemplateId('none');
@@ -292,7 +300,7 @@ export function ServiceModal2({
         try {
             await onSubmit({
                 ...formData,
-                periodPrice: parseFloat(formData.periodPrice) || 0,
+                periodPrice: 0,
             });
             onClose();
             setFormData(INITIAL_FORM_STATE);
@@ -389,12 +397,26 @@ export function ServiceModal2({
         const startingDate = new Date(template.startingDate);
         const endingDate = new Date(template.endingDate);
         const paymentType = DURATIONS.some((d) => d.value === template.paymentType) ? template.paymentType : 'custom';
+        const nextPeriodPrice = template.periodPrice?.toString() || formData.periodPrice;
+
+        const isSameTemplateAlreadyApplied =
+            (formData.companyName || '') === (template.companyName || formData.companyName || '') &&
+            (formData.currency || '') === (template.currency || formData.currency || '') &&
+            (formData.paymentType || '') === paymentType &&
+            (formData.periodPrice || '') === nextPeriodPrice &&
+            formData.startingDate?.getTime?.() === startingDate.getTime() &&
+            formData.endingDate?.getTime?.() === endingDate.getTime();
+
+        if (isSameTemplateAlreadyApplied) {
+            toast.info('Bu lisans zaten uygulanmış');
+            return;
+        }
 
         setFormData((prev) => ({
             ...prev,
             companyName: template.companyName || prev.companyName,
             currency: template.currency || prev.currency,
-            periodPrice: template.periodPrice?.toString() || prev.periodPrice,
+            periodPrice: nextPeriodPrice,
             paymentType,
             startingDate,
             endingDate
@@ -741,37 +763,6 @@ export function ServiceModal2({
                             <Label htmlFor="active" className="text-sm">
                                 {formData.active ? "Aktif" : "Pasif"}
                             </Label>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                        <Label className="text-left sm:text-right">Fiyat</Label>
-                        <div className="w-full sm:col-span-3 flex flex-col sm:flex-row gap-2">
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={formData.periodPrice}
-                                onChange={(e) => handleChange("periodPrice", e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                className="w-full"
-                                placeholder="0.00"
-                            />
-                            <Select
-                                value={formData.currency}
-                                onValueChange={(value) => handleChange("currency", value)}
-                            >
-                                <SelectTrigger className="w-full sm:w-24">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {CURRENCIES.map((currency) => (
-                                        <SelectItem key={currency.value} value={currency.value}>
-                                            {currency.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
                         </div>
                     </div>
 
