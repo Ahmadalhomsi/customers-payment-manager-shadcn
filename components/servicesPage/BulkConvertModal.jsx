@@ -83,7 +83,11 @@ export function BulkConvertModal({
             }
             setSelectedCustomerID("");
             setSelectedDuration("1year");
-            setStartingDate(new Date());
+            if (selectedServices.length > 0 && selectedServices[0].startingDate) {
+                setStartingDate(new Date(selectedServices[0].startingDate));
+            } else {
+                setStartingDate(new Date());
+            }
             setShowCustomerForm(false);
             setCustomerFormData({ name: "", email: "", phone: "", password: "" });
             setGeneratedPassword(null);
@@ -499,7 +503,18 @@ export function BulkConvertModal({
                             </div>
                             
                             <div className="grid gap-2">
-                                <Label>Başlangıç Tarihi <span className="text-red-500">*</span></Label>
+                                <div className="flex items-center justify-between">
+                                    <Label>Başlangıç Tarihi <span className="text-red-500">*</span></Label>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setStartingDate(new Date())}
+                                        className="text-xs h-6 px-2"
+                                    >
+                                        Bugün
+                                    </Button>
+                                </div>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
@@ -523,6 +538,11 @@ export function BulkConvertModal({
                                         />
                                     </PopoverContent>
                                 </Popover>
+                                {startingDate && (
+                                    <div className="text-sm text-muted-foreground">
+                                        Seçilen tarih: {format(startingDate, "dd/MM/yyyy", { locale: tr })}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
