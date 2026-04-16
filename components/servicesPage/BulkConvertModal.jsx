@@ -43,6 +43,8 @@ const DURATIONS = [
     { value: "unlimited", label: "Sınırsız" },
 ];
 
+const UNLIMITED_END_DATE = new Date('9999-12-31T00:00:00.000Z');
+
 export function BulkConvertModal({
     visible,
     onClose,
@@ -173,7 +175,7 @@ export function BulkConvertModal({
                 end.setFullYear(end.getFullYear() + 3);
                 break;
             case "unlimited":
-                end.setFullYear(end.getFullYear() + 100);
+                end.setTime(UNLIMITED_END_DATE.getTime());
                 break;
             default:
                 end.setFullYear(end.getFullYear() + 1);

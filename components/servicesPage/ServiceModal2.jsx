@@ -71,6 +71,8 @@ const EXTENSION_PERIODS = [
     { value: "1year", label: "1 Yıl Ekle" },
 ];
 
+const UNLIMITED_END_DATE = new Date('9999-12-31T00:00:00.000Z');
+
 const INITIAL_FORM_STATE = {
     name: "",
     description: "",
@@ -183,7 +185,7 @@ export function ServiceModal2({
                     end.setFullYear(end.getFullYear() + 3);
                     break;
                 case "unlimited":
-                    end.setFullYear(end.getFullYear() + 100); // Set 100 years in the future for "unlimited"
+                    end.setTime(UNLIMITED_END_DATE.getTime());
                     break;
             }
 
@@ -297,8 +299,14 @@ export function ServiceModal2({
         }
 
         try {
+            const normalizedEndingDate =
+                formData.paymentType === 'unlimited'
+                    ? new Date(UNLIMITED_END_DATE)
+                    : formData.endingDate;
+
             await onSubmit({
                 ...formData,
+                endingDate: normalizedEndingDate,
                 periodPrice: 0,
             });
             onClose();

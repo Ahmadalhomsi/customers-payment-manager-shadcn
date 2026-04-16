@@ -128,7 +128,6 @@ const QUICK_SELECT_GROUPS = {
 export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], selectedCustomer = null, selectedService = null }) {
   const [selectedCustomerId, setSelectedCustomerId] = useState('')
   const [selectedCategories, setSelectedCategories] = useState([])
-  const [currency, setCurrency] = useState('TL')
   const [startingDate, setStartingDate] = useState(new Date())
   const [companyName, setCompanyName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -161,7 +160,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
         setCompanyName('')
       }
       setSelectedCategories([])
-      setCurrency('TL')
       setStartingDate(new Date())
       setIsSubmitting(false)
       setServiceCounts({})
@@ -287,7 +285,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
             category: categoryKey,
             paymentType,
             periodPrice: 0,
-            currency,
+            currency: 'TL',
             customerID: selectedCustomerId, // Keep as string, don't parse to int
             startingDate: startingDate.toISOString(),
             endingDate: endDate.toISOString(),
@@ -539,20 +537,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Para Birimi</Label>
-                  <Select value={currency} onValueChange={setCurrency}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="TL">₺ (TL)</SelectItem>
-                      <SelectItem value="USD">$ (USD)</SelectItem>
-                      <SelectItem value="EUR">€ (EUR)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label>Başlangıç Tarihi</Label>

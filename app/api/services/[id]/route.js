@@ -2,6 +2,8 @@ import { verifyJWT } from '@/lib/jwt';
 import prisma from '@/lib/prisma';  // Import the prisma instance from the file
 import { NextResponse } from 'next/server';
 
+const UNLIMITED_END_DATE = new Date('9999-12-31T00:00:00.000Z');
+
 export async function GET(req, { params }) {
     try {
         const token = req.cookies.get("token")?.value;
@@ -85,6 +87,10 @@ export async function PUT(req, { params }) {
         }
 
         // Prepare database operations
+        const normalizedEndingDate = data.paymentType === 'unlimited'
+            ? new Date(UNLIMITED_END_DATE)
+            : data.endingDate;
+
         const updateService = prisma.service.update({
             where: { id: id },
             data: {
@@ -97,7 +103,7 @@ export async function PUT(req, { params }) {
                 currency: data.currency,
                 active: data.active !== undefined ? data.active : undefined,
                 startingDate: data.startingDate,
-                endingDate: data.endingDate,
+                endingDate: normalizedEndingDate,
                 customerID: data.customerID
             },
         });

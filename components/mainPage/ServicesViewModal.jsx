@@ -132,7 +132,6 @@ export function ServicesViewModal({
                 <TableHead>İşletme Adı</TableHead>
                 <TableHead>Kategori</TableHead>
                 <TableHead>Ödeme Türü</TableHead>
-                <TableHead>Fiyat</TableHead>
                 <TableHead>Durum</TableHead>
                 <TableHead>Başlangıç Tarihi</TableHead>
                 <TableHead>Bitiş Tarihi</TableHead>
@@ -142,7 +141,7 @@ export function ServicesViewModal({
             <TableBody>
               {loadingOnModal ? (
                 <TableRow>
-                  <TableCell colSpan={hasDeviceTokens ? 12 : 11} className="text-center py-8">
+                  <TableCell colSpan={hasDeviceTokens ? 11 : 10} className="text-center py-8">
                     <div className="flex justify-center">
                       <BeatLoader color="#f26000" />
                     </div>
@@ -150,7 +149,7 @@ export function ServicesViewModal({
                 </TableRow>
               ) : services.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={hasDeviceTokens ? 12 : 11} className="text-center">
+                  <TableCell colSpan={hasDeviceTokens ? 11 : 10} className="text-center">
                     Hizmet bulunamadı.
                   </TableCell>
                 </TableRow>
@@ -201,9 +200,6 @@ export function ServicesViewModal({
                       </TableCell>
                       <TableCell>{getPaymentTypeLabel(service.paymentType)}</TableCell>
                       <TableCell>
-                        {service.periodPrice} {service.currency}
-                      </TableCell>
-                      <TableCell>
                         <Badge variant={statusInfo.variant}>
                           {statusInfo.text}
                         </Badge>
@@ -212,7 +208,7 @@ export function ServicesViewModal({
                         {formatDate(service.startingDate)}
                       </TableCell>
                       <TableCell>
-                        {formatDate(service.endingDate)}
+                        {service.paymentType === 'unlimited' ? 'Sınırsız' : formatDate(service.endingDate)}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">

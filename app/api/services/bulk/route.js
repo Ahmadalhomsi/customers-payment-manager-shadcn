@@ -2,6 +2,8 @@ import { verifyJWT } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
+const UNLIMITED_END_DATE = new Date('9999-12-31T00:00:00.000Z');
+
 export async function POST(req) {
     try {
         const token = req.cookies.get("token")?.value;
@@ -67,8 +69,9 @@ export async function POST(req) {
 
                 const normalizedPeriodPrice = Number.parseFloat(periodPrice);
 
-                // Handle unlimited service type (100 years into the future)
-                let serviceEndDate = new Date(endingDate);
+                const serviceEndDate = paymentType === 'unlimited'
+                    ? new Date(UNLIMITED_END_DATE)
+                    : new Date(endingDate);
                 
                 // Create the service
                 const service = await prisma.service.create({

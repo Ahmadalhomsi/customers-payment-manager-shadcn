@@ -55,6 +55,8 @@ const paymentTypeLabels = {
     'custom': 'Özel'
 }
 
+const UNLIMITED_END_DATE = new Date('9999-12-31T00:00:00.000Z')
+
 const categoryColors = {
     'Adisyon Programı': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
     'Digital Menü': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
@@ -646,14 +648,9 @@ export function ServiceTable({
                                         </TableCell>
                                         <TableCell>{customer?.name || 'Bilinmeyen Müşteri'}</TableCell>
                                         <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <Badge className={paymentTypeColors[service.paymentType]}>
-                                                    {paymentTypeLabels[service.paymentType]}
-                                                </Badge>
-                                                <span>
-                                                    {service.periodPrice?.toFixed(2) || '0.00'} {service.currency}
-                                                </span>
-                                            </div>
+                                            <Badge className={paymentTypeColors[service.paymentType]}>
+                                                {paymentTypeLabels[service.paymentType]}
+                                            </Badge>
                                         </TableCell>
                                         <TableCell>
                                             <time className="text-sm">
@@ -666,7 +663,9 @@ export function ServiceTable({
                                                     {format(new Date(service.startingDate), 'dd/MM/yyyy')}
                                                 </time>
                                                 <time className="text-xs text-muted-foreground">
-                                                    {format(new Date(service.endingDate), 'dd/MM/yyyy')}
+                                                    {service.paymentType === 'unlimited'
+                                                        ? 'Sınırsız'
+                                                        : format(new Date(service.endingDate), 'dd/MM/yyyy')}
                                                 </time>
                                             </div>
                                         </TableCell>
