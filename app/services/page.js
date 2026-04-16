@@ -333,6 +333,22 @@ export default function ServicesPage() {
     }
   };
 
+  const handleBulkDelete = async (selectedServices) => {
+    if (!selectedServices?.length) return;
+
+    try {
+      await Promise.all(
+        selectedServices.map((service) => axios.delete(`/api/services/${service.id}`))
+      );
+
+      toast.success(`${selectedServices.length} hizmet silindi`);
+      fetchServices(pagination.page, searchTerm, sortBy, sortOrder);
+    } catch (error) {
+      console.error('Error deleting services:', error);
+      toast.error('Seçili hizmetler silinirken hata oluştu');
+    }
+  };
+
   const handleFilterChange = () => {
     // Apply filters on server-side - user needs to click search or press enter for search
     fetchServices(1, searchTerm, sortBy, sortOrder, pageSize);
@@ -603,6 +619,7 @@ export default function ServicesPage() {
           onOpenBulkService={handleOpenBulkServiceForCustomer}
           onBulkConvert={handleBulkConvert}
           onBulkArchive={handleBulkArchive}
+          onBulkDelete={handleBulkDelete}
           archiveActionLabel="Arşive taşı"
         />
 
