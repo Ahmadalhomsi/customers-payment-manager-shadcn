@@ -66,6 +66,8 @@ export async function POST(req) {
                     active = true
                 } = serviceData;
 
+                const normalizedPeriodPrice = Number.parseFloat(periodPrice);
+
                 // Handle unlimited service type (100 years into the future)
                 let serviceEndDate = new Date(endingDate);
                 
@@ -77,7 +79,7 @@ export async function POST(req) {
                         companyName,
                         category: category || "Adisyon Programı",
                         paymentType,
-                        periodPrice: parseFloat(periodPrice), // Ensure periodPrice is a float
+                        periodPrice: Number.isFinite(normalizedPeriodPrice) ? normalizedPeriodPrice : 0,
                         currency,
                         active,
                         startingDate: new Date(startingDate),
