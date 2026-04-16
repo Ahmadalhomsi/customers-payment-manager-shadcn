@@ -11,8 +11,6 @@ import { CustomerModal } from '../components/mainPage/CustomerModal'
 import { DeleteConfirmModal } from '../components/mainPage/DeleteConfirmModal'
 import { ServiceModal } from '../components/mainPage/ServiceModal'
 import { ServicesViewModal } from '../components/mainPage/ServicesViewModal'
-import { RemindersViewModal } from '../components/mainPage/RemindersViewModal'
-import { ReminderModal } from '../components/mainPage/ReminderModal'
 import { Plus, Mail, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react'
 import { toast } from "sonner"
 
@@ -28,12 +26,7 @@ export default function CustomersPage() {
   const [selectedService, setSelectedService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingOnModal, setLoadingOnModal] = useState(true);
-  const [selectedReminder, setSelectedReminder] = useState(null);
-  const [reminderViewModalVisible, setReminderViewModalVisible] = useState(false);
-  const [deleteReminderConfirmVisible, setDeleteReminderConfirmVisible] = useState(false);
-  const [reminderToDelete, setReminderToDelete] = useState(null);
   const [sortConfig, setSortConfig] = useState(null);
-  const [reminderModalVisible, setReminderModalVisible] = useState(false)
   const [permissions, setPermissions] = useState(null);
   
   // Pagination states
@@ -61,13 +54,8 @@ export default function CustomersPage() {
     setServiceModalVisible(false);
     setServicesViewModalVisible(false);
     setDeleteServiceConfirmVisible(false);
-    setReminderViewModalVisible(false);
-    setDeleteReminderConfirmVisible(false);
-    setReminderModalVisible(false);
     setSelectedCustomer(null);
     setSelectedService(null);
-    setSelectedReminder(null);
-    setReminderToDelete(null);
     setServices([]);
   };
 
@@ -631,94 +619,10 @@ export default function CustomersPage() {
             console.log('Error deleting service:', error)
           }
         }}
-        onViewReminders={(service) => {
-          setSelectedService(service)
-          setServicesViewModalVisible(false)
-          setReminderViewModalVisible(true)
-        }}
         onAddService={() => {
           setSelectedService(null)
           setServiceModalVisible(true)
         }}
-      />
-
-      <RemindersViewModal
-        visible={reminderViewModalVisible}
-        onClose={() => {
-          setReminderViewModalVisible(false)
-          setSelectedService(null)
-        }}
-        reminders={selectedService?.reminders || []}
-        onCreateNewReminder={() => {
-          setSelectedReminder(null)
-          setReminderModalVisible(true)
-        }}
-        onEditReminder={(reminder) => {
-          setSelectedReminder({
-            ...reminder,
-            scheduledAt: new Date(reminder.scheduledAt)
-          })
-          setReminderViewModalVisible(false)
-          setReminderModalVisible(true)
-        }}
-        onDeleteReminder={async (reminder) => {
-          try {
-            await axios.delete(`/api/reminders/${reminder.id}`)
-            // Refresh service data
-            const serviceRes = await axios.get(`/api/services/${selectedService.id}?includeReminders=true`)
-            setSelectedService(serviceRes.data)
-          } catch (error) {
-            if (error.response?.status === 403) {
-              toast.error('Yasak: Hatırlatıcı silme izniniz yok')
-            }
-            else
-              console.log('Error deleting reminder:', error)
-          }
-        }}
-        loading={loadingOnModal}
-      />
-
-      <ReminderModal
-        visible={reminderModalVisible}
-        onClose={() => setReminderModalVisible(false)}
-        onSubmit={async (reminderData) => {
-          try {
-            if (selectedReminder) {
-              try {
-                await axios.put(`/api/reminders/${selectedReminder.id}`, reminderData)
-              } catch (error) {
-                if (error.response?.status === 403) {
-                  toast.error('Yasak: Hatırlatıcı güncelleme izniniz yok')
-                }
-                else
-                  console.log('Error updating reminder:', error)
-              }
-            } else {
-              try {
-                await axios.post('/api/reminders', {
-                  ...reminderData,
-                  serviceID: selectedService.id
-                })
-              } catch (error) {
-                if (error.response?.status === 403) {
-                  toast.error('Yasak: Hatırlatıcı oluşturma izniniz yok')
-                }
-                else
-                  console.log('Error creating reminder:', error)
-              }
-            }
-
-            // Refresh service data with reminders
-            const serviceRes = await axios.get(`/api/services/${selectedService.id}?includeReminders=true`)
-            setSelectedService(serviceRes.data)
-
-            setReminderModalVisible(false)
-            setSelectedReminder(null)
-          } catch (error) {
-            console.error('Error saving reminder:', error)
-          }
-        }}
-        selectedReminder={selectedReminder}
       />
     </div>
   )

@@ -7,20 +7,15 @@ export async function GET(req, { params }) {
         const token = req.cookies.get("token")?.value;
         const decoded = await verifyJWT(token);
 
-        let includeReminder = true;
-        // Check if the user has permission to view customers
+        // Check if the user has permission to view services
         if (!decoded.permissions.canViewServices) {
             return NextResponse.json({ error: 'Yasak: Hizmet görüntüleme izniniz yok' }, { status: 403 });
-        }
-        else if (!decoded.permissions.canViewReminders) {
-            includeReminder = false;
         }
 
         const { id } = await params;
 
         const service = await prisma.service.findUnique({
             where: { id: id },
-            include: { reminders: includeReminder },
         });
         return NextResponse.json(service, { status: 200 });
     } catch (error) {
@@ -51,7 +46,6 @@ export async function PUT(req, { params }) {
         }
 
         let renewHistoryData = null;
-        let shouldUpdateReminders = false;
 
         if (data.endingDate) {
             const newEndingDate = new Date(data.endingDate);
@@ -65,16 +59,19 @@ export async function PUT(req, { params }) {
                 // Calculate the difference in days
                 const diffInDays = Math.floor((newEndingDate - currentEndingDate) / (1000 * 60 * 60 * 24));
 
-                // Determine renewal type based on date difference
-                let renewalType;
-                if (diffInDays >= 365) {
-                    renewalType = "1year";
-                } else if (diffInDays >= 180 && diffInDays < 365) {
-                    renewalType = "6months";
-                } else if (diffInDays >= 28 && diffInDays < 180) {
-                    renewalType = "1month";
-                } else {
-                    renewalType = "custom";
+                const allowedRenewalTypes = new Set(["1month", "6months", "1year", "2years", "3years", "custom"]);
+                let renewalType = data.renewalType;
+
+                if (!allowedRenewalTypes.has(renewalType)) {
+                    if (diffInDays >= 365) {
+                        renewalType = "1year";
+                    } else if (diffInDays >= 180 && diffInDays < 365) {
+                        renewalType = "6months";
+                    } else if (diffInDays >= 28 && diffInDays < 180) {
+                        renewalType = "1month";
+                    } else {
+                        renewalType = "custom";
+                    }
                 }
 
                 renewHistoryData = {
@@ -84,11 +81,6 @@ export async function PUT(req, { params }) {
                     newEndDate: newEndingDate,
                     serviceId: id,
                 };
-
-                shouldUpdateReminders = true;
-            } else if (data.paymentType !== existingService.paymentType) {
-                // If changing payment type (especially to/from unlimited), update reminders
-                shouldUpdateReminders = true;
             }
         }
 
@@ -114,35 +106,6 @@ export async function PUT(req, { params }) {
 
         if (renewHistoryData) {
             operations.push(prisma.renewHistory.create({ data: renewHistoryData }));
-        }
-
-        if (shouldUpdateReminders) {
-            // Delete existing reminders
-            operations.push(
-                prisma.reminder.deleteMany({
-                    where: { serviceID: id }
-                })
-            );
-
-            // Only create a new reminder if the service is not unlimited
-            if (data.paymentType !== "unlimited") {
-                // Calculate new reminder date (1 week before new end date)
-                const newEndDate = new Date(data.endingDate);
-                const reminderDate = new Date(newEndDate);
-                reminderDate.setDate(reminderDate.getDate() - 7);
-
-                // Create new reminder
-                operations.push(
-                    prisma.reminder.create({
-                        data: {
-                            scheduledAt: reminderDate,
-                            status: "SCHEDULED",
-                            message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",
-                            serviceID: id,
-                        },
-                    })
-                );
-            }
         }
 
         // Execute all operations in a transaction

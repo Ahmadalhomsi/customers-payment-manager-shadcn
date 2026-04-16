@@ -273,9 +273,8 @@ export function ServiceModal2({
         setFormData((prev) => ({
             ...prev,
             endingDate: end,
-            paymentType: "custom"
+            renewalType: extensionPeriod
         }));
-        setSelectedDuration("custom");
         setEndDateMonth(end);
     };
 

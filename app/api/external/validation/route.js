@@ -178,19 +178,6 @@ async function createTrialService(deviceToken, serviceName, companyName, categor
         }
     });
 
-    // Create a reminder for 2 days before trial expires
-    const reminderDate = new Date(endingDate);
-    reminderDate.setDate(reminderDate.getDate() - 2); // 2 days before expiry
-
-    await prisma.reminder.create({
-        data: {
-            scheduledAt: reminderDate,
-            status: 'SCHEDULED',
-            message: `Your trial service "${serviceName}" will expire in 2 days. Please upgrade to continue using the service.`,
-            serviceID: service.id
-        }
-    });
-
     const responseBody = {
         valid: true,
         newTrialService: true,

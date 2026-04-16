@@ -8,22 +8,14 @@ export async function GET(req, { params }) {
     const token = req.cookies.get("token")?.value;
     const decoded = await verifyJWT(token);
 
-
-    let includeReminders = true;
-    // Check if the user has permission to view customers
+    // Check if the user has permission to view services
     if (!decoded.permissions.canViewServices) {
         return NextResponse.json({ error: 'Forbidden: You do not have permission to view services' }, { status: 403 });
-    }
-    else if (!decoded.permissions.canViewReminders) {
-        includeReminders = false;
     }
 
     try {
         const services = await prisma.service.findMany({
             where: { customerID: customerId }, // Use customerId instead of id
-            include: {
-                reminders: includeReminders,
-            },
             orderBy: {
                 createdAt: 'desc', // Sort by creation date, newest first
             },

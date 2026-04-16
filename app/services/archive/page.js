@@ -169,6 +169,11 @@ export default function ServicesArchivePage() {
   const handleBulkDelete = async (selectedServices) => {
     if (!selectedServices?.length) return
 
+    const confirmed = window.confirm(`${selectedServices.length} arşiv hizmeti kalici olarak silinsin mi?`)
+    if (!confirmed) {
+      return
+    }
+
     try {
       await Promise.all(
         selectedServices.map((service) => axios.delete(`/api/services/${service.id}`))

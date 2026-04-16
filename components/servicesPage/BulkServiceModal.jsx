@@ -132,7 +132,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
   const [startingDate, setStartingDate] = useState(new Date())
   const [companyName, setCompanyName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [servicePaymentTypes, setServicePaymentTypes] = useState({})
   const [serviceCounts, setServiceCounts] = useState({})
 
   // Set selected customer when prop changes
@@ -165,7 +164,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
       setCurrency('TL')
       setStartingDate(new Date())
       setIsSubmitting(false)
-      setServicePaymentTypes({})
       setServiceCounts({})
     }
   }, [visible, selectedCustomer])
@@ -175,15 +173,11 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
     // Filter out locked categories from quick selection
     const availableCategories = group.categories.filter(cat => !SERVICE_CATEGORIES[cat].locked)
     
-    // Set categories and initialize their payment types
-    const newServicePaymentTypes = {}
     const newServiceCounts = {}
     availableCategories.forEach(categoryKey => {
-      newServicePaymentTypes[categoryKey] = '1year' // Default to yearly
       newServiceCounts[categoryKey] = 1 // Default to 1 service
     })
-    
-    setServicePaymentTypes(newServicePaymentTypes)
+
     setServiceCounts(newServiceCounts)
     setSelectedCategories(availableCategories)
   }
@@ -191,20 +185,12 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
   const handleCategoryToggle = (categoryKey) => {
     setSelectedCategories(prev => {
       if (prev.includes(categoryKey)) {
-        // Remove category and its payment type
-        const newServicePaymentTypes = { ...servicePaymentTypes }
         const newServiceCounts = { ...serviceCounts }
-        delete newServicePaymentTypes[categoryKey]
         delete newServiceCounts[categoryKey]
-        setServicePaymentTypes(newServicePaymentTypes)
         setServiceCounts(newServiceCounts)
         return prev.filter(cat => cat !== categoryKey)
       } else {
-        // Add category with default payment type and count
-        setServicePaymentTypes(prev => ({
-          ...prev,
-          [categoryKey]: '1year' // Default to yearly
-        }))
+        // Add category with default count
         setServiceCounts(prev => ({
           ...prev,
           [categoryKey]: 1 // Default to 1 service
@@ -219,13 +205,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
       const count = serviceCounts[categoryKey] || 1
       return total + count
     }, 0)
-  }
-
-  const handlePaymentTypeChange = (categoryKey, newPaymentType) => {
-    setServicePaymentTypes(prev => ({
-      ...prev,
-      [categoryKey]: newPaymentType
-    }))
   }
 
   const handleCountChange = (categoryKey, newCount) => {
@@ -294,7 +273,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
       
       selectedCategories.forEach(categoryKey => {
         const category = SERVICE_CATEGORIES[categoryKey]
-        const paymentType = servicePaymentTypes[categoryKey] || '1year'
+        const paymentType = '1year'
         const count = serviceCounts[categoryKey] || 1
 
         const endDate = getEndDateForService(paymentType, startingDate)
@@ -505,7 +484,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                   <div className="grid gap-3">
                     {selectedCategories.map(categoryKey => {
                       const category = SERVICE_CATEGORIES[categoryKey]
-                      const paymentType = servicePaymentTypes[categoryKey] || '1year'
                       const count = serviceCounts[categoryKey] || 1
                       
                       return (
@@ -531,25 +509,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                                 className="w-16 h-8 text-sm text-center"
                               />
                             </div>
-                            <Select
-                              value={paymentType}
-                              onValueChange={(value) => handlePaymentTypeChange(categoryKey, value)}
-                            >
-                              <SelectTrigger className="w-36 h-8 text-sm">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="1month">1 Ay</SelectItem>
-                                <SelectItem value="6months">6 Ay</SelectItem>
-                                <SelectItem value="1year">1 Yıl</SelectItem>
-                                <SelectItem value="2years">2 Yıl</SelectItem>
-                                <SelectItem value="3years">3 Yıl</SelectItem>
-                                {!category.noUnlimited && (
-                                  <SelectItem value="unlimited">Sınırsız</SelectItem>
-                                )}
-                                <SelectItem value="custom">Özel</SelectItem>
-                              </SelectContent>
-                            </Select>
                             {!category.locked && (
                               <Button
                                 variant="ghost"
@@ -640,7 +599,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
               
               <div className="mt-4 p-3 bg-gray-50 border rounded-lg dark:bg-gray-950/20 dark:border-gray-800">
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  <strong>Not:</strong> Bitiş tarihleri her hizmetin kendi ödeme tipine göre otomatik olarak hesaplanacaktır.
+                  <strong>Not:</strong> Bitiş tarihleri tum hizmetler icin 1 yil olarak hesaplanacaktir.
                 </div>
               </div>
             </CardContent>

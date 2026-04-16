@@ -1,6 +1,5 @@
 import { verifyJWT } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
-import { subWeeks } from 'date-fns';
 import { NextResponse } from 'next/server';
 import { createTurkishSearchConditions, createTurkishNestedSearchConditions } from '@/lib/turkish-utils';
 
@@ -69,22 +68,6 @@ export async function POST(req) {
                 }
             }
         });
-
-        // Only create a reminder if the service is not unlimited
-        if (paymentType !== "unlimited") {
-            // Calculate the reminder date (one week before the service ends)
-            const reminderDate = subWeeks(serviceEndDate, 1);
-
-            // Create a reminder for one week before the service ends
-            await prisma.reminder.create({
-                data: {
-                    scheduledAt: reminderDate,
-                    status: "SCHEDULED",
-                    message: "Hizmetiniz bir hafta içinde sona eriyor! Kesintiyi önlemek için lütfen yenileyin.",  // Özel mesaj
-                    serviceID: service.id,
-                },
-            });
-        }
 
         return NextResponse.json(service, { status: 201 });
     } catch (error) {

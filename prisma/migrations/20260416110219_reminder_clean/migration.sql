@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Service" ALTER COLUMN "endingDate" SET DEFAULT (CURRENT_TIMESTAMP + INTERVAL '1 year');

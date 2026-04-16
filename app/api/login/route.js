@@ -49,7 +49,7 @@ export async function POST(req) {
     // Extract permissions from the admin object
     const {
       canViewCustomers, canEditCustomers, canViewServices, canEditServices,
-      canViewReminders, canEditReminders, canViewAdmins, canEditAdmins,
+      canViewAdmins, canEditAdmins,
       canSeePasswords, canViewPhysicalProducts, canEditPhysicalProducts
     } = admin;
 
@@ -61,7 +61,7 @@ export async function POST(req) {
         id: admin.id,
         permissions: {
           canViewCustomers, canEditCustomers, canViewServices, canEditServices,
-          canViewReminders, canEditReminders, canViewAdmins, canEditAdmins,
+          canViewAdmins, canEditAdmins,
           canSeePasswords, canViewPhysicalProducts, canEditPhysicalProducts
         }
       },

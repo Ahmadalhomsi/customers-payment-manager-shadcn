@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, CalendarCheck2, Plus, Copy, Key } from "lucide-react";
+import { Edit, Trash2, Plus, Copy, Key } from "lucide-react";
 import { BeatLoader } from 'react-spinners';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { copyToClipboard } from '@/lib/clipboard';
@@ -42,7 +42,6 @@ export function ServicesViewModal({
   selectedCustomer,
   onEditService,
   onDeleteService,
-  onViewReminders,
   onAddService,
 }) {
   // Check if any service has a deviceToken
@@ -230,13 +229,6 @@ export function ServicesViewModal({
                             onClick={() => onDeleteService(service)}
                           >
                             <Trash2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onViewReminders(service)}
-                          >
-                            <CalendarCheck2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>

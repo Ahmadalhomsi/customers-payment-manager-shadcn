@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { addYears, subWeeks } from 'date-fns';
+import { addYears } from 'date-fns';
 
 // Password validation function
 const validatePassword = (password) => {
@@ -82,17 +82,6 @@ export async function POST(request) {
                 startingDate: startingDate,
                 endingDate: endingDate,
                 currency: 'TL',
-            },
-        });
-
-        const reminderDate = subWeeks(endingDate, 1);
-
-        await prisma.reminder.create({
-            data: {
-                scheduledAt: reminderDate,
-                status: "SCHEDULED",
-                message: "Your service will expire in one week! Please renew to avoid interruption.",
-                serviceID: newService.id,
             },
         });
 
