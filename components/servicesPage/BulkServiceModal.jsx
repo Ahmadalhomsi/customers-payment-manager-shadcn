@@ -34,6 +34,13 @@ const SERVICE_CATEGORIES = {
     color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
     noUnlimited: true
   },
+  'Platform Entegrasyon': {
+    name: 'Platform Entegrasyon',
+    defaultPrice: 490,
+    description: 'Platform entegrasyon hizmeti',
+    color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+    noUnlimited: true
+  },
   'Kurye Sipariş Uygulaması': {
     name: 'Kurye Sipariş Uygulaması',
     defaultPrice: 990,
@@ -207,22 +214,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
     })
   }
 
-  const calculateTotalPrice = () => {
-    return selectedCategories.reduce((total, categoryKey) => {
-      const category = SERVICE_CATEGORIES[categoryKey]
-      const paymentType = servicePaymentTypes[categoryKey] || '1year'
-      const count = serviceCounts[categoryKey] || 1
-      
-      let price = category.defaultPrice
-      // Use unlimited price if payment type is unlimited and category supports it
-      if (paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited) {
-        price = category.unlimitedPrice
-      }
-      
-      return total + (price * count)
-    }, 0)
-  }
-
   const calculateTotalServiceCount = () => {
     return selectedCategories.reduce((total, categoryKey) => {
       const count = serviceCounts[categoryKey] || 1
@@ -305,12 +296,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
         const category = SERVICE_CATEGORIES[categoryKey]
         const paymentType = servicePaymentTypes[categoryKey] || '1year'
         const count = serviceCounts[categoryKey] || 1
-        
-        let price = category.defaultPrice
-        // Use unlimited price if payment type is unlimited and category supports it
-        if (paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited) {
-          price = category.unlimitedPrice
-        }
 
         const endDate = getEndDateForService(paymentType, startingDate)
         
@@ -322,7 +307,7 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
             companyName: customerCompanyName,
             category: categoryKey,
             paymentType,
-            periodPrice: price,
+            periodPrice: 0,
             currency,
             customerID: selectedCustomerId, // Keep as string, don't parse to int
             startingDate: startingDate.toISOString(),
@@ -459,13 +444,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
               {Object.entries(SERVICE_CATEGORIES).map(([key, category]) => {
                 const isLocked = category.locked
                 const isSelected = selectedCategories.includes(key)
-                const paymentType = servicePaymentTypes[key] || '1year'
-                let displayPrice = category.defaultPrice
-                
-                // Calculate display price based on individual payment type
-                if (paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited) {
-                  displayPrice = category.unlimitedPrice
-                }
                 
                 return (
                   <Card 
@@ -504,23 +482,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold">
-                            {isLocked ? (
-                              <div className="text-center">
-                                <div>₺{category.defaultPrice}</div>
-                                <div className="text-xs text-muted-foreground">Yıllık Kiralık</div>
-                                <div className="mt-1">₺{category.unlimitedPrice}</div>
-                                <div className="text-xs text-muted-foreground">Süresiz Lisans</div>
-                              </div>
-                            ) : (
-                              <div className="text-center">
-                                <div>₺{displayPrice}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {paymentType === 'unlimited' ? 'Süresiz Lisans' : 'Yıllık'}
-                                </div>
-                              </div>
-                            )}
-                          </div>
                           <Badge className={category.color}>
                             {category.name.split(' ')[0]}
                           </Badge>
@@ -547,11 +508,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                       const paymentType = servicePaymentTypes[categoryKey] || '1year'
                       const count = serviceCounts[categoryKey] || 1
                       
-                      let currentPrice = category.defaultPrice
-                      if (paymentType === 'unlimited' && category.unlimitedPrice && !category.noUnlimited) {
-                        currentPrice = category.unlimitedPrice
-                      }
-                      
                       return (
                         <div key={categoryKey} className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center gap-3">
@@ -561,9 +517,6 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                             <span className="text-sm text-muted-foreground">
                               {category.description}
                             </span>
-                            <div className="text-sm font-medium">
-                              ₺{currentPrice} × {count} = ₺{(currentPrice * count).toFixed(2)}
-                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-1">
@@ -612,14 +565,8 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
                       )
                     })}
                   </div>
-                  <div className="pt-3 border-t">
-                    <div className="text-xl font-bold text-primary flex items-center justify-between">
-                      <span>Toplam Fiyat:</span>
-                      <span>₺{calculateTotalPrice().toFixed(2)}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {calculateTotalServiceCount()} hizmet oluşturulacak - Fiyatlar seçilen ödeme tiplerine ve adetlere göre hesaplanmıştır
-                    </div>
+                  <div className="pt-3 border-t text-sm text-muted-foreground">
+                    {calculateTotalServiceCount()} hizmet oluşturulacak.
                   </div>
                 </div>
               </CardContent>
@@ -705,13 +652,13 @@ export function BulkServiceModal({ visible, onClose, onSubmit, customers = [], s
               İptal
             </Button>
             <Button 
-              type="button" 
+              type="button"
               disabled={isSubmitting || customers.length === 0 || selectedCategories.length === 0}
               onClick={handleSubmit}
             >
               {isSubmitting ? 'Oluşturuluyor...' : 
                 selectedCategories.length > 0 
-                  ? `${calculateTotalServiceCount()} Hizmet Oluştur (₺${calculateTotalPrice().toFixed(2)})` 
+                  ? `${calculateTotalServiceCount()} Hizmet Oluştur`
                   : 'Hizmet Seç'
               }
             </Button>

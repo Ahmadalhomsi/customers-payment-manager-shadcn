@@ -58,6 +58,7 @@ const paymentTypeLabels = {
 const categoryColors = {
     'Adisyon Programı': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
     'Digital Menü': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    'Platform Entegrasyon': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
     'QR Menu': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300', // Legacy support
     'Kurye Sipariş Uygulaması': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
     'Kurye Uygulaması': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300', // Legacy support
@@ -103,6 +104,7 @@ export function ServiceTable({
     // Add bulk convert prop
     onBulkConvert,
     onBulkArchive,
+    onBulkDelete,
     archiveActionLabel = 'Arşive taşı'
 }) {
     // Remove client-side filter states - they'll come from props now
@@ -120,6 +122,7 @@ export function ServiceTable({
         const colorMap = {
             'Adisyon Programı': 'text-blue-600',
             'Digital Menü': 'text-green-600',
+            'Platform Entegrasyon': 'text-emerald-600',
             'QR Menu': 'text-green-600', // Legacy support
             'Kurye Sipariş Uygulaması': 'text-cyan-600',
             'Kurye Uygulaması': 'text-cyan-600', // Legacy support
@@ -211,6 +214,16 @@ export function ServiceTable({
         setSelectedServiceIds([]);
     };
 
+    const handleBulkDeleteClick = async () => {
+        if (!onBulkDelete) {
+            return;
+        }
+
+        const selected = services.filter((s) => selectedServiceIds.includes(s.id));
+        await onBulkDelete(selected);
+        setSelectedServiceIds([]);
+    };
+
 
     return (
         <TooltipProvider>
@@ -236,6 +249,16 @@ export function ServiceTable({
                                 >
                                     <Archive className="mr-2 h-4 w-4" />
                                     {archiveActionLabel}
+                                </Button>
+                            )}
+                            {onBulkDelete && (
+                                <Button
+                                    size="sm"
+                                    onClick={handleBulkDeleteClick}
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Seçilenleri Sil
                                 </Button>
                             )}
                             <Button
