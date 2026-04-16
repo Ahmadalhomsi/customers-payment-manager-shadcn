@@ -166,6 +166,22 @@ export default function ServicesArchivePage() {
     }
   }
 
+  const handleBulkDelete = async (selectedServices) => {
+    if (!selectedServices?.length) return
+
+    try {
+      await Promise.all(
+        selectedServices.map((service) => axios.delete(`/api/services/${service.id}`))
+      )
+
+      toast.success(`${selectedServices.length} arşiv hizmeti silindi`)
+      fetchServices(pagination.page, searchTerm, sortBy, sortOrder)
+    } catch (error) {
+      console.error('Error deleting archived services:', error)
+      toast.error('Arşiv hizmetleri silinirken hata oluştu')
+    }
+  }
+
   const fetchRenewHistory = async (serviceId) => {
     try {
       setLoadingHistory(true)
@@ -305,6 +321,7 @@ export default function ServicesArchivePage() {
             setRenewHistoryOpen(true)
           }}
           onBulkArchive={handleBulkUnarchive}
+          onBulkDelete={handleBulkDelete}
           archiveActionLabel="Arşivden çıkar"
         />
 
