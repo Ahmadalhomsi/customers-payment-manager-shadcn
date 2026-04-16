@@ -34,6 +34,7 @@ const PAYMENT_TYPES = [
 
 const SERVICE_CATEGORIES = [
   { value: "Adisyon Programı", label: "Adisyon Programı", color: "text-blue-600" },
+  { value: "Platform Entegrasyon", label: "Platform Entegrasyon", color: "text-emerald-600" },
   { value: "QR Menu", label: "QR Menu", color: "text-green-600" },
   { value: "Kurye Uygulaması", label: "Kurye Uygulaması", color: "text-cyan-600" },
   { value: "Patron Uygulaması", label: "Patron Uygulaması", color: "text-purple-600" },
